@@ -41,6 +41,13 @@ let extensionContext: vscode.ExtensionContext
 // This method is called when your extension is activated.
 // Your extension is activated the very first time the command is executed.
 export async function activate(context: vscode.ExtensionContext) {
+	// ADDED LINES BEGIN - Minimal addition for MageCode mode
+	const magecodeEnabled = vscode.workspace.getConfiguration("roo-code").get("magecode.enabled", true)
+	if (magecodeEnabled) {
+		const { initializeMageCode } = require("./magecode/initialize")
+		await initializeMageCode(context) // Handles all MageCode initialization
+	}
+	// ADDED LINES END
 	extensionContext = context
 	outputChannel = vscode.window.createOutputChannel("Roo-Code")
 	context.subscriptions.push(outputChannel)

@@ -1555,4 +1555,49 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 
 		return properties
 	}
+
+	// Placeholder for original dependency creation logic
+	private _originalCreateDependencies() {
+		// TODO: Implement or identify original dependency creation logic
+		console.warn("[MageCode Integration] _originalCreateDependencies not implemented")
+		return null // Placeholder
+	}
+
+	// Placeholder for original task execution logic
+	private async _originalRunTask(task: any): Promise<any> {
+		// TODO: Implement or identify original task execution logic
+		console.warn("[MageCode Integration] _originalRunTask not implemented")
+		// This likely involves creating and running the original Cline instance
+		return Promise.reject("Original task execution not implemented") // Placeholder
+	}
+
+	// MageCode Integration: Dependency Factory Dispatch
+	private _createAgentDependencies() {
+		// Use require for conditional loading based on mode
+		const { isMageCodeEnabled } = require("../../magecode/config/settings")
+		if (isMageCodeEnabled()) {
+			const { createMageCodeDependencies } = require("../../magecode/factory")
+			return createMageCodeDependencies()
+		}
+		// Fallback to original logic if MageCode is disabled
+		return this._originalCreateDependencies()
+	}
+
+	// MageCode Integration: Task Dispatch
+	private async _dispatchAgentTask(task: any): Promise<any> {
+		// Using 'any' for TaskInput/TaskResult placeholders
+		// Use require for conditional loading based on mode
+		const { isMageCodeEnabled } = require("../../magecode/config/settings")
+		const deps = this._createAgentDependencies()
+
+		if (isMageCodeEnabled()) {
+			const { MageCodeAgent } = require("../../magecode/agent")
+			// Ensure dependencies are correctly passed if needed by MageCodeAgent constructor
+			const agent = new MageCodeAgent(deps)
+			return await agent.runTask(task)
+		}
+
+		// Fallback to original logic if MageCode is disabled
+		return await this._originalRunTask(task)
+	}
 }

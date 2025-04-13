@@ -346,6 +346,17 @@
 					"default": "",
 					"description": "Custom storage path. Leave empty to use the default location. Supports absolute paths (e.g. 'D:\\RooCodeStorage')"
 				}
+			},
+			"roo-code": {
+				"type": "object",
+				"properties": {
+					"magecode.enabled": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enable MageCode agent mode for enhanced token efficiency",
+						"scope": "window"
+					}
+				}
 			}
 		}
 	},
