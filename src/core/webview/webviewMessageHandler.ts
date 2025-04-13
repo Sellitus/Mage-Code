@@ -215,7 +215,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					])
 				})
 				.catch((error) =>
-					console.log(
+					provider.log(
 						`Error list api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					),
 				)
@@ -238,7 +238,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			// Could also do this in extension .ts
 			//provider.postMessageToWebview({ type: "text", text: `Extension: ${Date.now()}` })
 			// initializing new instance of Cline will make sure that any agentically running promises in old instance don't affect our new task. this essentially creates a fresh slate for the new task
-			await provider.initClineWithTask(message.text ?? "", message.images)
+			await provider.initClineWithTask(message.text, message.images)
 			break
 		case "apiConfiguration":
 			if (message.apiConfiguration) {
@@ -319,7 +319,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			if (Array.isArray(ids)) {
 				// Process in batches of 20 (or another reasonable number)
 				const batchSize = 20
-				const results: { id: string; success: boolean }[] = []
+				const results = []
 
 				// Only log start and end of the operation
 				console.log(`Batch deletion started: ${ids.length} tasks total`)
@@ -367,7 +367,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			})
 
 			if (success) {
-				/* provider.settingsImportedAt = Date.now() // FIXME: settingsImportedAt removed */
+				provider.settingsImportedAt = Date.now()
 				await provider.postStateToWebview()
 				await vscode.window.showInformationMessage(t("common:info.settings_imported"))
 			}
@@ -537,12 +537,12 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 
 			try {
-				console.log(`Attempting to delete MCP server: ${message.serverName}`)
+				provider.log(`Attempting to delete MCP server: ${message.serverName}`)
 				await provider.getMcpHub()?.deleteServer(message.serverName, message.source as "global" | "project")
-				console.log(`Successfully deleted MCP server: ${message.serverName}`)
+				provider.log(`Successfully deleted MCP server: ${message.serverName}`)
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
-				console.log(`Failed to delete MCP server: ${errorMessage}`)
+				provider.log(`Failed to delete MCP server: ${errorMessage}`)
 				// Error messages are already handled by McpHub.deleteServer
 			}
 			break
@@ -551,7 +551,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			try {
 				await provider.getMcpHub()?.restartConnection(message.text!, message.source as "global" | "project")
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Failed to retry connection for ${message.text}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
@@ -568,7 +568,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						Boolean(message.alwaysAllow),
 					)
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Failed to toggle auto-approve for tool ${message.toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
@@ -584,7 +584,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						message.source as "global" | "project",
 					)
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Failed to toggle MCP server ${message.serverName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
@@ -792,7 +792,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				await updateGlobalState("customSupportPrompts", updatedPrompts)
 				await provider.postStateToWebview()
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Error update support prompt: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 				vscode.window.showErrorMessage(t("common:errors.update_support_prompt"))
@@ -810,7 +810,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				await updateGlobalState("customSupportPrompts", updatedPrompts)
 				await provider.postStateToWebview()
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Error reset support prompt: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 				vscode.window.showErrorMessage(t("common:errors.reset_support_prompt"))
@@ -1020,7 +1020,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						text: enhancedPrompt,
 					})
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error enhancing prompt: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.enhance_prompt"))
@@ -1040,7 +1040,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					mode: message.mode,
 				})
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Error getting system prompt:  ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 				vscode.window.showErrorMessage(t("common:errors.get_system_prompt"))
@@ -1053,7 +1053,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				await vscode.env.clipboard.writeText(systemPrompt)
 				await vscode.window.showInformationMessage(t("common:info.clipboard_copy"))
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Error getting system prompt:  ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 				vscode.window.showErrorMessage(t("common:errors.get_system_prompt"))
@@ -1069,7 +1069,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						commits,
 					})
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error searching commits: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.search_commits"))
@@ -1124,7 +1124,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					const listApiConfig = await provider.providerSettingsManager.listConfig()
 					await updateGlobalState("listApiConfigMeta", listApiConfig)
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error save api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.save_api_config"))
@@ -1166,7 +1166,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 					await provider.postStateToWebview()
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error rename api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.rename_api_config"))
@@ -1187,7 +1187,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 					await provider.postStateToWebview()
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error load api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.load_api_config"))
@@ -1210,7 +1210,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 					await provider.postStateToWebview()
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error load api configuration by ID: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.load_api_config"))
@@ -1249,7 +1249,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 					await provider.postStateToWebview()
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Error delete api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.delete_api_config"))
@@ -1262,7 +1262,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				await updateGlobalState("listApiConfigMeta", listApiConfig)
 				provider.postMessageToWebview({ type: "listApiConfig", listApiConfig })
 			} catch (error) {
-				console.log(
+				provider.log(
 					`Error get list api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 				vscode.window.showErrorMessage(t("common:errors.list_api_config"))
@@ -1294,7 +1294,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 							message.source as "global" | "project",
 						)
 				} catch (error) {
-					console.log(
+					provider.log(
 						`Failed to update timeout for ${message.serverName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 					)
 					vscode.window.showErrorMessage(t("common:errors.update_server_timeout"))

@@ -59,6 +59,6 @@ export async function fetchInstructionsTool(
 			pushToolResult(content)
 		}
 	} catch (error) {
-		await handleError("fetch instructions", error as Error)
+		await handleError("fetch instructions", error)
 	}
 }

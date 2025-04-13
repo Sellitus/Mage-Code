@@ -179,7 +179,7 @@ export async function applyDiffTool(
 			return
 		}
 	} catch (error) {
-		await handleError("applying diff", error as Error)
+		await handleError("applying diff", error)
 		await cline.diffViewProvider.reset()
 		return
 	}

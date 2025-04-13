@@ -125,7 +125,7 @@ export const openClineInNewTab = async ({ context, outputChannel }: Omit<Registe
 	// deserialize cached webview, but since we use retainContextWhenHidden, we
 	// don't need to use that event).
 	// https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
-	const tabProvider = new ClineProvider(context, outputChannel)
+	const tabProvider = new ClineProvider(context, outputChannel, "editor")
 	const lastCol = Math.max(...vscode.window.visibleTextEditors.map((editor) => editor.viewColumn || 0))
 
 	// Check if there are any visible text editors, otherwise open a new group
@@ -154,8 +154,7 @@ export const openClineInNewTab = async ({ context, outputChannel }: Omit<Registe
 		dark: vscode.Uri.joinPath(context.extensionUri, "assets", "icons", "panel_dark.png"),
 	}
 
-	// TODO: Review this call. resolveWebviewView is for WebviewViewProvider, but newPanel is WebviewPanel.
-	// await tabProvider.resolveWebviewView(newPanel as any, /* context? */, /* token? */)
+	await tabProvider.resolveWebviewView(newPanel)
 
 	// Handle panel closing events.
 	newPanel.onDidDispose(() => {

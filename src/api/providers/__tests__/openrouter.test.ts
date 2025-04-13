@@ -1,4 +1,3 @@
-import { ApiStreamChunk } from "../../transform/stream"
 // npx jest src/api/providers/__tests__/openrouter.test.ts
 
 import axios from "axios"
@@ -136,7 +135,7 @@ describe("OpenRouterHandler", () => {
 		const messages: Anthropic.Messages.MessageParam[] = [{ role: "user" as const, content: "test message" }]
 
 		const generator = handler.createMessage(systemPrompt, messages)
-		const chunks: ApiStreamChunk[] = []
+		const chunks = []
 
 		for await (const chunk of generator) {
 			chunks.push(chunk)

@@ -186,7 +186,7 @@ export function applyRunLengthEncoding(content: string): string {
 	let result = ""
 	let pos = 0
 	let repeatCount = 0
-	let prevLine: string | null = null
+	let prevLine = null
 	let firstOccurrence = true
 
 	while (pos < content.length) {

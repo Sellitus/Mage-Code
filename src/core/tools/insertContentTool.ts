@@ -70,7 +70,7 @@ export async function insertContentTool(
 			}
 		} catch (error) {
 			cline.consecutiveMistakeCount++
-			await cline.say("error", `Failed to parse operations JSON: ${(error as Error).message}`)
+			await cline.say("error", `Failed to parse operations JSON: ${error.message}`)
 			pushToolResult(formatResponse.toolError("Invalid operations JSON format"))
 			return
 		}
@@ -161,7 +161,7 @@ export async function insertContentTool(
 		)
 		await cline.diffViewProvider.reset()
 	} catch (error) {
-		handleError("insert content", error as Error)
+		handleError("insert content", error)
 		await cline.diffViewProvider.reset()
 	}
 }

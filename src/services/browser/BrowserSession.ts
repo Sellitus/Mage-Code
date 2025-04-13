@@ -247,7 +247,7 @@ export class BrowserSession {
 			await action(this.page)
 		} catch (err) {
 			if (!(err instanceof TimeoutError)) {
-				logs.push(`[Error] ${String(err)}`)
+				logs.push(`[Error] ${err.toString()}`)
 			}
 		}
 

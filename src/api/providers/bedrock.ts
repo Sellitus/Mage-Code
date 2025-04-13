@@ -630,7 +630,7 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			return this.costModelConfig
 		}
 
-		let modelConfig: { id: BedrockModelId | string; info: SharedModelInfo } | undefined = undefined
+		let modelConfig = undefined
 
 		// If custom ARN is provided, use it
 		if (this.options.awsCustomArn) {
@@ -639,7 +639,6 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			//If the user entered an ARN for a foundation-model they've done the same thing as picking from our list of options.
 			//We leave the model data matching the same as if a drop-down input method was used by not overwriting the model ID with the user input ARN
 			//Otherwise the ARN is not a foundation-model resource type that ARN should be used as the identifier in Bedrock interactions
-			if (!modelConfig) throw new Error("Model config is undefined after getModelById")
 			if (this.arnInfo.modelType !== "foundation-model") modelConfig.id = this.options.awsCustomArn
 		} else {
 			//a model was selected from the drop down
@@ -652,16 +651,13 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 				const prefix = AwsBedrockHandler.getPrefixForRegion(region)
 
 				// Apply the prefix if one was found, otherwise use the model ID as is
-				if (!modelConfig) throw new Error("Model config is undefined before prefix application")
 				modelConfig.id = prefix ? `${prefix}${modelConfig.id}` : modelConfig.id
 			}
 		}
 
-		if (!modelConfig) throw new Error("Model config is undefined before maxTokens assignment")
 		modelConfig.info.maxTokens = modelConfig.info.maxTokens || BEDROCK_MAX_TOKENS
 
-		if (!modelConfig) throw new Error("Model config is undefined at return")
-		return modelConfig
+		return modelConfig as { id: BedrockModelId | string; info: SharedModelInfo }
 	}
 
 	/************************************************************************************

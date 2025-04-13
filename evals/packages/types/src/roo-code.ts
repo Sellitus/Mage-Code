@@ -478,13 +478,6 @@ export const PROVIDER_SETTINGS_KEYS = Object.keys(providerSettingsRecord) as Key
  */
 
 export const globalSettingsSchema = z.object({
-	agentMode: z
-		.enum(["roo-code", "codeweaver"])
-		.optional()
-		.default("roo-code")
-		.describe(
-			"Selects the agent logic mode. 'roo-code' uses the original logic. 'codeweaver' uses the new high-efficiency, local-intelligence mode.",
-		),
 	currentApiConfigName: z.string().optional(),
 	listApiConfigMeta: z.array(apiConfigMetaSchema).optional(),
 	pinnedApiConfigs: z.record(z.string(), z.boolean()).optional(),
@@ -554,7 +547,6 @@ export type GlobalSettings = z.infer<typeof globalSettingsSchema>
 type GlobalSettingsRecord = Record<Keys<GlobalSettings>, undefined>
 
 const globalSettingsRecord: GlobalSettingsRecord = {
-	agentMode: undefined,
 	currentApiConfigName: undefined,
 	listApiConfigMeta: undefined,
 	pinnedApiConfigs: undefined,

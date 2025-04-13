@@ -3,6 +3,7 @@
 // can run `npm run generate-types`.
 
 import { z } from "zod"
+
 import { Equals, Keys, AssertEqual } from "../utils/type-fu"
 
 /**
@@ -30,6 +31,7 @@ export const providerNames = [
 ] as const
 
 export const providerNamesSchema = z.enum(providerNames)
+
 export type ProviderName = z.infer<typeof providerNamesSchema>
 
 /**
@@ -37,7 +39,9 @@ export type ProviderName = z.infer<typeof providerNamesSchema>
  */
 
 export const toolGroups = ["read", "edit", "browser", "command", "mcp", "modes"] as const
+
 export const toolGroupsSchema = z.enum(toolGroups)
+
 export type ToolGroup = z.infer<typeof toolGroupsSchema>
 
 /**
@@ -45,8 +49,11 @@ export type ToolGroup = z.infer<typeof toolGroupsSchema>
  */
 
 export const checkpointStorages = ["task", "workspace"] as const
+
 export const checkpointStoragesSchema = z.enum(checkpointStorages)
+
 export type CheckpointStorage = z.infer<typeof checkpointStoragesSchema>
+
 export const isCheckpointStorage = (value: string): value is CheckpointStorage =>
 	checkpointStorages.includes(value as CheckpointStorage)
 
@@ -73,7 +80,9 @@ export const languages = [
 ] as const
 
 export const languagesSchema = z.enum(languages)
+
 export type Language = z.infer<typeof languagesSchema>
+
 export const isLanguage = (value: string): value is Language => languages.includes(value as Language)
 
 /**
@@ -81,7 +90,9 @@ export const isLanguage = (value: string): value is Language => languages.includ
  */
 
 export const telemetrySettings = ["unset", "enabled", "disabled"] as const
+
 export const telemetrySettingsSchema = z.enum(telemetrySettings)
+
 export type TelemetrySetting = z.infer<typeof telemetrySettingsSchema>
 
 /**
@@ -89,7 +100,9 @@ export type TelemetrySetting = z.infer<typeof telemetrySettingsSchema>
  */
 
 export const reasoningEfforts = ["low", "medium", "high"] as const
+
 export const reasoningEffortsSchema = z.enum(reasoningEfforts)
+
 export type ReasoningEffort = z.infer<typeof reasoningEffortsSchema>
 
 /**
@@ -158,7 +171,10 @@ export const groupOptionsSchema = z.object({
 		.optional()
 		.refine(
 			(pattern) => {
-				if (!pattern) return true // Optional, so empty is valid
+				if (!pattern) {
+					return true // Optional, so empty is valid.
+				}
+
 				try {
 					new RegExp(pattern)
 					return true
@@ -178,6 +194,7 @@ export type GroupOptions = z.infer<typeof groupOptionsSchema>
  */
 
 export const groupEntrySchema = z.union([toolGroupsSchema, z.tuple([toolGroupsSchema, groupOptionsSchema])])
+
 export type GroupEntry = z.infer<typeof groupEntrySchema>
 
 /**
@@ -187,10 +204,15 @@ export type GroupEntry = z.infer<typeof groupEntrySchema>
 const groupEntryArraySchema = z.array(groupEntrySchema).refine(
 	(groups) => {
 		const seen = new Set()
+
 		return groups.every((group) => {
-			// For tuples, check the group name (first element)
+			// For tuples, check the group name (first element).
 			const groupName = Array.isArray(group) ? group[0] : group
-			if (seen.has(groupName)) return false
+
+			if (seen.has(groupName)) {
+				return false
+			}
+
 			seen.add(groupName)
 			return true
 		})
@@ -217,13 +239,19 @@ export const customModesSettingsSchema = z.object({
 	customModes: z.array(modeConfigSchema).refine(
 		(modes) => {
 			const slugs = new Set()
+
 			return modes.every((mode) => {
-				if (slugs.has(mode.slug)) return false
+				if (slugs.has(mode.slug)) {
+					return false
+				}
+
 				slugs.add(mode.slug)
 				return true
 			})
 		},
-		{ message: "Duplicate mode slugs are not allowed" },
+		{
+			message: "Duplicate mode slugs are not allowed",
+		},
 	),
 })
 
@@ -245,6 +273,7 @@ export type PromptComponent = z.infer<typeof promptComponentSchema>
  */
 
 export const customModePromptsSchema = z.record(z.string(), promptComponentSchema.optional())
+
 export type CustomModePrompts = z.infer<typeof customModePromptsSchema>
 
 /**
@@ -252,6 +281,7 @@ export type CustomModePrompts = z.infer<typeof customModePromptsSchema>
  */
 
 export const customSupportPromptsSchema = z.record(z.string(), z.string().optional())
+
 export type CustomSupportPrompts = z.infer<typeof customSupportPromptsSchema>
 
 /**
@@ -259,7 +289,9 @@ export type CustomSupportPrompts = z.infer<typeof customSupportPromptsSchema>
  */
 
 export const experimentIds = ["search_and_replace", "insert_content", "powerSteering"] as const
+
 export const experimentIdsSchema = z.enum(experimentIds)
+
 export type ExperimentId = z.infer<typeof experimentIdsSchema>
 
 /**
@@ -273,6 +305,7 @@ const experimentsSchema = z.object({
 })
 
 export type Experiments = z.infer<typeof experimentsSchema>
+
 type _AssertExperiments = AssertEqual<Equals<ExperimentId, Keys<Experiments>>>
 
 /**
@@ -424,7 +457,6 @@ const providerSettingsRecord: ProviderSettingsRecord = {
 	ollamaBaseUrl: undefined,
 	// VS Code LM
 	vsCodeLmModelSelector: undefined,
-	// LM Studio
 	lmStudioModelId: undefined,
 	lmStudioBaseUrl: undefined,
 	lmStudioDraftModelId: undefined,
@@ -467,10 +499,6 @@ export const PROVIDER_SETTINGS_KEYS = Object.keys(providerSettingsRecord) as Key
  */
 
 export const globalSettingsSchema = z.object({
-	mode: z
-		.union([z.string(), z.enum(["roo-code", "codeweaver"])])
-		.optional()
-		.describe("Mode setting. Supports both legacy string format and new agent mode enum."),
 	currentApiConfigName: z.string().optional(),
 	listApiConfigMeta: z.array(apiConfigMetaSchema).optional(),
 	pinnedApiConfigs: z.record(z.string(), z.boolean()).optional(),
@@ -535,6 +563,7 @@ export const globalSettingsSchema = z.object({
 	mcpEnabled: z.boolean().optional(),
 	enableMcpServerCreation: z.boolean().optional(),
 
+	mode: z.string().optional(),
 	modeApiConfigs: z.record(z.string(), z.string()).optional(),
 	customModes: z.array(modeConfigSchema).optional(),
 	customModePrompts: customModePromptsSchema.optional(),
@@ -547,7 +576,6 @@ export type GlobalSettings = z.infer<typeof globalSettingsSchema>
 type GlobalSettingsRecord = Record<Keys<GlobalSettings>, undefined>
 
 const globalSettingsRecord: GlobalSettingsRecord = {
-	mode: undefined,
 	currentApiConfigName: undefined,
 	listApiConfigMeta: undefined,
 	pinnedApiConfigs: undefined,
@@ -576,7 +604,6 @@ const globalSettingsRecord: GlobalSettingsRecord = {
 	screenshotQuality: undefined,
 	remoteBrowserEnabled: undefined,
 	remoteBrowserHost: undefined,
-	cachedChromeHostUrl: undefined,
 
 	enableCheckpoints: undefined,
 	checkpointStorage: undefined,
@@ -612,11 +639,13 @@ const globalSettingsRecord: GlobalSettingsRecord = {
 	mcpEnabled: undefined,
 	enableMcpServerCreation: undefined,
 
+	mode: undefined,
 	modeApiConfigs: undefined,
 	customModes: undefined,
 	customModePrompts: undefined,
 	customSupportPrompts: undefined,
 	enhancementApiConfigId: undefined,
+	cachedChromeHostUrl: undefined,
 }
 
 export const GLOBAL_SETTINGS_KEYS = Object.keys(globalSettingsRecord) as Keys<GlobalSettings>[]
@@ -626,6 +655,7 @@ export const GLOBAL_SETTINGS_KEYS = Object.keys(globalSettingsRecord) as Keys<Gl
  */
 
 export const rooCodeSettingsSchema = providerSettingsSchema.merge(globalSettingsSchema)
+
 export type RooCodeSettings = GlobalSettings & ProviderSettings
 
 /**
@@ -668,6 +698,7 @@ const secretStateRecord: SecretStateRecord = {
 }
 
 export const SECRET_STATE_KEYS = Object.keys(secretStateRecord) as Keys<SecretState>[]
+
 export const isSecretStateKey = (key: string): key is Keys<SecretState> =>
 	SECRET_STATE_KEYS.includes(key as Keys<SecretState>)
 
@@ -704,11 +735,10 @@ export const clineAsks = [
 ] as const
 
 export const clineAskSchema = z.enum(clineAsks)
+
 export type ClineAsk = z.infer<typeof clineAskSchema>
 
-/**
- * ClineSay
- */
+// ClineSay
 
 export const clineSays = [
 	"task",
@@ -740,6 +770,7 @@ export const clineSays = [
 ] as const
 
 export const clineSaySchema = z.enum(clineSays)
+
 export type ClineSay = z.infer<typeof clineSaySchema>
 
 /**

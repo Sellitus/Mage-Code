@@ -314,7 +314,7 @@ export class TerminalProcess extends EventEmitter<TerminalProcessEvents> {
 				stream = await streamAvailable
 			} catch (error) {
 				// Stream timeout or other error occurred
-				console.error("[Terminal Process] Stream error:", (error as Error).message)
+				console.error("[Terminal Process] Stream error:", error.message)
 
 				// Emit completed event with error message
 				this.emit(

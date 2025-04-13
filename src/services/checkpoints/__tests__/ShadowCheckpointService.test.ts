@@ -503,7 +503,7 @@ describe.each([
 			await newService.initShadowGit()
 
 			// Find the initialize event in the emit calls.
-			let initializeEvent: any = null
+			let initializeEvent = null
 
 			for (let i = 0; i < emitSpy.mock.calls.length; i++) {
 				const call = emitSpy.mock.calls[i]
@@ -519,19 +519,19 @@ describe.each([
 
 			// Verify the event was emitted with the correct data.
 			expect(initializeEvent).not.toBeNull()
-			expect(initializeEvent?.type).toBe("initialize")
-			expect(initializeEvent?.workspaceDir).toBe(workspaceDir)
-			expect(initializeEvent?.baseHash).toBeTruthy()
-			expect(typeof initializeEvent?.created).toBe("boolean")
-			expect(typeof initializeEvent?.duration).toBe("number")
+			expect(initializeEvent.type).toBe("initialize")
+			expect(initializeEvent.workspaceDir).toBe(workspaceDir)
+			expect(initializeEvent.baseHash).toBeTruthy()
+			expect(typeof initializeEvent.created).toBe("boolean")
+			expect(typeof initializeEvent.duration).toBe("number")
 
 			// Verify the event was emitted with the correct data.
 			expect(initializeEvent).not.toBeNull()
-			expect(initializeEvent?.type).toBe("initialize")
-			expect(initializeEvent?.workspaceDir).toBe(workspaceDir)
-			expect(initializeEvent?.baseHash).toBeTruthy()
-			expect(typeof initializeEvent?.created).toBe("boolean")
-			expect(typeof initializeEvent?.duration).toBe("number")
+			expect(initializeEvent.type).toBe("initialize")
+			expect(initializeEvent.workspaceDir).toBe(workspaceDir)
+			expect(initializeEvent.baseHash).toBeTruthy()
+			expect(typeof initializeEvent.created).toBe("boolean")
+			expect(typeof initializeEvent.duration).toBe("number")
 
 			// Clean up.
 			await fs.rm(shadowDir, { recursive: true, force: true })

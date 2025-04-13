@@ -94,7 +94,7 @@ export async function useMcpToolTool(
 			return
 		}
 	} catch (error) {
-		await handleError("executing MCP tool", error as Error)
+		await handleError("executing MCP tool", error)
 		return
 	}
 }

@@ -188,8 +188,6 @@ type ProviderSettings = {
 export type { ProviderSettings }
 
 type GlobalSettings = {
-	/** Mode setting. Supports both legacy string format and new agent mode enum. */
-	mode?: (string | ("roo-code" | "codeweaver")) | undefined
 	currentApiConfigName?: string | undefined
 	listApiConfigMeta?:
 		| {
@@ -310,6 +308,7 @@ type GlobalSettings = {
 	telemetrySetting?: ("unset" | "enabled" | "disabled") | undefined
 	mcpEnabled?: boolean | undefined
 	enableMcpServerCreation?: boolean | undefined
+	mode?: string | undefined
 	modeApiConfigs?:
 		| {
 				[x: string]: string

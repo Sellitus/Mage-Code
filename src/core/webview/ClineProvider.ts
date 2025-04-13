@@ -153,7 +153,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 				await cline.abortTask(true)
 			} catch (e) {
 				this.log(
-					`[subtasks] encountered error while aborting task ${cline.taskId}.${cline.instanceId}: ${(e as Error).message}`,
+					`[subtasks] encountered error while aborting task ${cline.taskId}.${cline.instanceId}: ${e.message}`,
 				)
 			}
 
@@ -567,9 +567,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 				)
 			} catch (error) {
 				checkpoints.enableCheckpoints = false
-				this.log(
-					`[ClineProvider#initClineWithHistoryItem] Error getting task storage: ${(error as Error).message}`,
-				)
+				this.log(`[ClineProvider#initClineWithHistoryItem] Error getting task storage: ${error.message}`)
 			}
 		}
 

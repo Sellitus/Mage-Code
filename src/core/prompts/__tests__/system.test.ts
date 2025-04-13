@@ -35,7 +35,7 @@ __setMockImplementation(
 		mode: string,
 		options?: { language?: string },
 	) => {
-		const sections: string[] = []
+		const sections = []
 
 		// Add language preference if provided
 		if (options?.language) {
@@ -55,7 +55,7 @@ __setMockImplementation(
 		}
 
 		// Add rules
-		const rules: string[] = []
+		const rules = []
 		if (mode) {
 			rules.push(`# Rules from .clinerules-${mode}:\nMock mode-specific rules`)
 		}

@@ -273,7 +273,7 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 			throw new Error("Shadow git repo not initialized")
 		}
 
-		const result: CheckpointDiff[] = []
+		const result = []
 
 		if (!from) {
 			from = (await this.git.raw(["rev-list", "--max-parents=0", "HEAD"])).trim()

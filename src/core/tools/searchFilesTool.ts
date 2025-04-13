@@ -63,7 +63,7 @@ export async function searchFilesTool(
 			return
 		}
 	} catch (error) {
-		await handleError("searching files", error as Error)
+		await handleError("searching files", error)
 		return
 	}
 }

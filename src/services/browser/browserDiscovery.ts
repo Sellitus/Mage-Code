@@ -109,7 +109,7 @@ export async function scanNetworkForChrome(baseIP: string, port: number): Promis
 // Function to discover Chrome instances on the network
 const discoverChromeHosts = async (port: number): Promise<string | null> => {
 	// Get all network interfaces
-	const ipAddresses: string[] = []
+	const ipAddresses = []
 
 	// Try to get Docker host IP
 	const hostIP = await getDockerHostIP()

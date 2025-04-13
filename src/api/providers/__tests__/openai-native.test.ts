@@ -1,4 +1,3 @@
-import { ApiStreamChunk } from "../../transform/stream"
 import { OpenAiNativeHandler } from "../openai-native"
 import { ApiHandlerOptions } from "../../../shared/api"
 import OpenAI from "openai"
@@ -149,7 +148,7 @@ describe("OpenAiNativeHandler", () => {
 			})
 
 			const generator = handler.createMessage(systemPrompt, messages)
-			const results: ApiStreamChunk[] = []
+			const results = []
 			for await (const result of generator) {
 				results.push(result)
 			}
@@ -217,7 +216,7 @@ describe("OpenAiNativeHandler", () => {
 			)
 
 			const generator = handler.createMessage(systemPrompt, messages)
-			const results: ApiStreamChunk[] = []
+			const results = []
 			for await (const result of generator) {
 				results.push(result)
 			}
@@ -257,7 +256,7 @@ describe("OpenAiNativeHandler", () => {
 			)
 
 			const generator = handler.createMessage(systemPrompt, messages)
-			const results: ApiStreamChunk[] = []
+			const results = []
 			for await (const result of generator) {
 				results.push(result)
 			}

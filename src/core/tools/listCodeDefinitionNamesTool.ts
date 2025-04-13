@@ -67,7 +67,7 @@ export async function listCodeDefinitionNamesTool(
 			return
 		}
 	} catch (error) {
-		await handleError("parsing source code definitions", error as Error)
+		await handleError("parsing source code definitions", error)
 		return
 	}
 }

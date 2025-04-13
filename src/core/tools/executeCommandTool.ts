@@ -49,7 +49,7 @@ export async function executeCommandTool(
 			return
 		}
 	} catch (error) {
-		await handleError("executing command", error as Error)
+		await handleError("executing command", error)
 		return
 	}
 }

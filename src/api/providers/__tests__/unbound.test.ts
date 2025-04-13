@@ -1,4 +1,3 @@
-import { ApiStreamChunk } from "../../transform/stream"
 import { UnboundHandler } from "../unbound"
 import { ApiHandlerOptions } from "../../../shared/api"
 import { Anthropic } from "@anthropic-ai/sdk"
@@ -168,7 +167,7 @@ describe("UnboundHandler", () => {
 			})
 
 			const stream = handler.createMessage(systemPrompt, messages)
-			const chunks: ApiStreamChunk[] = []
+			const chunks = []
 
 			try {
 				for await (const chunk of stream) {
@@ -177,7 +176,7 @@ describe("UnboundHandler", () => {
 				fail("Expected error to be thrown")
 			} catch (error) {
 				expect(error).toBeInstanceOf(Error)
-				expect((error as Error).message).toBe("API Error")
+				expect(error.message).toBe("API Error")
 			}
 		})
 	})

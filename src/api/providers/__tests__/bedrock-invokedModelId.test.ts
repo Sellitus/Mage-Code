@@ -63,7 +63,6 @@ jest.mock("@aws-sdk/client-bedrock-runtime", () => {
 })
 
 import { AwsBedrockHandler, StreamEvent } from "../bedrock"
-import { ApiStreamChunk } from "../../transform/stream"
 import { ApiHandlerOptions } from "../../../shared/api"
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime"
 const { fromIni } = require("@aws-sdk/credential-providers")
@@ -160,7 +159,7 @@ describe("AwsBedrockHandler with invokedModelId", () => {
 		const messageGenerator = handler.createMessage("system prompt", [{ role: "user", content: "user message" }])
 
 		// Collect all yielded events to verify usage events
-		const events: ApiStreamChunk[] = []
+		const events = []
 		for await (const event of messageGenerator) {
 			events.push(event)
 		}
