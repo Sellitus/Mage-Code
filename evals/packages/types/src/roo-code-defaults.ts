@@ -1,6 +1,7 @@
 import { RooCodeSettings } from "./roo-code.js"
 
 export const rooCodeDefaults: RooCodeSettings = {
+	agentMode: "roo-code",
 	apiProvider: "openrouter",
 	openRouterModelId: "google/gemini-2.0-flash-001", // "anthropic/claude-3.7-sonnet",
 

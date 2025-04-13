@@ -185,6 +185,8 @@ type ProviderSettings = {
 }
 
 type GlobalSettings = {
+	/** Selects the agent logic mode. 'roo-code' uses the original logic. 'codeweaver' uses the new high-efficiency, local-intelligence mode. */
+	agentMode?: "roo-code" | "codeweaver"
 	currentApiConfigName?: string | undefined
 	listApiConfigMeta?:
 		| {
