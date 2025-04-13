@@ -29,35 +29,47 @@ const copyWasmFiles = {
 	name: "copy-wasm-files",
 	setup(build) {
 		build.onEnd(() => {
-			// tree sitter
-			const sourceDir = path.join(__dirname, "node_modules", "web-tree-sitter")
-			const targetDir = path.join(__dirname, "dist")
+			// --- Main tree-sitter WASM ---
+			const webTreeSitterDir = path.join(__dirname, "node_modules", "web-tree-sitter")
+			const distDir = path.join(__dirname, "dist")
 
-			// Copy tree-sitter.wasm
-			fs.copyFileSync(path.join(sourceDir, "tree-sitter.wasm"), path.join(targetDir, "tree-sitter.wasm"))
+			// Ensure dist directory exists
+			if (!fs.existsSync(distDir)) {
+				fs.mkdirSync(distDir, { recursive: true })
+			}
 
-			// Copy language-specific WASM files
-			const languageWasmDir = path.join(__dirname, "node_modules", "tree-sitter-wasms", "out")
-			const languages = [
-				"typescript",
-				"tsx",
-				"python",
-				"rust",
-				"javascript",
-				"go",
-				"cpp",
-				"c",
-				"c_sharp",
-				"ruby",
-				"java",
-				"php",
-				"swift",
-				"kotlin",
-			]
+			// Copy tree-sitter.wasm needed by web-tree-sitter library itself
+			const mainWasmSource = path.join(webTreeSitterDir, "tree-sitter.wasm")
+			const mainWasmDest = path.join(distDir, "tree-sitter.wasm")
+			if (fs.existsSync(mainWasmSource)) {
+				fs.copyFileSync(mainWasmSource, mainWasmDest)
+				console.log(`Copied ${mainWasmSource} to ${mainWasmDest}`)
+			} else {
+				console.warn(`Warning: Main tree-sitter.wasm not found at ${mainWasmSource}`)
+			}
 
-			languages.forEach((lang) => {
+			// --- MageCode Language Grammars ---
+			const mageCodeGrammarSourceDir = path.join(__dirname, "src", "magecode", "assets", "grammars")
+			const mageCodeGrammarTargetDir = path.join(distDir, "grammars")
+
+			// Ensure target grammar directory exists
+			if (!fs.existsSync(mageCodeGrammarTargetDir)) {
+				fs.mkdirSync(mageCodeGrammarTargetDir, { recursive: true })
+			}
+
+			const mageCodeLanguages = ["javascript", "python", "typescript"]
+
+			mageCodeLanguages.forEach((lang) => {
 				const filename = `tree-sitter-${lang}.wasm`
-				fs.copyFileSync(path.join(languageWasmDir, filename), path.join(targetDir, filename))
+				const sourceFile = path.join(mageCodeGrammarSourceDir, filename)
+				const destFile = path.join(mageCodeGrammarTargetDir, filename)
+
+				if (fs.existsSync(sourceFile)) {
+					fs.copyFileSync(sourceFile, destFile)
+					console.log(`Copied ${sourceFile} to ${destFile}`)
+				} else {
+					console.warn(`Warning: MageCode grammar file not found at ${sourceFile}`)
+				}
 			})
 		})
 	},
