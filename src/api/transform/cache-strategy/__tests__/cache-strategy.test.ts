@@ -1,3 +1,4 @@
+import { ApiStreamChunk } from "../../stream"
 import { MultiPointStrategy } from "../multi-point-strategy"
 import { CacheStrategy } from "../base-strategy"
 import { CacheStrategyConfig, ModelInfo, CachePointPlacement } from "../types"
@@ -618,7 +619,7 @@ describe("Cache Strategy", () => {
 
 			// Call the method that uses convertToBedrockConverseMessages
 			const stream = handler.createMessage(systemPrompt, mockMessages)
-			const chunks = []
+			const chunks: ApiStreamChunk[] = []
 
 			for await (const chunk of stream) {
 				chunks.push(chunk)

@@ -1,107 +1,88 @@
-import * as vscode from "vscode"
-
-/**
- * Type for the agent mode setting
- */
 export type AgentMode = "roo-code" | "codeweaver"
 
+export interface CodeWeaverSettings {
+	mode: AgentMode
+	model?: string
+	temperature?: number
+	maxTokens?: number
+	apiProvider?: string
+	anthropicApiKey?: string
+	enabled?: boolean
+	syncConcurrency?: number
+	debugMode?: boolean
+	telemetryEnabled?: boolean
+	customModelsPath?: string
+}
+
+const defaultSettings: CodeWeaverSettings = {
+	mode: "roo-code",
+	model: "claude-2.1",
+	temperature: 0.7,
+	maxTokens: 4000,
+	apiProvider: "anthropic",
+	enabled: true,
+	syncConcurrency: 1,
+	debugMode: false,
+	telemetryEnabled: true,
+}
+
+let currentSettings: CodeWeaverSettings = { ...defaultSettings }
+
 /**
- * Weights for different relevancy components
+ * Gets the current CodeWeaver settings
+ * @returns The current settings
  */
-export interface RelevancyWeights {
-	graph: number
-	vector: number
-	lexical: number
-	sourceBoost: number
+export function getCodeWeaverSettings(): CodeWeaverSettings {
+	return { ...currentSettings }
 }
 
 /**
- * CodeWeaver-specific settings interface
+ * Gets the current agent mode
+ * @returns The current agent mode
  */
-export interface CodeWeaverSpecificSettings {
-	localEmbeddingModelFilename: string | null
-	localLLMFilename: string | null
-	maxContextSnippets: number
-	relevancyWeights: RelevancyWeights
-	syncConcurrency: number
+export function getAgentMode(): AgentMode {
+	return currentSettings.mode
 }
 
 /**
- * Complete CodeWeaver settings interface including enabled state
+ * Sets the current agent mode
+ * @param mode The mode to set
  */
-export interface CodeWeaverSettings extends CodeWeaverSpecificSettings {
-	enabled: boolean
+export function setAgentMode(mode: AgentMode): void {
+	currentSettings.mode = mode
 }
 
-// Helper to get VS Code configuration
-function getConfiguration(configService?: any): vscode.WorkspaceConfiguration {
-	if (configService?.getConfiguration) {
-		return configService.getConfiguration()
+/**
+ * Gets all available agent modes
+ * @returns Array of available modes
+ */
+export function getAvailableModes(): AgentMode[] {
+	return ["roo-code", "codeweaver"]
+}
+
+/**
+ * Checks if the given mode is valid
+ * @param mode Mode to check
+ * @returns true if valid, false otherwise
+ */
+export function isValidMode(mode: string): mode is AgentMode {
+	return getAvailableModes().includes(mode as AgentMode)
+}
+
+/**
+ * Updates CodeWeaver settings
+ * @param settings Partial settings to update
+ */
+export function updateCodeWeaverSettings(settings: Partial<CodeWeaverSettings>): void {
+	currentSettings = {
+		...currentSettings,
+		...settings,
 	}
-	return vscode.workspace.getConfiguration("roo-code")
 }
 
 /**
- * Maps the old 'mode' setting to the new 'agentMode' format
+ * Resets CodeWeaver settings to defaults
  */
-function mapLegacyMode(mode: string): AgentMode {
-	// In the old format, 'code' was the default mode
-	return mode === "code" ? "roo-code" : "codeweaver"
-}
-
-/**
- * Retrieves the current agent mode from VS Code configuration
- */
-export function getAgentMode(configService?: any): AgentMode {
-	const config = getConfiguration(configService)
-	try {
-		// First check for new format
-		const agentMode = config.get<AgentMode>("agentMode")
-		if (agentMode) {
-			return agentMode
-		}
-
-		// Fall back to legacy format
-		const legacyMode = config.get<string>("mode")
-		if (legacyMode) {
-			return mapLegacyMode(legacyMode)
-		}
-
-		return "roo-code"
-	} catch (error) {
-		console.error("Failed to read mode setting, defaulting to 'roo-code'.", error)
-		return "roo-code"
-	}
-}
-
-/**
- * Retrieves CodeWeaver-specific settings from VS Code configuration
- */
-export function getCodeWeaverSettings(configService?: any): CodeWeaverSettings {
-	const config = getConfiguration(configService)
-	const codeWeaverSubConfig = config.get<Partial<CodeWeaverSpecificSettings>>("codeweaver") ?? {}
-	const mode = getAgentMode(configService)
-
-	// Default weights for relevancy components
-	const defaultWeights: RelevancyWeights = {
-		graph: 1.0,
-		vector: 0.6,
-		lexical: 0.3,
-		sourceBoost: 1.5,
-	}
-
-	// Merge the user's custom relevancy weights with defaults
-	const relevancyWeights = {
-		...defaultWeights,
-		...(codeWeaverSubConfig.relevancyWeights ?? {}),
-	}
-
-	return {
-		enabled: mode === "codeweaver",
-		localEmbeddingModelFilename: codeWeaverSubConfig.localEmbeddingModelFilename ?? null,
-		localLLMFilename: codeWeaverSubConfig.localLLMFilename ?? null,
-		maxContextSnippets: codeWeaverSubConfig.maxContextSnippets ?? 15,
-		relevancyWeights,
-		syncConcurrency: codeWeaverSubConfig.syncConcurrency ?? 1,
-	}
+export function resetCodeWeaverSettings(): void {
+	currentSettings = { ...defaultSettings }
 }

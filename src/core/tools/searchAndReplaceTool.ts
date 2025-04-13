@@ -74,7 +74,7 @@ export async function searchAndReplaceTool(
 				}
 			} catch (error) {
 				cline.consecutiveMistakeCount++
-				await cline.say("error", `Failed to parse operations JSON: ${error.message}`)
+				await cline.say("error", `Failed to parse operations JSON: ${(error as Error).message}`)
 				pushToolResult(formatResponse.toolError("Invalid operations JSON format"))
 				return
 			}
@@ -175,7 +175,7 @@ export async function searchAndReplaceTool(
 			return
 		}
 	} catch (error) {
-		await handleError("applying search and replace", error)
+		await handleError("applying search and replace", error as Error)
 		await cline.diffViewProvider.reset()
 		return
 	}

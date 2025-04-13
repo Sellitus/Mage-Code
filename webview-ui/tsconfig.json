@@ -1,24 +1,28 @@
 {
 	"compilerOptions": {
-		"target": "es5",
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"allowJs": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"noFallthroughCasesInSwitch": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"noEmit": true,
+		"target": "ES2021",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2021", "DOM", "ES2021.WeakRef"],
 		"jsx": "react-jsx",
-		"baseUrl": ".",
+		"sourceMap": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"composite": true,
+		"baseUrl": "src",
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./*"],
+			"@lib/*": ["./lib/*"],
+			"@components/*": ["./components/*"],
+			"@context/*": ["./context/*"]
 		}
 	},
-	"include": ["src", "../src/shared"]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist"]
 }

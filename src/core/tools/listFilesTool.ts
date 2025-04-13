@@ -71,6 +71,6 @@ export async function listFilesTool(
 			pushToolResult(result)
 		}
 	} catch (error) {
-		await handleError("listing files", error)
+		await handleError("listing files", error as Error)
 	}
 }

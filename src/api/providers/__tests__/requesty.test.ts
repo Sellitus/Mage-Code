@@ -1,3 +1,4 @@
+import { ApiStreamChunk } from "../../transform/stream"
 import { Anthropic } from "@anthropic-ai/sdk"
 import OpenAI from "openai"
 import { ApiHandlerOptions, ModelInfo, requestyDefaultModelInfo } from "../../../shared/api"
@@ -130,7 +131,7 @@ describe("RequestyHandler", () => {
 
 			it("should handle streaming response correctly", async () => {
 				const stream = handler.createMessage(systemPrompt, messages)
-				const results = []
+				const results: ApiStreamChunk[] = []
 
 				for await (const chunk of stream) {
 					results.push(chunk)
@@ -234,7 +235,7 @@ describe("RequestyHandler", () => {
 
 			it("should handle non-streaming response correctly", async () => {
 				const stream = handler.createMessage(systemPrompt, messages)
-				const results = []
+				const results: ApiStreamChunk[] = []
 
 				for await (const chunk of stream) {
 					results.push(chunk)

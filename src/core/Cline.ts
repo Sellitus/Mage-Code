@@ -1231,10 +1231,10 @@ export class Cline extends EventEmitter<ClineEvents> {
 			if (alwaysApproveResubmit) {
 				let errorMsg
 
-				if (error.error?.metadata?.raw) {
-					errorMsg = JSON.stringify(error.error.metadata.raw, null, 2)
-				} else if (error.message) {
-					errorMsg = error.message
+				if ((error as any).error?.metadata?.raw) {
+					errorMsg = JSON.stringify((error as any).error.metadata.raw, null, 2)
+				} else if ((error as Error).message) {
+					errorMsg = (error as Error).message
 				} else {
 					errorMsg = "Unknown error"
 				}
@@ -1243,8 +1243,8 @@ export class Cline extends EventEmitter<ClineEvents> {
 				let exponentialDelay = Math.ceil(baseDelay * Math.pow(2, retryAttempt))
 
 				// If the error is a 429, and the error details contain a retry delay, use that delay instead of exponential backoff
-				if (error.status === 429) {
-					const geminiRetryDetails = error.errorDetails?.find(
+				if ((error as any).status === 429) {
+					const geminiRetryDetails = (error as any).errorDetails?.find(
 						(detail: any) => detail["@type"] === "type.googleapis.com/google.rpc.RetryInfo",
 					)
 					if (geminiRetryDetails) {
@@ -1282,7 +1282,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 			} else {
 				const { response } = await this.ask(
 					"api_req_failed",
-					error.message ?? JSON.stringify(serializeError(error), null, 2),
+					(error as Error).message ?? JSON.stringify(serializeError(error), null, 2),
 				)
 				if (response !== "yesButtonClicked") {
 					// this will never happen since if noButtonClicked, we will clear current task, aborting this instance
@@ -1505,7 +1505,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 					const errorString = `Error ${action}: ${JSON.stringify(serializeError(error))}`
 					await this.say(
 						"error",
-						`Error ${action}:\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
+						`Error ${action}:\n${(error as Error).message ?? JSON.stringify(serializeError(error), null, 2)}`,
 					)
 					// this.toolResults.push({
 					// 	type: "tool_result",
@@ -1558,7 +1558,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 					)
 				} catch (error) {
 					this.consecutiveMistakeCount++
-					pushToolResult(formatResponse.toolError(error.message))
+					pushToolResult(formatResponse.toolError((error as Error).message))
 					break
 				}
 
@@ -1960,7 +1960,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 
 					await abortStream(
 						"streaming_failed",
-						error.message ?? JSON.stringify(serializeError(error), null, 2),
+						(error as Error).message ?? JSON.stringify(serializeError(error), null, 2),
 					)
 
 					const history = await this.providerRef.deref()?.getTaskWithId(this.taskId)

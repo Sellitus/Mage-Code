@@ -232,6 +232,6 @@ export async function readFileTool(
 	} catch (error) {
 		const errorMsg = error instanceof Error ? error.message : String(error)
 		pushToolResult(`<file><path>${relPath || ""}</path><error>Error reading file: ${errorMsg}</error></file>`)
-		await handleError("reading file", error)
+		await handleError("reading file", error as Error)
 	}
 }

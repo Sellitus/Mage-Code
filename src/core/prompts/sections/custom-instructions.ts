@@ -185,7 +185,7 @@ export async function addCustomInstructions(
 	mode: string,
 	options: { language?: string; rooIgnoreInstructions?: string } = {},
 ): Promise<string> {
-	const sections = []
+	const sections: string[] = []
 
 	// Load mode-specific rules if mode is provided
 	let modeRuleContent = ""
@@ -237,7 +237,7 @@ export async function addCustomInstructions(
 	}
 
 	// Add rules - include both mode-specific and generic rules if they exist
-	const rules = []
+	const rules: string[] = []
 
 	// Add mode-specific rules first if they exist
 	if (modeRuleContent && modeRuleContent.trim()) {

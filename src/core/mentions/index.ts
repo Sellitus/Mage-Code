@@ -73,8 +73,8 @@ export async function parseMentions(
 		try {
 			await urlContentFetcher.launchBrowser()
 		} catch (error) {
-			launchBrowserError = error
-			vscode.window.showErrorMessage(`Error fetching content for ${urlMention}: ${error.message}`)
+			launchBrowserError = error instanceof Error ? error : new Error(String(error))
+			vscode.window.showErrorMessage(`Error fetching content for ${urlMention}: ${(error as Error).message}`)
 		}
 	}
 
@@ -88,8 +88,8 @@ export async function parseMentions(
 					const markdown = await urlContentFetcher.urlToMarkdown(mention)
 					result = markdown
 				} catch (error) {
-					vscode.window.showErrorMessage(`Error fetching content for ${mention}: ${error.message}`)
-					result = `Error fetching content: ${error.message}`
+					vscode.window.showErrorMessage(`Error fetching content for ${mention}: ${(error as Error).message}`)
+					result = `Error fetching content: ${(error as Error).message}`
 				}
 			}
 			parsedText += `\n\n<url_content url="${mention}">\n${result}\n</url_content>`
@@ -108,9 +108,9 @@ export async function parseMentions(
 				}
 			} catch (error) {
 				if (mention.endsWith("/")) {
-					parsedText += `\n\n<folder_content path="${mentionPath}">\nError fetching content: ${error.message}\n</folder_content>`
+					parsedText += `\n\n<folder_content path="${mentionPath}">\nError fetching content: ${(error as Error).message}\n</folder_content>`
 				} else {
-					parsedText += `\n\n<file_content path="${mentionPath}">\nError fetching content: ${error.message}\n</file_content>`
+					parsedText += `\n\n<file_content path="${mentionPath}">\nError fetching content: ${(error as Error).message}\n</file_content>`
 				}
 			}
 		} else if (mention === "problems") {
@@ -118,28 +118,28 @@ export async function parseMentions(
 				const problems = await getWorkspaceProblems(cwd)
 				parsedText += `\n\n<workspace_diagnostics>\n${problems}\n</workspace_diagnostics>`
 			} catch (error) {
-				parsedText += `\n\n<workspace_diagnostics>\nError fetching diagnostics: ${error.message}\n</workspace_diagnostics>`
+				parsedText += `\n\n<workspace_diagnostics>\nError fetching diagnostics: ${(error as Error).message}\n</workspace_diagnostics>`
 			}
 		} else if (mention === "git-changes") {
 			try {
 				const workingState = await getWorkingState(cwd)
 				parsedText += `\n\n<git_working_state>\n${workingState}\n</git_working_state>`
 			} catch (error) {
-				parsedText += `\n\n<git_working_state>\nError fetching working state: ${error.message}\n</git_working_state>`
+				parsedText += `\n\n<git_working_state>\nError fetching working state: ${(error as Error).message}\n</git_working_state>`
 			}
 		} else if (/^[a-f0-9]{7,40}$/.test(mention)) {
 			try {
 				const commitInfo = await getCommitInfo(mention, cwd)
 				parsedText += `\n\n<git_commit hash="${mention}">\n${commitInfo}\n</git_commit>`
 			} catch (error) {
-				parsedText += `\n\n<git_commit hash="${mention}">\nError fetching commit info: ${error.message}\n</git_commit>`
+				parsedText += `\n\n<git_commit hash="${mention}">\nError fetching commit info: ${(error as Error).message}\n</git_commit>`
 			}
 		} else if (mention === "terminal") {
 			try {
 				const terminalOutput = await getLatestTerminalOutput()
 				parsedText += `\n\n<terminal_output>\n${terminalOutput}\n</terminal_output>`
 			} catch (error) {
-				parsedText += `\n\n<terminal_output>\nError fetching terminal output: ${error.message}\n</terminal_output>`
+				parsedText += `\n\n<terminal_output>\nError fetching terminal output: ${(error as Error).message}\n</terminal_output>`
 			}
 		}
 	}
@@ -148,7 +148,7 @@ export async function parseMentions(
 		try {
 			await urlContentFetcher.closeBrowser()
 		} catch (error) {
-			console.error(`Error closing browser: ${error.message}`)
+			console.error(`Error closing browser: ${(error as Error).message}`)
 		}
 	}
 
@@ -166,7 +166,7 @@ async function getFileOrFolderContent(mentionPath: string, cwd: string): Promise
 				const content = await extractTextFromFile(absPath)
 				return content
 			} catch (error) {
-				return `(Failed to read contents of ${mentionPath}): ${error.message}`
+				return `(Failed to read contents of ${mentionPath}): ${(error as Error).message}`
 			}
 		} else if (stats.isDirectory()) {
 			const entries = await fs.readdir(absPath, { withFileTypes: true })
@@ -205,7 +205,7 @@ async function getFileOrFolderContent(mentionPath: string, cwd: string): Promise
 			return `(Failed to read contents of ${mentionPath})`
 		}
 	} catch (error) {
-		throw new Error(`Failed to access path "${mentionPath}": ${error.message}`)
+		throw new Error(`Failed to access path "${mentionPath}": ${(error as Error).message}`)
 	}
 }
 

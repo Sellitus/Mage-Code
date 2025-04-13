@@ -66,7 +66,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalState.update("allowedCommands", defaultCommands)
 	}
 
-	const provider = new ClineProvider(context, outputChannel, "sidebar")
+	const provider = new ClineProvider(context, outputChannel)
 	telemetryService.setProvider(provider)
 
 	context.subscriptions.push(

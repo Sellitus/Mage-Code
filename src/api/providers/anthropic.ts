@@ -83,7 +83,7 @@ export class AnthropicHandler extends BaseProvider implements SingleCompletionHa
 						// https://github.com/anthropics/anthropic-sdk-typescript?tab=readme-ov-file#default-headers
 						// https://github.com/anthropics/anthropic-sdk-typescript/commit/c920b77fc67bd839bfeb6716ceab9d7c9bbe7393
 
-						const betas = []
+						const betas: string[] = []
 
 						// Check for the thinking-128k variant first
 						if (virtualId === "claude-3-7-sonnet-20250219:thinking") {

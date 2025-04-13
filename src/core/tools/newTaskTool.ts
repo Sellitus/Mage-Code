@@ -84,7 +84,7 @@ export async function newTaskTool(
 			return
 		}
 	} catch (error) {
-		await handleError("creating new task", error)
+		await handleError("creating new task", error as Error)
 		return
 	}
 }

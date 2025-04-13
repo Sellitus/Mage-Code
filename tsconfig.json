@@ -1,25 +1,31 @@
 {
 	"compilerOptions": {
-		"esModuleInterop": true,
-		"experimentalDecorators": true,
-		"forceConsistentCasingInFileNames": true,
-		"isolatedModules": true,
-		"lib": ["es2022", "esnext.disposable", "DOM"],
-		"module": "esnext",
-		"moduleResolution": "Bundler",
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitOverride": true,
-		"noImplicitReturns": true,
-		"noUnusedLocals": false,
-		"resolveJsonModule": true,
+		"target": "ES2022",
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+		"lib": ["ES2022", "DOM"],
+		"jsx": "react-jsx",
+		"outDir": "out",
 		"rootDir": ".",
-		"skipLibCheck": true,
-		"sourceMap": true,
+		"baseUrl": ".",
 		"strict": true,
-		"target": "es2022",
-		"useDefineForClassFields": true,
-		"useUnknownInCatchVariables": false
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"noEmit": true,
+		"noImplicitAny": false,
+		"allowSyntheticDefaultImports": true,
+		"paths": {
+			"@/*": ["webview-ui/src/*"]
+		},
+		"types": ["node", "jest", "mocha", "vscode", "react", "react-dom"],
+		"typeRoots": ["node_modules/@types"]
 	},
-	"include": ["src/**/*", "scripts/**/*", ".changeset/**/*"],
-	"exclude": ["node_modules", ".vscode-test", "webview-ui"]
+	"include": [
+		"src/**/*"
+		// "evals/**/*",
+		// "webview-ui/src/**/*"
+	],
+	"exclude": ["node_modules", "out", "dist"]
 }

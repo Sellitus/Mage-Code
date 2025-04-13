@@ -1,3 +1,4 @@
+import { ApiStreamChunk } from "../../transform/stream"
 import * as vscode from "vscode"
 import { VsCodeLmHandler } from "../vscode-lm"
 import { ApiHandlerOptions } from "../../../shared/api"
@@ -158,7 +159,7 @@ describe("VsCodeLmHandler", () => {
 			})
 
 			const stream = handler.createMessage(systemPrompt, messages)
-			const chunks = []
+			const chunks: ApiStreamChunk[] = []
 			for await (const chunk of stream) {
 				chunks.push(chunk)
 			}
@@ -206,7 +207,7 @@ describe("VsCodeLmHandler", () => {
 			})
 
 			const stream = handler.createMessage(systemPrompt, messages)
-			const chunks = []
+			const chunks: ApiStreamChunk[] = []
 			for await (const chunk of stream) {
 				chunks.push(chunk)
 			}

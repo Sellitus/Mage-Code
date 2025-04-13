@@ -1,3 +1,4 @@
+import { ApiStreamChunk } from "../../transform/stream"
 import { GeminiHandler } from "../gemini"
 import { Anthropic } from "@anthropic-ai/sdk"
 import { GoogleGenerativeAI } from "@google/generative-ai"
@@ -78,7 +79,7 @@ describe("GeminiHandler", () => {
 			;(handler["client"] as any).getGenerativeModel = mockGetGenerativeModel
 
 			const stream = handler.createMessage(systemPrompt, mockMessages)
-			const chunks = []
+			const chunks: ApiStreamChunk[] = []
 
 			for await (const chunk of stream) {
 				chunks.push(chunk)

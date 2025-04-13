@@ -163,7 +163,7 @@ export async function browserActionTool(
 		}
 	} catch (error) {
 		await cline.browserSession.closeBrowser() // if any error occurs, the browser session is terminated
-		await handleError("executing browser action", error)
+		await handleError("executing browser action", error as Error)
 		return
 	}
 }
