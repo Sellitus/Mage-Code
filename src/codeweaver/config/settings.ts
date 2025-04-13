@@ -42,15 +42,34 @@ function getConfiguration(configService?: any): vscode.WorkspaceConfiguration {
 }
 
 /**
+ * Maps the old 'mode' setting to the new 'agentMode' format
+ */
+function mapLegacyMode(mode: string): AgentMode {
+	// In the old format, 'code' was the default mode
+	return mode === "code" ? "roo-code" : "codeweaver"
+}
+
+/**
  * Retrieves the current agent mode from VS Code configuration
  */
 export function getAgentMode(configService?: any): AgentMode {
 	const config = getConfiguration(configService)
 	try {
-		const mode = config.get<AgentMode>("agentMode")
-		return mode ?? "roo-code"
+		// First check for new format
+		const agentMode = config.get<AgentMode>("agentMode")
+		if (agentMode) {
+			return agentMode
+		}
+
+		// Fall back to legacy format
+		const legacyMode = config.get<string>("mode")
+		if (legacyMode) {
+			return mapLegacyMode(legacyMode)
+		}
+
+		return "roo-code"
 	} catch (error) {
-		console.error("Failed to read agentMode setting, defaulting to 'roo-code'.", error)
+		console.error("Failed to read mode setting, defaulting to 'roo-code'.", error)
 		return "roo-code"
 	}
 }

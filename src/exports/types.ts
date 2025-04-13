@@ -188,8 +188,8 @@ type ProviderSettings = {
 export type { ProviderSettings }
 
 type GlobalSettings = {
-	/** Selects the agent logic mode. 'roo-code' uses the original logic. 'codeweaver' uses the new high-efficiency, local-intelligence mode. */
-	agentMode?: "roo-code" | "codeweaver"
+	/** Mode setting. Supports both legacy string format and new agent mode enum. */
+	mode?: (string | ("roo-code" | "codeweaver")) | undefined
 	currentApiConfigName?: string | undefined
 	listApiConfigMeta?:
 		| {
@@ -310,7 +310,6 @@ type GlobalSettings = {
 	telemetrySetting?: ("unset" | "enabled" | "disabled") | undefined
 	mcpEnabled?: boolean | undefined
 	enableMcpServerCreation?: boolean | undefined
-	mode?: string | undefined
 	modeApiConfigs?:
 		| {
 				[x: string]: string
