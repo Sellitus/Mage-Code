@@ -319,6 +319,48 @@ describe("DatabaseManager", () => {
 				// Check mocks - prepare shouldn't be called if array is empty
 				expect(mockDbInstance.prepare).not.toHaveBeenCalled()
 			})
+			it("should store and retrieve elements with parent_id and metadata", () => {
+				dbManager.initialize()
+				const parentElement = {
+					file_path: "/test/file3.ts",
+					type: "class",
+					name: "ParentClass",
+					content: "class ParentClass {}",
+					start_line: 0,
+					end_line: 10,
+					last_modified: Date.now(),
+					metadata: { visibility: "public" },
+					id: 42,
+				}
+				const childElement = {
+					file_path: "/test/file3.ts",
+					type: "method",
+					name: "childMethod",
+					content: "method() {}",
+					start_line: 2,
+					end_line: 4,
+					last_modified: Date.now(),
+					parent_id: 42,
+					metadata: { returnType: "void" },
+				}
+				const elementsToStore = [parentElement, childElement]
+				dbManager.storeCodeElements(elementsToStore)
+				expect(mockStatement.run).toHaveBeenCalledWith(
+					expect.objectContaining({
+						id: 42,
+						name: parentElement.name,
+						parent_id: null,
+						metadata: JSON.stringify(parentElement.metadata),
+					}),
+				)
+				expect(mockStatement.run).toHaveBeenCalledWith(
+					expect.objectContaining({
+						name: childElement.name,
+						parent_id: 42,
+						metadata: JSON.stringify(childElement.metadata),
+					}),
+				)
+			})
 		})
 
 		describe("getCodeElementById", () => {

@@ -13,6 +13,8 @@ export interface CodeElement {
 	start_line: number
 	end_line: number
 	last_modified: number // Unix timestamp (milliseconds recommended for JS Date compatibility)
+	parent_id?: number | null // For hierarchy (nullable, references id)
+	metadata?: Record<string, any> | null // Arbitrary metadata (stored as JSON)
 }
 
 export class DatabaseManager implements vscode.Disposable {
@@ -71,27 +73,36 @@ export class DatabaseManager implements vscode.Disposable {
 		try {
 			// Schema for code elements
 			const createTableSql = `
-                CREATE TABLE IF NOT EXISTS code_elements (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    file_path TEXT NOT NULL,
-                    type TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    content TEXT,
-                    start_line INTEGER NOT NULL,
-                    end_line INTEGER NOT NULL,
-                    last_modified INTEGER NOT NULL
-                );
-            `
+			             CREATE TABLE IF NOT EXISTS code_elements (
+			                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+			                 file_path TEXT NOT NULL,
+			                 type TEXT NOT NULL,
+			                 name TEXT NOT NULL,
+			                 content TEXT,
+			                 start_line INTEGER NOT NULL,
+			                 end_line INTEGER NOT NULL,
+			                 last_modified INTEGER NOT NULL,
+			                 parent_id INTEGER,
+			                 metadata TEXT,
+			                 FOREIGN KEY(parent_id) REFERENCES code_elements(id)
+			             );
+			         `
 			this.db.exec(createTableSql)
 			console.log("Table 'code_elements' ensured.")
 
 			// Index for faster file path lookups
 			const createIndexSql = `
-                CREATE INDEX IF NOT EXISTS idx_code_elements_file_path
-                ON code_elements (file_path);
-            `
+			             CREATE INDEX IF NOT EXISTS idx_code_elements_file_path
+			             ON code_elements (file_path);
+			             CREATE INDEX IF NOT EXISTS idx_code_elements_parent_id
+			             ON code_elements (parent_id);
+			             CREATE INDEX IF NOT EXISTS idx_code_elements_type
+			             ON code_elements (type);
+			         `
 			this.db.exec(createIndexSql)
-			console.log("Index 'idx_code_elements_file_path' ensured.")
+			console.log(
+				"Indices 'idx_code_elements_file_path', 'idx_code_elements_parent_id', and 'idx_code_elements_type' ensured.",
+			)
 
 			console.log("Database migrations completed successfully.")
 		} catch (error: any) {
@@ -129,9 +140,9 @@ export class DatabaseManager implements vscode.Disposable {
 		// Consider adding a UNIQUE constraint on (file_path, type, name, start_line) if needed for upserts without ID.
 		const stmt = this.db.prepare(`
             INSERT OR REPLACE INTO code_elements
-            (id, file_path, type, name, content, start_line, end_line, last_modified)
+            (id, file_path, type, name, content, start_line, end_line, last_modified, parent_id, metadata)
             VALUES
-            (@id, @file_path, @type, @name, @content, @start_line, @end_line, @last_modified)
+            (@id, @file_path, @type, @name, @content, @start_line, @end_line, @last_modified, @parent_id, @metadata)
         `)
 
 		try {
@@ -141,6 +152,8 @@ export class DatabaseManager implements vscode.Disposable {
 					const elementToStore = {
 						...elem,
 						last_modified: Math.floor(elem.last_modified), // Ensure integer
+						parent_id: elem.parent_id ?? null,
+						metadata: elem.metadata ? JSON.stringify(elem.metadata) : null,
 					}
 					stmt.run(elementToStore)
 				}

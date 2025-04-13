@@ -208,8 +208,77 @@ export class MageParser {
 			return []
 		}
 
-		console.log(`Placeholder: Would extract elements from AST for ${parsedFile.path}`)
-		// TODO: Implement AST traversal logic here in a subsequent step/story.
-		return []
+		const elements: CodeElement[] = []
+		const filePath = parsedFile.path
+		const source = parsedFile.ast.rootNode.text
+
+		// Helper to generate unique IDs
+		const makeId = (name: string, startLine: number) => `${filePath}#${name}@${startLine}`
+
+		// Recursive AST traversal
+		function traverse(node: any, parentId?: string): void {
+			let type = ""
+			let name = ""
+			let metadata: Record<string, any> = {}
+
+			// Identify code element types (expand as needed)
+			switch (node.type) {
+				case "function_declaration":
+				case "function":
+				case "method_definition":
+				case "function_definition":
+					type = node.type.includes("method") ? "method" : "function"
+					name = node.childForFieldName?.("name")?.text || node.text
+					break
+				case "class_declaration":
+				case "class_definition":
+					type = "class"
+					name = node.childForFieldName?.("name")?.text || node.text
+					break
+				case "variable_declaration":
+				case "lexical_declaration":
+				case "assignment":
+					type = "variable"
+					name = node.childForFieldName?.("name")?.text || node.text
+					break
+				case "import_statement":
+					type = "import"
+					name = node.text
+					break
+				default:
+					break
+			}
+
+			if (type && name) {
+				const id = makeId(name, node.startPosition.row)
+				const element: CodeElement = {
+					id,
+					filePath,
+					type,
+					name,
+					content: node.text,
+					startLine: node.startPosition.row,
+					endLine: node.endPosition.row,
+					startPosition: node.startPosition,
+					endPosition: node.endPosition,
+					parentId,
+					metadata,
+				}
+				elements.push(element)
+
+				// Set this as parent for children
+				parentId = id
+			}
+
+			// Traverse children
+			for (let i = 0; i < node.namedChildCount; i++) {
+				const child = node.namedChild(i)
+				traverse(child, parentId)
+			}
+		}
+
+		traverse(parsedFile.ast.rootNode)
+
+		return elements
 	}
 }
