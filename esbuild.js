@@ -196,7 +196,7 @@ const extensionConfig = {
 	sourcesContent: false,
 	platform: "node",
 	outfile: "dist/extension.js",
-	external: ["vscode"],
+	external: ["vscode", "onnxruntime-node", "*.node"],
 }
 
 async function main() {
