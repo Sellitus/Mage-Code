@@ -79,6 +79,8 @@ describe("VectorIndex", () => {
 			{ id: "foo", vector: [1, 2, 3] },
 			{ id: "bar", vector: [4, 5, 6] },
 		])
+		// Wait for debounced saveMapping to complete
+		await new Promise((res) => setTimeout(res, 1100))
 		expect(addMock).toHaveBeenCalled()
 		expect(vectorIndex["mapping"].size).toBe(2)
 		expect(Array.from(vectorIndex["mapping"].values())).toEqual(["foo", "bar"])
