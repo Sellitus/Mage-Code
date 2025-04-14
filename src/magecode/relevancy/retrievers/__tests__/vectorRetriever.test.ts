@@ -1,8 +1,8 @@
 import { VectorRetriever } from "../vectorRetriever"
 import type { EmbeddingService } from "../../../intelligence/embedding/embeddingService"
 import type { VectorIndex } from "../../../intelligence/vector/vectorIndex"
-import type { DatabaseManager, CodeElement } from "../../../intelligence/storage/databaseManager"
-import type { RetrievedItem, RetrievalOptions } from "../../../interfaces"
+import type { DatabaseManager } from "../../../intelligence/storage/databaseManager"
+import type { RetrievedItem, RetrievalOptions, CodeElement } from "../../../interfaces"
 
 describe("VectorRetriever", () => {
 	let embeddingService: jest.Mocked<EmbeddingService>
@@ -43,27 +43,34 @@ describe("VectorRetriever", () => {
 
 		// Mock database results
 		const codeElement1: CodeElement = {
-			id: 1,
+			id: "1",
 			content: "function login() { ... }",
-			file_path: "/src/auth.js",
-			start_line: 10,
-			end_line: 20,
+			filePath: "/src/auth.js",
+			startLine: 10,
+			endLine: 20,
+			startPosition: { line: 10, column: 0 },
+			endPosition: { line: 20, column: 0 },
 			type: "function",
 			name: "login",
-		} as any
+			lastModified: Date.now(),
+		}
+
 		const codeElement2: CodeElement = {
-			id: 2,
+			id: "2",
 			content: "function logout() { ... }",
-			file_path: "/src/auth.js",
-			start_line: 22,
-			end_line: 30,
+			filePath: "/src/auth.js",
+			startLine: 22,
+			endLine: 30,
+			startPosition: { line: 22, column: 0 },
+			endPosition: { line: 30, column: 0 },
 			type: "function",
 			name: "logout",
-		} as any
+			lastModified: Date.now(),
+		}
 
-		;(databaseManager.getCodeElementById as jest.Mock).mockImplementation((id: number) => {
-			if (id === 1) return codeElement1
-			if (id === 2) return codeElement2
+		;(databaseManager.getCodeElementById as jest.Mock).mockImplementation((id: string) => {
+			if (id === "1") return codeElement1
+			if (id === "2") return codeElement2
 			return undefined
 		})
 
@@ -71,8 +78,8 @@ describe("VectorRetriever", () => {
 
 		expect(embeddingService.generateEmbeddings).toHaveBeenCalledWith([query])
 		expect(vectorIndex.search).toHaveBeenCalledWith(fakeEmbedding, 2)
-		expect(databaseManager.getCodeElementById).toHaveBeenCalledWith(1)
-		expect(databaseManager.getCodeElementById).toHaveBeenCalledWith(2)
+		expect(databaseManager.getCodeElementById).toHaveBeenCalledWith("1")
+		expect(databaseManager.getCodeElementById).toHaveBeenCalledWith("2")
 
 		expect(results).toEqual([
 			{

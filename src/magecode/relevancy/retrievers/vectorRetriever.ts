@@ -1,7 +1,7 @@
-import type { IRetriever, RetrievedItem, RetrievalOptions } from "../../interfaces"
+import type { IRetriever, RetrievedItem, RetrievalOptions, CodeElement } from "../../interfaces"
 import type { EmbeddingService } from "../../intelligence/embedding/embeddingService"
 import type { VectorIndex } from "../../intelligence/vector/vectorIndex"
-import type { DatabaseManager, CodeElement } from "../../intelligence/storage/databaseManager"
+import type { DatabaseManager } from "../../intelligence/storage/databaseManager"
 
 /**
  * VectorRetriever: Uses EmbeddingService and VectorIndex to find semantically similar code elements.
@@ -38,19 +38,17 @@ export class VectorRetriever implements IRetriever {
 		const retrievedItems: RetrievedItem[] = []
 		for (const result of results) {
 			// Convert result.id to number for DB lookup
-			const codeElement: CodeElement | undefined = await this.databaseManager.getCodeElementById(
-				Number(result.id),
-			)
+			const codeElement: CodeElement | undefined = await this.databaseManager.getCodeElementById(result.id)
 			if (!codeElement) {
 				// Element might be missing if out of sync; skip it
 				continue
 			}
 			retrievedItems.push({
-				id: String(codeElement.id ?? result.id),
+				id: codeElement.id ?? result.id,
 				content: codeElement.content ?? "",
-				filePath: codeElement.file_path ?? "",
-				startLine: codeElement.start_line ?? 0,
-				endLine: codeElement.end_line ?? 0,
+				filePath: codeElement.filePath ?? "",
+				startLine: codeElement.startLine ?? 0,
+				endLine: codeElement.endLine ?? 0,
 				score: result.score,
 				source: "vector",
 				type: codeElement.type ?? "",

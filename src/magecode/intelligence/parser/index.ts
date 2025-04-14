@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import Parser, { Language, Tree } from "web-tree-sitter"
-import { CodeElement, ParsedFile, ParserError } from "../../interfaces" // Adjust path if needed
+import { CodeElement, ElementRelation, ParsedFile, ParserError } from "../../interfaces" // Adjust path if needed
 
 // Assuming the WASM files are copied to 'dist/grammars/' by esbuild
 // The path needs to be relative to the extension's runtime location (dist/)
@@ -200,15 +200,16 @@ export class MageParser {
 	 * Placeholder method to extract code elements from a parsed file.
 	 * Actual implementation will involve traversing the AST.
 	 * @param parsedFile The result of parseFile.
-	 * @returns An array of CodeElement objects (empty for now).
+	 * @returns An object containing arrays of CodeElement and ElementRelation objects.
 	 */
-	public extractCodeElements(parsedFile: ParsedFile): CodeElement[] {
+	public extractCodeElements(parsedFile: ParsedFile): { elements: CodeElement[]; relations: ElementRelation[] } {
 		if (!parsedFile.ast || parsedFile.errors.length > 0) {
 			// Cannot reliably extract elements if parsing failed or had errors
-			return []
+			return { elements: [], relations: [] }
 		}
 
 		const elements: CodeElement[] = []
+		const relations: ElementRelation[] = []
 		const filePath = parsedFile.path
 		const source = parsedFile.ast.rootNode.text
 
@@ -229,11 +230,33 @@ export class MageParser {
 				case "function_definition":
 					type = node.type.includes("method") ? "method" : "function"
 					name = node.childForFieldName?.("name")?.text || node.text
+					// Extract function calls
+					const callExpressions: string[] = []
+					node.descendantsOfType("call_expression").forEach((call: any) => {
+						const calleeName = call.childForFieldName?.("function")?.text
+						if (calleeName) {
+							callExpressions.push(calleeName)
+						}
+					})
+					if (callExpressions.length > 0) {
+						metadata.calls = callExpressions
+					}
 					break
 				case "class_declaration":
 				case "class_definition":
 					type = "class"
 					name = node.childForFieldName?.("name")?.text || node.text
+					// Extract class inheritance
+					const superClass = node.childForFieldName?.("superclass")?.text
+					if (superClass) {
+						const sourceId = makeId(name, node.startPosition.row)
+						const targetId = makeId(superClass, 0)
+						relations.push({
+							source_id: sourceId,
+							target_id: targetId,
+							relation_type: "inherits",
+						})
+					}
 					break
 				case "variable_declaration":
 				case "lexical_declaration":
@@ -241,10 +264,29 @@ export class MageParser {
 					type = "variable"
 					name = node.childForFieldName?.("name")?.text || node.text
 					break
-				case "import_statement":
+				case "import_statement": {
 					type = "import"
-					name = node.text
+					name = node.text // Use the full import statement text as name for now
+					const sourceId = makeId("module", node.startPosition.row)
+					const importPath = node.childForFieldName?.("source")?.text?.replace(/['"`]/g, "")
+					if (importPath) {
+						const targetId = makeId(importPath, 0)
+						relations.push({
+							source_id: sourceId,
+							target_id: targetId,
+							relation_type: "imports",
+						})
+					}
+					// - Create 'imports' relations
+					// Example (pseudo-code):
+					// const sourceId = makeId('module', 0); // ID for the current file/module
+					// const targetPath = resolveImportPath(node.childForFieldName('source')?.text);
+					// if (targetPath) {
+					//   const targetId = makeId('module', 0, targetPath); // ID for the target file/module
+					//   relations.push({ source_id: sourceId, target_id: targetId, relation_type: 'imports' });
+					// }
 					break
+				}
 				default:
 					break
 			}
@@ -279,6 +321,6 @@ export class MageParser {
 
 		traverse(parsedFile.ast.rootNode)
 
-		return elements
+		return { elements, relations }
 	}
 }

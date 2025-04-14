@@ -54,7 +54,16 @@ export interface CodeElement {
 	parentId?: string // ID of the parent element, if any
 	children?: CodeElement[] // Child elements (for hierarchical structure)
 	metadata?: Record<string, any> // Additional metadata (e.g., visibility, return type)
-	// Add other fields as needed based on analysis requirements
+	lastModified?: number // Unix timestamp in milliseconds for tracking modifications
+}
+
+/**
+ * Represents a relationship between two code elements.
+ */
+export interface ElementRelation {
+	source_id: string // ID of the source CodeElement
+	target_id: string // ID of the target CodeElement
+	relation_type: string // e.g., 'calls', 'imports', 'inherits', 'uses', 'assigns'
 }
 // --- Relevancy Engine Retrieval Interfaces ---
 

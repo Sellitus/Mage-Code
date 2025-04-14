@@ -1,4 +1,5 @@
-import { DatabaseManager, type CodeElement } from "../databaseManager"
+import { DatabaseManager } from "../databaseManager"
+import type { CodeElement } from "../../../interfaces"
 import * as vscode from "vscode"
 import * as fs from "fs"
 import * as path from "path"
@@ -167,8 +168,8 @@ describe("DatabaseManager", () => {
 
 		it("should run migrations and create table and index", () => {
 			dbManager.initialize()
-			// Check if migrations were executed via the mock
-			expect(mockDbInstance.exec).toHaveBeenCalledTimes(2)
+			// Check if migrations were executed via the mock (3 times: tables, indices, schema_version)
+			expect(mockDbInstance.exec).toHaveBeenCalledTimes(3)
 			expect(mockDbInstance.exec).toHaveBeenCalledWith(
 				expect.stringContaining("CREATE TABLE IF NOT EXISTS code_elements"),
 			)
@@ -210,31 +211,40 @@ describe("DatabaseManager", () => {
 
 	describe("with initialized DB", () => {
 		const element1: CodeElement = {
-			file_path: "/test/file1.ts",
+			id: "1",
+			filePath: "/test/file1.ts",
 			type: "function",
 			name: "func1",
 			content: "() => {}",
-			start_line: 1,
-			end_line: 3,
-			last_modified: Date.now(),
+			startLine: 1,
+			endLine: 3,
+			lastModified: Date.now(),
+			startPosition: { line: 1, column: 0 },
+			endPosition: { line: 3, column: 0 },
 		}
 		const element2: CodeElement = {
-			file_path: "/test/file1.ts",
+			id: "2",
+			filePath: "/test/file1.ts",
 			type: "variable",
 			name: "var1",
 			content: " = 1",
-			start_line: 5,
-			end_line: 5,
-			last_modified: Date.now(),
+			startLine: 5,
+			endLine: 5,
+			lastModified: Date.now(),
+			startPosition: { line: 5, column: 0 },
+			endPosition: { line: 5, column: 0 },
 		}
 		const element3: CodeElement = {
-			file_path: "/test/file2.ts",
+			id: "3",
+			filePath: "/test/file2.ts",
 			type: "class",
 			name: "MyClass",
 			content: "class {}",
-			start_line: 10,
-			end_line: 20,
-			last_modified: Date.now(),
+			startLine: 10,
+			endLine: 20,
+			lastModified: Date.now(),
+			startPosition: { line: 10, column: 0 },
+			endPosition: { line: 20, column: 0 },
 		}
 
 		// Remove nested beforeEach; initialize() will be called in each test
@@ -267,7 +277,8 @@ describe("DatabaseManager", () => {
 				// Mock prepare/run for the initial insert if needed, or assume it works
 				mockStatement.run.mockClear() // Clear previous calls if any
 				// Simulate initial insert for setup (doesn't actually insert in mock)
-				dbManager.storeCodeElements([element1])
+				const initialElement = { ...element1, id: "1" }
+				dbManager.storeCodeElements([initialElement])
 				const initialId = 1 // Assume an ID for testing replace
 
 				// Clear mocks before the call under test
@@ -278,9 +289,9 @@ describe("DatabaseManager", () => {
 				// Create updated element with the same ID
 				const updatedElement1: CodeElement = {
 					...element1,
-					id: initialId,
+					id: initialId.toString(),
 					content: "updated content",
-					last_modified: Date.now() + 1000, // Ensure different timestamp
+					lastModified: Date.now() + 1000, // Ensure different timestamp
 				}
 
 				dbManager.storeCodeElements([updatedElement1])
@@ -290,7 +301,7 @@ describe("DatabaseManager", () => {
 				expect(mockStatement.run).toHaveBeenCalledTimes(1)
 				expect(mockStatement.run).toHaveBeenCalledWith(
 					expect.objectContaining({
-						id: initialId,
+						id: initialId.toString(),
 						name: updatedElement1.name,
 						content: "updated content",
 					}),
@@ -301,7 +312,7 @@ describe("DatabaseManager", () => {
 				dbManager.initialize() // Initialize here
 				const elementWithNonExistentId: CodeElement = {
 					...element1,
-					id: 999, // Non-existent ID
+					id: "999", // Non-existent ID
 				}
 				dbManager.storeCodeElements([elementWithNonExistentId])
 
@@ -309,7 +320,7 @@ describe("DatabaseManager", () => {
 				expect(mockDbInstance.prepare).toHaveBeenCalledWith(expect.stringContaining("INSERT OR REPLACE"))
 				expect(mockStatement.run).toHaveBeenCalledTimes(1)
 				expect(mockStatement.run).toHaveBeenCalledWith(
-					expect.objectContaining({ id: 999, name: element1.name }),
+					expect.objectContaining({ id: "999", name: element1.name }),
 				)
 			})
 
@@ -322,6 +333,7 @@ describe("DatabaseManager", () => {
 			it("should store and retrieve elements with parent_id and metadata", () => {
 				dbManager.initialize()
 				const parentElement = {
+					id: "42",
 					file_path: "/test/file3.ts",
 					type: "class",
 					name: "ParentClass",
@@ -329,10 +341,11 @@ describe("DatabaseManager", () => {
 					start_line: 0,
 					end_line: 10,
 					last_modified: Date.now(),
-					metadata: { visibility: "public" },
-					id: 42,
+					parent_id: null,
+					metadata: JSON.stringify({ visibility: "public" }),
 				}
 				const childElement = {
+					id: "43",
 					file_path: "/test/file3.ts",
 					type: "method",
 					name: "childMethod",
@@ -340,35 +353,60 @@ describe("DatabaseManager", () => {
 					start_line: 2,
 					end_line: 4,
 					last_modified: Date.now(),
-					parent_id: 42,
-					metadata: { returnType: "void" },
+					parent_id: "42",
+					metadata: JSON.stringify({ returnType: "void" }),
 				}
-				const elementsToStore = [parentElement, childElement]
-				dbManager.storeCodeElements(elementsToStore)
-				expect(mockStatement.run).toHaveBeenCalledWith(
-					expect.objectContaining({
-						id: 42,
+				dbManager.storeCodeElements([
+					{
+						id: parentElement.id,
+						filePath: parentElement.file_path,
+						type: parentElement.type,
 						name: parentElement.name,
-						parent_id: null,
-						metadata: JSON.stringify(parentElement.metadata),
-					}),
-				)
-				expect(mockStatement.run).toHaveBeenCalledWith(
-					expect.objectContaining({
+						content: parentElement.content,
+						startLine: parentElement.start_line,
+						endLine: parentElement.end_line,
+						lastModified: parentElement.last_modified,
+						startPosition: { line: parentElement.start_line, column: 0 },
+						endPosition: { line: parentElement.end_line, column: 0 },
+						metadata: JSON.parse(parentElement.metadata),
+					},
+					{
+						id: childElement.id,
+						filePath: childElement.file_path,
+						type: childElement.type,
 						name: childElement.name,
-						parent_id: 42,
-						metadata: JSON.stringify(childElement.metadata),
-					}),
-				)
+						content: childElement.content,
+						startLine: childElement.start_line,
+						endLine: childElement.end_line,
+						lastModified: childElement.last_modified,
+						startPosition: { line: childElement.start_line, column: 0 },
+						endPosition: { line: childElement.end_line, column: 0 },
+						parentId: childElement.parent_id,
+						metadata: JSON.parse(childElement.metadata),
+					},
+				])
+				expect(mockStatement.run).toHaveBeenCalledWith(expect.objectContaining(parentElement))
+				expect(mockStatement.run).toHaveBeenCalledWith(expect.objectContaining(childElement))
 			})
 		})
 
 		describe("getCodeElementById", () => {
 			it("should retrieve an element by its ID", () => {
 				dbManager.initialize() // Initialize here
-				// Arrange: Mock the 'get' method to return element1 when called with ID 1
-				const targetId = 1
-				mockStatement.get.mockReturnValueOnce(element1) // Simulate finding the element
+				const targetId = "1"
+				// Mock SQL row result format with snake_case keys
+				const mockDbRow = {
+					id: "1",
+					content: "() => {}",
+					file_path: "/test/file1.ts",
+					type: "function",
+					name: "func1",
+					start_line: 1,
+					end_line: 3,
+					last_modified: Date.now(),
+					metadata: JSON.stringify({ test: true }),
+				}
+				mockStatement.get.mockReturnValueOnce(mockDbRow)
 
 				// Act
 				const retrieved = dbManager.getCodeElementById(targetId)
@@ -376,7 +414,19 @@ describe("DatabaseManager", () => {
 				// Assert
 				expect(mockDbInstance.prepare).toHaveBeenCalledWith("SELECT * FROM code_elements WHERE id = ?")
 				expect(mockStatement.get).toHaveBeenCalledWith(targetId)
-				expect(retrieved).toEqual(element1)
+				expect(retrieved).toEqual({
+					id: mockDbRow.id,
+					content: mockDbRow.content,
+					filePath: mockDbRow.file_path,
+					type: mockDbRow.type,
+					name: mockDbRow.name,
+					startLine: mockDbRow.start_line,
+					endLine: mockDbRow.end_line,
+					lastModified: mockDbRow.last_modified,
+					startPosition: { line: mockDbRow.start_line, column: 0 },
+					endPosition: { line: mockDbRow.end_line, column: 0 },
+					metadata: JSON.parse(mockDbRow.metadata),
+				})
 			})
 
 			it("should return undefined for a non-existent ID", () => {
@@ -384,10 +434,10 @@ describe("DatabaseManager", () => {
 				// Arrange: Mock 'get' to return undefined
 				mockStatement.get.mockReturnValueOnce(undefined)
 				// Act
-				const retrieved = dbManager.getCodeElementById(999)
+				const retrieved = dbManager.getCodeElementById("999")
 				// Assert
 				expect(mockDbInstance.prepare).toHaveBeenCalledWith("SELECT * FROM code_elements WHERE id = ?")
-				expect(mockStatement.get).toHaveBeenCalledWith(999)
+				expect(mockStatement.get).toHaveBeenCalledWith("999")
 				expect(retrieved).toBeUndefined()
 			})
 		})
@@ -395,10 +445,33 @@ describe("DatabaseManager", () => {
 		describe("getCodeElementsByFilePath", () => {
 			it("should retrieve all elements for a given file path, ordered by start_line", () => {
 				dbManager.initialize() // Initialize here
-				// Arrange: Mock 'all' to return elements for the specific path
 				const filePath = "/test/file1.ts"
-				const expectedElements = [element1, element2] // Assume these match the path
-				mockStatement.all.mockReturnValueOnce(expectedElements)
+				// Mock SQL row results with snake_case keys
+				const mockDbRows = [
+					{
+						id: "1",
+						content: "() => {}",
+						file_path: filePath,
+						type: "function",
+						name: "func1",
+						start_line: 1,
+						end_line: 3,
+						last_modified: Date.now(),
+						metadata: JSON.stringify({ test: true }),
+					},
+					{
+						id: "2",
+						content: " = 1",
+						file_path: filePath,
+						type: "variable",
+						name: "var1",
+						start_line: 5,
+						end_line: 5,
+						last_modified: Date.now(),
+						metadata: null,
+					},
+				]
+				mockStatement.all.mockReturnValueOnce(mockDbRows)
 
 				// Act
 				const retrieved = dbManager.getCodeElementsByFilePath(filePath)
@@ -408,7 +481,21 @@ describe("DatabaseManager", () => {
 					"SELECT * FROM code_elements WHERE file_path = ? ORDER BY start_line",
 				)
 				expect(mockStatement.all).toHaveBeenCalledWith(filePath)
-				expect(retrieved).toEqual(expectedElements)
+				expect(retrieved).toEqual(
+					mockDbRows.map((row) => ({
+						id: row.id,
+						content: row.content,
+						filePath: row.file_path,
+						type: row.type,
+						name: row.name,
+						startLine: row.start_line,
+						endLine: row.end_line,
+						lastModified: row.last_modified,
+						startPosition: { line: row.start_line, column: 0 },
+						endPosition: { line: row.end_line, column: 0 },
+						metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+					})),
+				)
 			})
 
 			it("should return an empty array if no elements match the file path", () => {
