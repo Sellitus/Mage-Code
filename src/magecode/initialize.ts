@@ -3,6 +3,7 @@ import { registerModeChangeListener } from "./config/settings"
 import { DatabaseManager } from "./intelligence/storage/databaseManager"
 import { EmbeddingService } from "./intelligence/embedding/embeddingService"
 import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
+import { LocalModelTier } from "./orchestration/tiers/localModelTier"
 import { MultiModelOrchestrator } from "./orchestration"
 import { buildApiHandler, SingleCompletionHandler } from "../api"
 import { ApiConfiguration } from "../shared/api"
@@ -62,9 +63,23 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 			throw new Error("LLM service does not implement required SingleCompletionHandler interface")
 		}
 
-		// Initialize Cloud Tier and Orchestrator
+		// Initialize Cloud Tier
 		const cloudTier = new CloudModelTier(llmService as SingleCompletionHandler & typeof llmService)
-		const orchestrator = new MultiModelOrchestrator(cloudTier)
+
+		// Initialize Local Tier
+		const localTier = new LocalModelTier()
+		try {
+			await localTier.initialize(context.extensionPath)
+			console.log("LocalModelTier initialized successfully.")
+		} catch (error) {
+			console.warn("Failed to initialize LocalModelTier:", error)
+			vscode.window.showWarningMessage(
+				"MageCode: Local model initialization failed. Falling back to cloud-only mode.",
+			)
+		}
+
+		// Initialize Orchestrator with both tiers
+		const orchestrator = new MultiModelOrchestrator(cloudTier, localTier)
 		context.subscriptions.push({
 			dispose: () => {
 				// Add cleanup if needed

@@ -18,7 +18,8 @@
 		"strict": true,
 		"target": "es2022",
 		"useDefineForClassFields": true,
-		"useUnknownInCatchVariables": false
+		"useUnknownInCatchVariables": false,
+		"typeRoots": ["./node_modules/@types", "./src/@types"]
 	},
 	"include": ["src/**/*", "scripts/**/*", ".changeset/**/*"],
 	"exclude": ["node_modules", ".vscode-test", "webview-ui"]

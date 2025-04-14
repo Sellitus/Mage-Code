@@ -1,95 +1,116 @@
 import { MultiModelOrchestrator } from ".."
 import { CloudModelTier } from "../tiers/cloudModelTier"
+import { LocalModelTier } from "../tiers/localModelTier"
 import { ModelRequestOptions, ModelResponse } from "../interfaces"
 import { RequestOptions } from "../../interfaces"
 
+// Mock the tiers
+jest.mock("../tiers/cloudModelTier")
+jest.mock("../tiers/localModelTier")
+
 describe("MultiModelOrchestrator", () => {
 	let mockCloudTier: jest.Mocked<CloudModelTier>
+	let mockLocalTier: jest.Mocked<LocalModelTier>
 	let orchestrator: MultiModelOrchestrator
 
 	beforeEach(() => {
-		mockCloudTier = {
-			makeRequest: jest.fn(),
-		} as unknown as jest.Mocked<CloudModelTier>
-
-		orchestrator = new MultiModelOrchestrator(mockCloudTier)
+		mockCloudTier = new CloudModelTier(null as any) as jest.Mocked<CloudModelTier>
+		mockLocalTier = new LocalModelTier() as jest.Mocked<LocalModelTier>
+		orchestrator = new MultiModelOrchestrator(mockCloudTier, mockLocalTier)
 	})
 
-	it("should route requests to cloud tier", async () => {
-		const prompt = "Test prompt"
-		const options: RequestOptions = {
+	afterEach(() => {
+		jest.clearAllMocks()
+	})
+
+	describe("makeApiRequest", () => {
+		const mockPrompt = "Test prompt"
+		const mockOptions: RequestOptions = {
 			maxTokens: 100,
 			temperature: 0.7,
-			stopSequences: ["stop"],
-			cacheStrategy: "enabled",
 		}
 
 		const mockResponse: ModelResponse = {
 			text: "Mock response",
 			tokenUsage: {
-				inputTokens: 5,
-				outputTokens: 10,
-				cacheReadTokens: 3,
-				cacheWriteTokens: 2,
+				inputTokens: 10,
+				outputTokens: 20,
 			},
-			modelType: "cloud",
+			modelType: "local",
 			latency: 100,
 		}
 
-		mockCloudTier.makeRequest.mockResolvedValue(mockResponse)
+		it("should use local tier for simple requests", async () => {
+			mockLocalTier.makeRequest.mockResolvedValue(mockResponse)
 
-		const response = await orchestrator.makeApiRequest(prompt, options)
+			const result = await orchestrator.makeApiRequest(mockPrompt, mockOptions)
 
-		// Verify options conversion
-		const expectedModelOptions: ModelRequestOptions = {
-			maxTokens: 100,
-			temperature: 0.7,
-			stopSequences: ["stop"],
-			cacheStrategy: "enabled",
-		}
-
-		expect(mockCloudTier.makeRequest).toHaveBeenCalledWith(prompt, expectedModelOptions)
-
-		// Verify response conversion
-		expect(response).toEqual({
-			content: "Mock response",
-			usage: {
-				inputTokens: 5,
-				outputTokens: 10,
-				cacheReadTokens: 3,
-				cacheWriteTokens: 2,
-			},
-			modelType: "cloud",
-			latency: 100,
+			expect(mockLocalTier.makeRequest).toHaveBeenCalled()
+			expect(mockCloudTier.makeRequest).not.toHaveBeenCalled()
+			expect(result).toEqual({
+				content: mockResponse.text,
+				usage: mockResponse.tokenUsage,
+				modelType: mockResponse.modelType,
+				latency: mockResponse.latency,
+			})
 		})
-	})
 
-	it("should handle requests without options", async () => {
-		const prompt = "Test prompt"
-		const mockResponse: ModelResponse = {
-			text: "Mock response",
-			tokenUsage: {
-				inputTokens: 5,
-				outputTokens: 10,
-			},
-			modelType: "cloud",
-			latency: 100,
-		}
+		it("should use cloud tier for complex requests", async () => {
+			const complexPrompt = "A".repeat(1500) // Long prompt
+			const complexOptions: RequestOptions = {
+				maxTokens: 1000, // Large output
+				stopSequences: ["END"], // Stop sequences
+			}
 
-		mockCloudTier.makeRequest.mockResolvedValue(mockResponse)
+			mockCloudTier.makeRequest.mockResolvedValue({
+				...mockResponse,
+				modelType: "cloud",
+			})
 
-		const response = await orchestrator.makeApiRequest(prompt)
+			const result = await orchestrator.makeApiRequest(complexPrompt, complexOptions)
 
-		expect(mockCloudTier.makeRequest).toHaveBeenCalledWith(prompt, {})
-		expect(response).toBeDefined()
-	})
+			expect(mockCloudTier.makeRequest).toHaveBeenCalled()
+			expect(mockLocalTier.makeRequest).not.toHaveBeenCalled()
+			expect(result.modelType).toBe("cloud")
+		})
 
-	it("should handle cloud tier errors", async () => {
-		const error = new Error("Cloud tier error")
-		mockCloudTier.makeRequest.mockRejectedValue(error)
+		it("should fallback to cloud tier if local tier fails", async () => {
+			mockLocalTier.makeRequest.mockRejectedValue(new Error("LocalModelTier failed"))
+			mockCloudTier.makeRequest.mockResolvedValue({
+				...mockResponse,
+				modelType: "cloud",
+			})
 
-		await expect(orchestrator.makeApiRequest("Test prompt")).rejects.toThrow(
-			"Model request failed: Cloud tier error",
-		)
+			const result = await orchestrator.makeApiRequest(mockPrompt, mockOptions)
+
+			expect(mockLocalTier.makeRequest).toHaveBeenCalled()
+			expect(mockCloudTier.makeRequest).toHaveBeenCalled()
+			expect(result.modelType).toBe("cloud")
+		})
+
+		it("should throw error if both tiers fail", async () => {
+			mockLocalTier.makeRequest.mockRejectedValue(new Error("LocalModelTier failed"))
+			mockCloudTier.makeRequest.mockRejectedValue(new Error("CloudModelTier failed"))
+
+			await expect(orchestrator.makeApiRequest(mockPrompt, mockOptions)).rejects.toThrow(
+				"Cloud fallback failed: CloudModelTier failed",
+			)
+		})
+
+		it("should handle missing options", async () => {
+			mockLocalTier.makeRequest.mockResolvedValue(mockResponse)
+
+			await orchestrator.makeApiRequest(mockPrompt)
+
+			expect(mockLocalTier.makeRequest).toHaveBeenCalledWith(
+				mockPrompt,
+				expect.objectContaining({
+					maxTokens: undefined,
+					temperature: undefined,
+					stopSequences: undefined,
+					cacheStrategy: undefined,
+				}),
+			)
+		})
 	})
 })
