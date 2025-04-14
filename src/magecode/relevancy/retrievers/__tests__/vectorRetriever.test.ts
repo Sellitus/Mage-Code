@@ -1,123 +1,96 @@
 import { VectorRetriever } from "../vectorRetriever"
-import type { EmbeddingService } from "../../../intelligence/embedding/embeddingService"
-import type { VectorIndex } from "../../../intelligence/vector/vectorIndex"
-import type { DatabaseManager } from "../../../intelligence/storage/databaseManager"
-import type { RetrievedItem, RetrievalOptions, CodeElement } from "../../../interfaces"
+import { RetrievedItem, RetrievalOptions } from "../../types"
+import { ILocalCodeIntelligence, VectorSearchResult } from "../../../intelligence"
+import { ElementType } from "../../../intelligence/types"
 
 describe("VectorRetriever", () => {
-	let embeddingService: jest.Mocked<EmbeddingService>
-	let vectorIndex: jest.Mocked<VectorIndex>
-	let databaseManager: jest.Mocked<DatabaseManager>
 	let retriever: VectorRetriever
+	let mockIntelligence: jest.Mocked<ILocalCodeIntelligence>
 
 	beforeEach(() => {
-		embeddingService = {
-			generateEmbeddings: jest.fn(),
-		} as any
+		mockIntelligence = {
+			initialize: jest.fn(),
+			generateEmbedding: jest.fn(),
+			searchVectors: jest.fn(),
+			searchGraph: jest.fn(),
+		}
 
-		vectorIndex = {
-			search: jest.fn(),
-		} as any
-
-		databaseManager = {
-			getCodeElementById: jest.fn(),
-		} as any
-
-		retriever = new VectorRetriever(embeddingService, vectorIndex, databaseManager)
+		retriever = new VectorRetriever(mockIntelligence)
 	})
 
-	it("retrieves relevant code elements using vector search", async () => {
-		const query = "find function for user login"
-		const options: RetrievalOptions = { limit: 2 }
-		const fakeEmbedding = [0.1, 0.2, 0.3]
+	describe("retrieve", () => {
+		it("should return empty array on error", async () => {
+			mockIntelligence.generateEmbedding.mockRejectedValue(new Error("Test error"))
 
-		// Mock embedding generation
-		;(embeddingService.generateEmbeddings as jest.Mock).mockResolvedValue([fakeEmbedding])
+			const result = await retriever.retrieve("test query", {})
 
-		// Mock vector index search
-		const vectorResults = [
-			{ id: "1", score: 0.95 },
-			{ id: "2", score: 0.85 },
-		]
-		;(vectorIndex.search as jest.Mock).mockResolvedValue(vectorResults)
-
-		// Mock database results
-		const codeElement1: CodeElement = {
-			id: "1",
-			content: "function login() { ... }",
-			filePath: "/src/auth.js",
-			startLine: 10,
-			endLine: 20,
-			startPosition: { line: 10, column: 0 },
-			endPosition: { line: 20, column: 0 },
-			type: "function",
-			name: "login",
-			lastModified: Date.now(),
-		}
-
-		const codeElement2: CodeElement = {
-			id: "2",
-			content: "function logout() { ... }",
-			filePath: "/src/auth.js",
-			startLine: 22,
-			endLine: 30,
-			startPosition: { line: 22, column: 0 },
-			endPosition: { line: 30, column: 0 },
-			type: "function",
-			name: "logout",
-			lastModified: Date.now(),
-		}
-
-		;(databaseManager.getCodeElementById as jest.Mock).mockImplementation((id: string) => {
-			if (id === "1") return codeElement1
-			if (id === "2") return codeElement2
-			return undefined
+			expect(result).toEqual([])
+			expect(mockIntelligence.generateEmbedding).toHaveBeenCalledWith("test query")
 		})
 
-		const results: RetrievedItem[] = await retriever.retrieve(query, options)
+		it("should convert vector search results to retrieved items", async () => {
+			const mockEmbedding = new Float32Array(384)
+			const query = "test query"
+			const options: RetrievalOptions = {
+				limit: 10,
+				fileTypes: ["ts"],
+			}
 
-		expect(embeddingService.generateEmbeddings).toHaveBeenCalledWith([query])
-		expect(vectorIndex.search).toHaveBeenCalledWith(fakeEmbedding, 2)
-		expect(databaseManager.getCodeElementById).toHaveBeenCalledWith("1")
-		expect(databaseManager.getCodeElementById).toHaveBeenCalledWith("2")
+			const mockVectorResults: VectorSearchResult[] = [
+				{
+					element: {
+						id: "test-1",
+						name: "testFunction",
+						content: "function testFunction() {}",
+						filePath: "test.ts",
+						startLine: 1,
+						endLine: 3,
+						type: "function" as ElementType,
+					},
+					similarity: 0.8,
+				},
+			]
 
-		expect(results).toEqual([
-			{
-				id: "1",
-				content: "function login() { ... }",
-				filePath: "/src/auth.js",
-				startLine: 10,
-				endLine: 20,
-				score: 0.95,
+			mockIntelligence.generateEmbedding.mockResolvedValue(mockEmbedding)
+			mockIntelligence.searchVectors.mockResolvedValue(mockVectorResults)
+
+			const results = await retriever.retrieve(query, options)
+
+			expect(results).toHaveLength(1)
+			expect(results[0]).toEqual({
+				id: "test-1",
+				name: "testFunction",
+				content: "function testFunction() {}",
+				filePath: "test.ts",
+				startLine: 1,
+				endLine: 3,
+				score: 0.8,
 				source: "vector",
 				type: "function",
-				name: "login",
-			},
-			{
-				id: "2",
-				content: "function logout() { ... }",
-				filePath: "/src/auth.js",
-				startLine: 22,
-				endLine: 30,
-				score: 0.85,
-				source: "vector",
-				type: "function",
-				name: "logout",
-			},
-		])
-	})
+			})
 
-	it("skips results missing from the database", async () => {
-		const query = "find function for user login"
-		const options: RetrievalOptions = { limit: 1 }
-		const fakeEmbedding = [0.1, 0.2, 0.3]
+			expect(mockIntelligence.generateEmbedding).toHaveBeenCalledWith(query)
+			expect(mockIntelligence.searchVectors).toHaveBeenCalledWith(
+				mockEmbedding,
+				options.limit,
+				expect.any(Number),
+				options.fileTypes,
+			)
+		})
 
-		;(embeddingService.generateEmbeddings as jest.Mock).mockResolvedValue([fakeEmbedding])
-		;(vectorIndex.search as jest.Mock).mockResolvedValue([{ id: "3", score: 0.7 }])
-		;(databaseManager.getCodeElementById as jest.Mock).mockReturnValue(undefined)
+		it("should use default limit when not provided", async () => {
+			const mockEmbedding = new Float32Array(384)
+			mockIntelligence.generateEmbedding.mockResolvedValue(mockEmbedding)
+			mockIntelligence.searchVectors.mockResolvedValue([])
 
-		const results: RetrievedItem[] = await retriever.retrieve(query, options)
+			await retriever.retrieve("test query", {})
 
-		expect(results).toEqual([])
+			expect(mockIntelligence.searchVectors).toHaveBeenCalledWith(
+				mockEmbedding,
+				20, // Default limit
+				expect.any(Number),
+				undefined,
+			)
+		})
 	})
 })

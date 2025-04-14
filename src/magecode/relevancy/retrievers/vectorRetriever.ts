@@ -1,60 +1,58 @@
-import type { IRetriever, RetrievedItem, RetrievalOptions, CodeElement } from "../../interfaces"
-import type { EmbeddingService } from "../../intelligence/embedding/embeddingService"
-import type { VectorIndex } from "../../intelligence/vector/vectorIndex"
-import type { DatabaseManager } from "../../intelligence/storage/databaseManager"
+import { IRetriever, RetrievedItem, RetrievalOptions } from "../types"
+import { ILocalCodeIntelligence, VectorSearchResult } from "../../intelligence"
+import { CodeElement } from "../../intelligence/types"
+import * as vscode from "vscode"
 
 /**
- * VectorRetriever: Uses EmbeddingService and VectorIndex to find semantically similar code elements.
+ * Retrieves code elements using vector similarity search
  */
 export class VectorRetriever implements IRetriever {
-	private embeddingService: EmbeddingService
-	private vectorIndex: VectorIndex
-	private databaseManager: DatabaseManager
+	constructor(
+		private readonly intelligence: ILocalCodeIntelligence,
+		private readonly maxResults: number = 20,
+		private readonly similarityThreshold: number = 0.6,
+	) {}
 
-	constructor(embeddingService: EmbeddingService, vectorIndex: VectorIndex, databaseManager: DatabaseManager) {
-		this.embeddingService = embeddingService
-		this.vectorIndex = vectorIndex
-		this.databaseManager = databaseManager
+	/**
+	 * Retrieve relevant code elements using vector similarity search
+	 * @param query Search query
+	 * @param options Retrieval options
+	 */
+	async retrieve(query: string, options: RetrievalOptions): Promise<RetrievedItem[]> {
+		try {
+			// Get query embedding
+			const queryEmbedding = await this.intelligence.generateEmbedding(query)
+
+			// Search for similar vectors
+			const results = await this.intelligence.searchVectors(
+				queryEmbedding,
+				options.limit || this.maxResults,
+				this.similarityThreshold,
+				options.fileTypes,
+			)
+
+			// Convert to RetrievedItems
+			return results.map((result) => this.convertToRetrievedItem(result))
+		} catch (error) {
+			console.error("Vector retrieval error:", error)
+			return []
+		}
 	}
 
 	/**
-	 * Retrieves semantically similar code elements for a given query.
-	 * @param query The user's search query.
-	 * @param options Retrieval options (e.g., limit).
-	 * @returns Promise of RetrievedItem[]
+	 * Convert a vector search result to a RetrievedItem
 	 */
-	async retrieve(query: string, options: RetrievalOptions): Promise<RetrievedItem[]> {
-		// 1. Generate embedding for the query
-		const [queryEmbedding] = await this.embeddingService.generateEmbeddings([query])
-		if (!queryEmbedding) {
-			throw new Error("Failed to generate embedding for query.")
+	private convertToRetrievedItem(result: VectorSearchResult): RetrievedItem {
+		return {
+			id: result.element.id,
+			name: result.element.name,
+			content: result.element.content,
+			filePath: result.element.filePath,
+			startLine: result.element.startLine,
+			endLine: result.element.endLine,
+			score: result.similarity,
+			source: "vector",
+			type: result.element.type,
 		}
-
-		// 2. Search the vector index
-		const limit = options?.limit ?? 10
-		const results = await this.vectorIndex.search(queryEmbedding, limit)
-
-		// 3. For each result, fetch code element details from the database
-		const retrievedItems: RetrievedItem[] = []
-		for (const result of results) {
-			// Convert result.id to number for DB lookup
-			const codeElement: CodeElement | undefined = await this.databaseManager.getCodeElementById(result.id)
-			if (!codeElement) {
-				// Element might be missing if out of sync; skip it
-				continue
-			}
-			retrievedItems.push({
-				id: codeElement.id ?? result.id,
-				content: codeElement.content ?? "",
-				filePath: codeElement.filePath ?? "",
-				startLine: codeElement.startLine ?? 0,
-				endLine: codeElement.endLine ?? 0,
-				score: result.score,
-				source: "vector",
-				type: codeElement.type ?? "",
-				name: codeElement.name ?? "",
-			})
-		}
-		return retrievedItems
 	}
 }

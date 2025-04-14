@@ -1,45 +1,130 @@
-import { MageParser } from "./parser/index"
-import { DatabaseManager } from "./storage/databaseManager"
-import type { ParsedFile, CodeElement } from "../interfaces"
+import { CodeElement } from "./types"
+import { processAndStoreFile } from "./processAndStoreFile"
+import * as vscode from "vscode"
+
+export { processAndStoreFile }
+export * from "./types"
 
 /**
- * Processes a file: parses, extracts code elements, and stores them in the database.
- * @param filePath Absolute path to the file.
- * @param parser MageParser instance (must be initialized).
- * @param dbManager DatabaseManager instance (must be initialized).
+ * Result from a vector similarity search
  */
-export async function processAndStoreFile(
-	filePath: string,
-	parser: MageParser,
-	dbManager: DatabaseManager,
-): Promise<{ success: boolean; error?: string }> {
-	try {
-		const parsedFile: ParsedFile = await parser.parseFile(filePath)
-		if (!parsedFile.ast || parsedFile.errors.length > 0) {
-			return { success: false, error: parsedFile.errors.map((e) => e.message).join("; ") }
+export interface VectorSearchResult {
+	element: CodeElement
+	similarity: number
+}
+
+/**
+ * Result from a graph traversal search
+ */
+export interface GraphSearchResult {
+	element: CodeElement
+	distance: number
+	path: string[]
+}
+
+/**
+ * Core intelligence engine interface
+ */
+export interface ILocalCodeIntelligence {
+	/**
+	 * Initialize the intelligence engine
+	 */
+	initialize(): Promise<void>
+
+	/**
+	 * Generate embedding vector for text
+	 */
+	generateEmbedding(text: string): Promise<Float32Array>
+
+	/**
+	 * Search for similar vectors
+	 */
+	searchVectors(
+		queryVector: Float32Array,
+		limit: number,
+		threshold: number,
+		fileTypes?: string[],
+	): Promise<VectorSearchResult[]>
+
+	/**
+	 * Search for related elements through graph traversal
+	 */
+	searchGraph(
+		startId: string,
+		maxDistance: number,
+		relationTypes: string[],
+		limit: number,
+	): Promise<GraphSearchResult[]>
+}
+
+/**
+ * Implementation of the local code intelligence engine
+ */
+export class LocalCodeIntelligenceEngine implements ILocalCodeIntelligence, vscode.Disposable {
+	protected initialized = false
+	protected disposables: vscode.Disposable[] = []
+
+	async initialize(): Promise<void> {
+		if (this.initialized) return
+
+		try {
+			// Initialize vector store
+			// Initialize database
+			// Load models
+			this.initialized = true
+		} catch (error) {
+			console.error("Failed to initialize LocalCodeIntelligenceEngine:", error)
+			throw error
 		}
-		// Map canonical CodeElement[] to storage CodeElement[]
-		const now = Date.now()
-		// NOTE: parent_id is set to null for now, as we do not have numeric DB IDs at extraction time.
-		// TODO: After insertion, update child elements with correct parent_id if needed.
-		const { elements } = parser.extractCodeElements(parsedFile)
-		const dbElements = elements.map((el) => ({
-			id: el.id,
-			filePath: el.filePath,
-			type: el.type,
-			name: el.name,
-			content: el.content,
-			startLine: el.startLine,
-			endLine: el.endLine,
-			lastModified: now,
-			startPosition: el.startPosition,
-			endPosition: el.endPosition,
-			parentId: el.parentId,
-			metadata: el.metadata,
-		}))
-		dbManager.storeCodeElements(dbElements)
-		return { success: true }
-	} catch (err: any) {
-		return { success: false, error: err?.message || String(err) }
+	}
+
+	async generateEmbedding(text: string): Promise<Float32Array> {
+		if (!this.initialized) {
+			throw new Error("LocalCodeIntelligenceEngine not initialized")
+		}
+
+		// TODO: Implement embedding generation
+		// This is a placeholder that returns a random vector
+		const vector = new Float32Array(384) // Standard embedding size
+		for (let i = 0; i < vector.length; i++) {
+			vector[i] = Math.random()
+		}
+		return vector
+	}
+
+	async searchVectors(
+		queryVector: Float32Array,
+		limit: number,
+		threshold: number,
+		fileTypes?: string[],
+	): Promise<VectorSearchResult[]> {
+		if (!this.initialized) {
+			throw new Error("LocalCodeIntelligenceEngine not initialized")
+		}
+
+		// TODO: Implement vector search
+		// This is a placeholder that returns empty results
+		return []
+	}
+
+	async searchGraph(
+		startId: string,
+		maxDistance: number,
+		relationTypes: string[],
+		limit: number,
+	): Promise<GraphSearchResult[]> {
+		if (!this.initialized) {
+			throw new Error("LocalCodeIntelligenceEngine not initialized")
+		}
+
+		// TODO: Implement graph search
+		// This is a placeholder that returns empty results
+		return []
+	}
+
+	dispose(): void {
+		this.disposables.forEach((d) => d.dispose())
+		this.disposables = []
+		this.initialized = false
 	}
 }
