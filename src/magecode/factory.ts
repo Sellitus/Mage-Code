@@ -5,13 +5,21 @@ import { VectorRetriever } from "./relevancy/retrievers/vectorRetriever"
 import { GraphRetriever } from "./relevancy/retrievers/graphRetriever"
 import { LocalCodeIntelligenceEngine, VectorSearchResult, GraphSearchResult } from "./intelligence"
 import { CodeElement } from "./intelligence/types"
+import { ILLMOrchestrator } from "./interfaces"
+import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
+import { MultiModelOrchestrator } from "./orchestration"
+import { buildApiHandler, SingleCompletionHandler } from "../api"
+import { ApiConfiguration } from "../shared/api"
+import { ApiHandler } from "../api"
+import { ApiStream, ApiStreamChunk } from "../api/transform/stream"
+import { ModelInfo } from "../shared/api"
 
 /**
  * Dependencies required by MageCode components
  */
 export interface MageCodeDependencies {
 	contextRetriever: RelevancyEngine
-	// Add other dependencies as needed
+	llmOrchestrator: ILLMOrchestrator
 }
 
 /**
@@ -109,9 +117,29 @@ export async function createMageCodeDependencies(context: vscode.ExtensionContex
 	const relevancyEngine = new RelevancyEngine(vectorRetriever, graphRetriever, hybridScorer)
 	context.subscriptions.push(relevancyEngine)
 
+	// Initialize LLM services
+	const config: ApiConfiguration = {
+		apiProvider: "anthropic", // Default provider, should be configurable
+	}
+	const llmService = buildApiHandler(config)
+
+	// Check if the service implements required interface
+	if (!("completePrompt" in llmService)) {
+		throw new Error("LLM service does not implement required SingleCompletionHandler interface")
+	}
+
+	// Create cloud tier and orchestrator
+	const cloudTier = new CloudModelTier(llmService as SingleCompletionHandler & typeof llmService)
+	const orchestrator = new MultiModelOrchestrator(cloudTier)
+	context.subscriptions.push({
+		dispose: () => {
+			// Add cleanup if needed
+		},
+	})
+
 	return {
 		contextRetriever: relevancyEngine,
-		// Add other initialized dependencies as needed
+		llmOrchestrator: orchestrator,
 	}
 }
 
@@ -127,7 +155,36 @@ export async function createTestDependencies(): Promise<MageCodeDependencies> {
 	const hybridScorer = new HybridScorer()
 	const relevancyEngine = new RelevancyEngine(vectorRetriever, graphRetriever, hybridScorer)
 
+	// Create mock cloud tier and orchestrator for testing
+	const mockModelInfo: ModelInfo = {
+		contextWindow: 2048,
+		maxTokens: 1024,
+		supportsPromptCache: true,
+		supportsImages: false,
+		inputPrice: 0.001,
+		outputPrice: 0.002,
+		description: "Mock model for testing",
+	}
+
+	const mockLlmService: ApiHandler & SingleCompletionHandler = {
+		completePrompt: async (prompt: string) => "Mock response",
+		createMessage: async function* (): ApiStream {
+			yield { type: "text", text: "Mock response" }
+			yield {
+				type: "usage",
+				inputTokens: 10,
+				outputTokens: 20,
+			}
+		},
+		getModel: () => ({ id: "mock-model", info: mockModelInfo }),
+		countTokens: async () => 0,
+	}
+
+	const cloudTier = new CloudModelTier(mockLlmService)
+	const orchestrator = new MultiModelOrchestrator(cloudTier)
+
 	return {
 		contextRetriever: relevancyEngine,
+		llmOrchestrator: orchestrator,
 	}
 }
