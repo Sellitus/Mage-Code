@@ -56,3 +56,25 @@ export interface CodeElement {
 	metadata?: Record<string, any> // Additional metadata (e.g., visibility, return type)
 	// Add other fields as needed based on analysis requirements
 }
+// --- Relevancy Engine Retrieval Interfaces ---
+
+export interface RetrievalOptions {
+	limit?: number
+	// Add other retrieval options as needed
+}
+
+export interface RetrievedItem {
+	id: string
+	content: string
+	filePath: string
+	startLine: number
+	endLine: number
+	score: number
+	source: string // e.g., 'vector'
+	type: string
+	name: string
+}
+
+export interface IRetriever {
+	retrieve(query: string, options: RetrievalOptions): Promise<RetrievedItem[]>
+}
