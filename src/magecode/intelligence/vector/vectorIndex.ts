@@ -11,6 +11,7 @@ type VectorMapping = Map<number, string>
 export class VectorIndex implements vscode.Disposable {
 	private index: any // Will hold FAISS or Voy instance
 	private mapping: VectorMapping = new Map()
+	private fileToVectorIds: Map<string, Set<number>> = new Map()
 	private workspacePath: string | undefined
 	private vectorDirPath: string | undefined
 	private mappingPath: string | undefined
@@ -147,11 +148,19 @@ export class VectorIndex implements vscode.Disposable {
 		if (!this.mappingPath) return
 		try {
 			const mappingData = await fs.readFile(this.mappingPath, "utf-8")
-			const parsedMapping = JSON.parse(mappingData)
-			// Ensure it's in the expected format [ [number, string], ... ]
-			if (
-				Array.isArray(parsedMapping) &&
-				parsedMapping.every(
+			const parsed = JSON.parse(mappingData)
+			// Support both old and new format for backward compatibility
+			if (parsed && typeof parsed === "object" && parsed.mapping && parsed.fileToVectorIds) {
+				this.mapping = new Map(parsed.mapping)
+				this.fileToVectorIds = new Map(
+					Object.entries(parsed.fileToVectorIds).map(([file, ids]) => [file, new Set(ids as number[])]),
+				)
+				console.log(
+					`Loaded mapping for ${this.mapping.size} vectors and fileToVectorIds for ${this.fileToVectorIds.size} files from ${this.mappingPath}`,
+				)
+			} else if (
+				Array.isArray(parsed) &&
+				parsed.every(
 					(pair) =>
 						Array.isArray(pair) &&
 						pair.length === 2 &&
@@ -159,34 +168,47 @@ export class VectorIndex implements vscode.Disposable {
 						typeof pair[1] === "string",
 				)
 			) {
-				this.mapping = new Map(parsedMapping as [number, string][])
+				this.mapping = new Map(parsed as [number, string][])
+				this.fileToVectorIds = new Map()
 				console.log(`Loaded mapping for ${this.mapping.size} vectors from ${this.mappingPath}`)
 			} else {
 				console.warn(`Invalid mapping format found in ${this.mappingPath}. Initializing empty mapping.`)
 				this.mapping = new Map()
+				this.fileToVectorIds = new Map()
 			}
 		} catch (error: any) {
 			if (error.code === "ENOENT") {
 				console.log(`Mapping file not found at ${this.mappingPath}. Initializing empty mapping.`)
 				this.mapping = new Map()
+				this.fileToVectorIds = new Map()
 			} else {
 				console.error(`Error loading mapping from ${this.mappingPath}:`, error)
-				// Decide on recovery strategy - maybe backup corrupt file and start fresh?
-				this.mapping = new Map() // Start fresh for now
+				this.mapping = new Map()
+				this.fileToVectorIds = new Map()
 			}
 		}
 	}
 
 	private async saveMapping(): Promise<void> {
 		if (!this.mappingPath || !this.initialized) return // Don't save if not initialized
-		console.log(`Saving mapping for ${this.mapping.size} vectors to ${this.mappingPath}...`)
+		if (process.env.NODE_ENV !== "test") {
+			console.log(`Saving mapping for ${this.mapping.size} vectors to ${this.mappingPath}...`)
+		}
 		try {
 			const mappingArray = Array.from(this.mapping.entries())
-			const mappingJson = JSON.stringify(mappingArray, null, 2)
+			const fileToVectorIdsObj: Record<string, number[]> = {}
+			for (const [file, ids] of this.fileToVectorIds.entries()) {
+				fileToVectorIdsObj[file] = Array.from(ids)
+			}
+			const mappingJson = JSON.stringify({ mapping: mappingArray, fileToVectorIds: fileToVectorIdsObj }, null, 2)
 			await fs.writeFile(this.mappingPath, mappingJson, "utf-8")
-			console.log("Mapping saved successfully.")
+			if (process.env.NODE_ENV !== "test") {
+				console.log("Mapping saved successfully.")
+			}
 		} catch (error) {
-			console.error(`Error saving mapping to ${this.mappingPath}:`, error)
+			if (process.env.NODE_ENV !== "test") {
+				console.error(`Error saving mapping to ${this.mappingPath}:`, error)
+			}
 			// Consider notifying the user or implementing retry logic
 		}
 	}
@@ -218,7 +240,7 @@ export class VectorIndex implements vscode.Disposable {
 		}
 	}
 
-	async addEmbeddings(embeddings: { id: string; vector: number[] }[]): Promise<void> {
+	async addEmbeddings(embeddings: { id: string; vector: number[]; filePath?: string }[]): Promise<void> {
 		if (!this.initialized || !this.index) {
 			throw new Error("VectorIndex is not initialized.")
 		}
@@ -231,15 +253,19 @@ export class VectorIndex implements vscode.Disposable {
 		const vectors: number[][] = []
 		const numericIds: number[] = []
 		const newMappingEntries: [number, string][] = []
+		const fileToIds: Map<string, number[]> = new Map()
 
 		let currentMaxId = this.mapping.size > 0 ? Math.max(...this.mapping.keys()) : -1
-		// Or safer: let currentMaxId = this.mapping.size -1; if IDs are guaranteed sequential 0..N-1
 
 		embeddings.forEach((embedding) => {
 			currentMaxId++
 			vectors.push(embedding.vector)
 			numericIds.push(currentMaxId)
 			newMappingEntries.push([currentMaxId, embedding.id])
+			if (embedding.filePath) {
+				if (!fileToIds.has(embedding.filePath)) fileToIds.set(embedding.filePath, [])
+				fileToIds.get(embedding.filePath)!.push(currentMaxId)
+			}
 		})
 
 		try {
@@ -251,13 +277,21 @@ export class VectorIndex implements vscode.Disposable {
 				this.mapping.set(numericId, elementId)
 			})
 
-			console.log(`Added ${embeddings.length} embeddings. Total vectors: ${this.mapping.size}`)
+			// Update reverse mapping
+			for (const [file, ids] of fileToIds.entries()) {
+				if (!this.fileToVectorIds.has(file)) this.fileToVectorIds.set(file, new Set())
+				const set = this.fileToVectorIds.get(file)!
+				ids.forEach((id) => set.add(id))
+			}
+
+			console.log(
+				`Added ${embeddings.length} embeddings. Total vectors: ${this.mapping.size}. Updated fileToVectorIds for ${fileToIds.size} files.`,
+			)
 
 			// Trigger debounced save for the mapping
 			this.debouncedSaveMapping()
 		} catch (error) {
 			console.error("Error adding embeddings to vector index:", error)
-			// Should we revert mapping changes if index add fails? Depends on library guarantees.
 			throw error // Re-throw
 		}
 	}
@@ -306,6 +340,30 @@ export class VectorIndex implements vscode.Disposable {
 		}
 	}
 
+	async removeEmbeddingsByFile(filePath: string): Promise<void> {
+		if (!this.initialized || !this.index) {
+			throw new Error("VectorIndex is not initialized.")
+		}
+		const ids = this.fileToVectorIds.get(filePath)
+		if (!ids || ids.size === 0) {
+			console.log(`No vectors found for file: ${filePath}`)
+			return
+		}
+		// Remove from index (assume index has a remove method, otherwise this is a placeholder)
+		if (typeof this.index.remove === "function") {
+			await this.index.remove(Array.from(ids))
+		} else {
+			console.warn("Underlying index does not support removal. Skipping index removal.")
+		}
+		// Remove from mapping and reverse mapping
+		for (const id of ids) {
+			this.mapping.delete(id)
+		}
+		this.fileToVectorIds.delete(filePath)
+		console.log(`Removed ${ids.size} vectors for file: ${filePath}`)
+		this.debouncedSaveMapping()
+	}
+
 	dispose(): void {
 		console.log("Disposing VectorIndex...")
 		// Cancel any pending debounced saves
@@ -320,6 +378,7 @@ export class VectorIndex implements vscode.Disposable {
 		// Release index resources if necessary (depends on library)
 		this.index = null // Allow garbage collection
 		this.mapping.clear()
+		this.fileToVectorIds.clear()
 		this.initialized = false
 		console.log("VectorIndex disposed.")
 	}

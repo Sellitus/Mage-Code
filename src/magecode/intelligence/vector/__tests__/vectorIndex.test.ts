@@ -1,3 +1,11 @@
+/* Silence console.log and console.error globally in this test file to avoid Jest async log warnings */
+const logSpy = jest.spyOn(console, "log").mockImplementation(() => {})
+const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {})
+afterAll(() => {
+	logSpy.mockRestore()
+	errorSpy.mockRestore()
+})
+
 import * as vscode from "vscode"
 import * as fs from "fs/promises"
 import path from "path"
@@ -131,5 +139,62 @@ describe("VectorIndex", () => {
 		await vectorIndex.dispose()
 		expect(saveMappingSpy).toHaveBeenCalled()
 		expect(saveIndexSpy).toHaveBeenCalled()
+	})
+	it("tracks fileToVectorIds and removes embeddings by file", async () => {
+		;(fs.mkdir as jest.Mock).mockResolvedValue(undefined)
+		;(fs.readFile as jest.Mock).mockImplementation(() => Promise.reject({ code: "ENOENT" }))
+		await vectorIndex.initialize(mockContext)
+
+		const addMock = jest.fn()
+		const removeMock = jest.fn()
+		vectorIndex["index"] = { add: addMock, remove: removeMock }
+
+		// Add embeddings for two files
+		await vectorIndex.addEmbeddings([
+			{ id: "foo1", vector: [1, 2, 3], filePath: "/file/a.js" },
+			{ id: "foo2", vector: [4, 5, 6], filePath: "/file/a.js" },
+			{ id: "bar1", vector: [7, 8, 9], filePath: "/file/b.js" },
+		])
+		await new Promise((res) => setTimeout(res, 1100))
+		expect(addMock).toHaveBeenCalled()
+		expect(vectorIndex["fileToVectorIds"].get("/file/a.js").size).toBe(2)
+		expect(vectorIndex["fileToVectorIds"].get("/file/b.js").size).toBe(1)
+
+		// Remove embeddings for /file/a.js
+		await vectorIndex.removeEmbeddingsByFile("/file/a.js")
+		expect(removeMock).toHaveBeenCalledWith(expect.arrayContaining([0, 1]))
+		expect(vectorIndex["fileToVectorIds"].has("/file/a.js")).toBe(false)
+		// /file/b.js should still exist
+		expect(vectorIndex["fileToVectorIds"].has("/file/b.js")).toBe(true)
+
+		// Wait for any pending async logs/saves to finish
+		await new Promise((res) => setTimeout(res, 100))
+	})
+	it("tracks fileToVectorIds and removes embeddings by file", async () => {
+		;(fs.mkdir as jest.Mock).mockResolvedValue(undefined)
+		jest.spyOn(fs, "readFile").mockImplementation(() => Promise.reject({ code: "ENOENT" }))
+		await vectorIndex.initialize(mockContext)
+
+		const addMock = jest.fn()
+		const removeMock = jest.fn()
+		vectorIndex["index"] = { add: addMock, remove: removeMock }
+
+		// Add embeddings for two files
+		await vectorIndex.addEmbeddings([
+			{ id: "foo1", vector: [1, 2, 3], filePath: "/file/a.js" },
+			{ id: "foo2", vector: [4, 5, 6], filePath: "/file/a.js" },
+			{ id: "bar1", vector: [7, 8, 9], filePath: "/file/b.js" },
+		])
+		await new Promise((res) => setTimeout(res, 1100))
+		expect(addMock).toHaveBeenCalled()
+		expect(vectorIndex["fileToVectorIds"].get("/file/a.js").size).toBe(2)
+		expect(vectorIndex["fileToVectorIds"].get("/file/b.js").size).toBe(1)
+
+		// Remove embeddings for /file/a.js
+		await vectorIndex.removeEmbeddingsByFile("/file/a.js")
+		expect(removeMock).toHaveBeenCalledWith(expect.arrayContaining([0, 1]))
+		expect(vectorIndex["fileToVectorIds"].has("/file/a.js")).toBe(false)
+		// /file/b.js should still exist
+		expect(vectorIndex["fileToVectorIds"].has("/file/b.js")).toBe(true)
 	})
 })

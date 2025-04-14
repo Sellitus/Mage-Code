@@ -1,3 +1,6 @@
+// Silence all console.log and console.error globally for all tests to avoid Jest async log warnings
+jest.spyOn(console, "log").mockImplementation(() => {})
+jest.spyOn(console, "error").mockImplementation(() => {})
 // Mock the logger globally for all tests
 jest.mock("../utils/logging", () => ({
 	logger: {
