@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { MageCodeSettingsView } from "./settings/settingsViewProvider" // Added import
 import { registerModeChangeListener } from "./config/settings"
 import { FileReader } from "./tools/fileReader" // Added import
 import { ToolRegistry } from "./tools/toolRegistry" // Added import
@@ -110,7 +111,13 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 
 // Placeholder functions for future implementation
 export function registerMageCodeCommands(context: vscode.ExtensionContext) {
-	// To be implemented
+	context.subscriptions.push(
+		vscode.commands.registerCommand("magecode.showSettings", () => {
+			// Create and show a new webview panel
+			new MageCodeSettingsView(context.extensionUri)
+		}),
+	)
+	console.log("MageCode commands registered.")
 }
 
 export function registerMageCodeTools(context: vscode.ExtensionContext) {

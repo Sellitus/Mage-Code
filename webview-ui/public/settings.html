@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MageCode Settings</title>
+    <!-- Assuming toolkit styles are loaded via JS or a separate CSS file -->
+</head>
+<body>
+    <section id="settings-container" style="padding: 20px;">
+        <h2>MageCode Settings</h2>
+
+        <section style="margin-bottom: 15px;">
+            <vscode-checkbox id="enabled-checkbox">Enable MageCode</vscode-checkbox>
+            <p style="font-size: 0.9em; color: var(--vscode-descriptionForeground);">
+                Enable MageCode agent mode for enhanced token efficiency.
+            </p>
+        </section>
+
+        <section>
+             <label for="model-preference-dropdown">Model Preference:</label>
+             <vscode-dropdown id="model-preference-dropdown" style="width: 200px;">
+                 <vscode-option value="auto">Auto</vscode-option>
+                 <vscode-option value="preferLocal">Prefer Local</vscode-option>
+                 <vscode-option value="preferCloud">Prefer Cloud</vscode-option>
+                 <vscode-option value="forceLocal">Force Local</vscode-option>
+                 <vscode-option value="forceCloud">Force Cloud</vscode-option>
+             </vscode-dropdown>
+             <p style="font-size: 0.9em; color: var(--vscode-descriptionForeground);">
+                 Preference for routing LLM requests between local and cloud models.
+             </p>
+        </section>
+    </section>
+
+    <!-- The script will be built by Vite and included here -->
+    <!-- We need to ensure the vite config builds this correctly -->
+    <!-- The provider needs to point to the correct built JS file -->
+    <script type="module" src="../src/magecode/SettingsView.tsx"></script>
+</body>
+</html>
