@@ -1,5 +1,7 @@
 import * as vscode from "vscode"
 import { registerModeChangeListener } from "./config/settings"
+import { FileReader } from "./tools/fileReader" // Added import
+import { ToolRegistry } from "./tools/toolRegistry" // Added import
 import { DatabaseManager } from "./intelligence/storage/databaseManager"
 import { EmbeddingService } from "./intelligence/embedding/embeddingService"
 import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
@@ -112,5 +114,13 @@ export function registerMageCodeCommands(context: vscode.ExtensionContext) {
 }
 
 export function registerMageCodeTools(context: vscode.ExtensionContext) {
-	// To be implemented
+	// Instantiate the Tool Registry
+	const toolRegistry = new ToolRegistry() // TODO: Make this instance accessible (e.g., return, export, singleton)
+
+	// Instantiate and register tools
+	const fileReader = new FileReader()
+	toolRegistry.registerTool(fileReader)
+
+	console.log("MageCode tools registered.")
+	// Future tools will be registered here
 }

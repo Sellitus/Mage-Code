@@ -1,5 +1,7 @@
 import * as vscode from "vscode"
 import { RelevancyEngine } from "./relevancy"
+import { FileReader } from "./tools/fileReader" // Added import
+import { ToolRegistry } from "./tools/toolRegistry" // Added import
 import { HybridScorer } from "./relevancy/scoring/hybridScorer"
 import { VectorRetriever } from "./relevancy/retrievers/vectorRetriever"
 import { GraphRetriever } from "./relevancy/retrievers/graphRetriever"
@@ -23,6 +25,7 @@ import { ModelInfo } from "../shared/api"
 export interface MageCodeDependencies {
 	contextRetriever: RelevancyEngine
 	llmOrchestrator: ILLMOrchestrator
+	toolRegistry: ToolRegistry // Added tool registry
 }
 
 /**
@@ -158,9 +161,15 @@ export async function createMageCodeDependencies(context: vscode.ExtensionContex
 		},
 	})
 
+	// Initialize Tool Registry and register tools
+	const toolRegistry = new ToolRegistry()
+	const fileReader = new FileReader()
+	toolRegistry.registerTool(fileReader)
+
 	return {
 		contextRetriever: relevancyEngine,
 		llmOrchestrator: orchestrator,
+		toolRegistry: toolRegistry, // Added tool registry
 	}
 }
 
@@ -210,8 +219,14 @@ export async function createTestDependencies(): Promise<MageCodeDependencies> {
 
 	const orchestrator = new MultiModelOrchestrator(cloudTier, localTier, testModelRouter, testPromptService)
 
+	// Initialize Tool Registry and register tools for tests
+	const testToolRegistry = new ToolRegistry()
+	const testFileReader = new FileReader() // Use real FileReader for test dependencies too
+	testToolRegistry.registerTool(testFileReader)
+
 	return {
 		contextRetriever: relevancyEngine,
 		llmOrchestrator: orchestrator,
+		toolRegistry: testToolRegistry, // Added tool registry for tests
 	}
 }
