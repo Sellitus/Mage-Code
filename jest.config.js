@@ -4,14 +4,15 @@ module.exports = {
 	testEnvironment: "node",
 	moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
 	transform: {
-		"^.+\\.tsx?$": [
+		// Transform both .ts/.tsx and .js files (including those in node_modules ignored by transformIgnorePatterns)
+		"^.+\\.(t|j)sx?$": [
 			"ts-jest",
 			{
 				tsconfig: {
 					module: "CommonJS",
 					moduleResolution: "node",
 					esModuleInterop: true,
-					allowJs: true,
+					allowJs: true, // Allow processing JS files
 				},
 				diagnostics: false,
 				isolatedModules: true,
@@ -38,9 +39,12 @@ module.exports = {
 		"^os-name$": "<rootDir>/src/__mocks__/os-name.js",
 		"^strip-bom$": "<rootDir>/src/__mocks__/strip-bom.js",
 		"^voy-search$": "<rootDir>/src/__mocks__/voy-search.js",
+		// Map ESM modules to prevent SyntaxError during tests
+		"^p-queue$": "<rootDir>/src/__mocks__/dummyMock.js", // Use a generic dummy mock
+		"^piscina$": "<rootDir>/src/__mocks__/dummyMock.js", // Use a generic dummy mock
 	},
 	transformIgnorePatterns: [
-		"node_modules/(?!(@modelcontextprotocol|delay|p-wait-for|globby|serialize-error|strip-ansi|default-shell|os-name|strip-bom)/)",
+		"node_modules/(?!(@modelcontextprotocol|delay|p-wait-for|globby|serialize-error|strip-ansi|default-shell|os-name|strip-bom|p-queue|piscina)/)",
 	],
 	roots: ["<rootDir>/src", "<rootDir>/webview-ui/src"],
 	modulePathIgnorePatterns: [".vscode-test"],

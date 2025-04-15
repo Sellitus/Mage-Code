@@ -473,6 +473,7 @@
 		"p-queue": "^8.1.0",
 		"p-wait-for": "^5.0.2",
 		"pdf-parse": "^1.1.1",
+		"piscina": "^4.9.2",
 		"pkce-challenge": "^4.1.0",
 		"posthog-node": "^4.7.0",
 		"pretty-bytes": "^6.1.1",
