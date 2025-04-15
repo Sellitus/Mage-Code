@@ -9,6 +9,8 @@ import { ILLMOrchestrator } from "./interfaces"
 import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
 import { LocalModelTier } from "./orchestration/tiers/localModelTier"
 import { MultiModelOrchestrator } from "./orchestration"
+import { ModelRouter } from "./orchestration/router" // Added import
+import { PromptService } from "./orchestration/prompt/promptService" // Added import
 import { buildApiHandler, SingleCompletionHandler } from "../api"
 import { ApiConfiguration } from "../shared/api"
 import { ApiHandler } from "../api"
@@ -144,8 +146,12 @@ export async function createMageCodeDependencies(context: vscode.ExtensionContex
 		)
 	}
 
-	// Create orchestrator with both tiers
-	const orchestrator = new MultiModelOrchestrator(cloudTier, localTier)
+	// Create router and prompt service
+	const modelRouter = new ModelRouter()
+	const promptService = new PromptService()
+
+	// Create orchestrator with tiers, router, and prompt service
+	const orchestrator = new MultiModelOrchestrator(cloudTier, localTier, modelRouter, promptService)
 	context.subscriptions.push({
 		dispose: () => {
 			// Add cleanup if needed
@@ -199,8 +205,10 @@ export async function createTestDependencies(): Promise<MageCodeDependencies> {
 	const cloudTier = new CloudModelTier(mockLlmService)
 	const localTier = new LocalModelTier()
 	// For tests, we don't need to initialize the local tier as it will be mocked
+	const testModelRouter = new ModelRouter() // Use separate instances for test setup if needed
+	const testPromptService = new PromptService()
 
-	const orchestrator = new MultiModelOrchestrator(cloudTier, localTier)
+	const orchestrator = new MultiModelOrchestrator(cloudTier, localTier, testModelRouter, testPromptService)
 
 	return {
 		contextRetriever: relevancyEngine,

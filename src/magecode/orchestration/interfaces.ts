@@ -1,4 +1,25 @@
 /**
+ * Represents the different model tiers available.
+ */
+export enum ModelTier {
+	LOCAL = "local",
+	CLOUD = "cloud",
+}
+
+/**
+ * Options specifically for the ModelRouter.
+ */
+export interface RouterOptions {
+	taskType?: string // e.g., 'codeGeneration', 'explanation', 'fix'
+	// Add other relevant fields derived from RequestOptions if needed later
+}
+
+/**
+ * Represents the type or category of the task being performed.
+ */
+export type TaskType = string
+
+/**
  * Options for making a model request
  */
 export interface ModelRequestOptions {

@@ -5,6 +5,8 @@ import { EmbeddingService } from "./intelligence/embedding/embeddingService"
 import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
 import { LocalModelTier } from "./orchestration/tiers/localModelTier"
 import { MultiModelOrchestrator } from "./orchestration"
+import { ModelRouter } from "./orchestration/router" // Added import
+import { PromptService } from "./orchestration/prompt/promptService" // Added import
 import { buildApiHandler, SingleCompletionHandler } from "../api"
 import { ApiConfiguration } from "../shared/api"
 
@@ -78,8 +80,12 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 			)
 		}
 
-		// Initialize Orchestrator with both tiers
-		const orchestrator = new MultiModelOrchestrator(cloudTier, localTier)
+		// Initialize Router and Prompt Service
+		const modelRouter = new ModelRouter()
+		const promptService = new PromptService()
+
+		// Initialize Orchestrator with tiers, router, and prompt service
+		const orchestrator = new MultiModelOrchestrator(cloudTier, localTier, modelRouter, promptService)
 		context.subscriptions.push({
 			dispose: () => {
 				// Add cleanup if needed

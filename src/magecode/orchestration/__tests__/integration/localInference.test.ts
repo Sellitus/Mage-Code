@@ -1,9 +1,11 @@
 import * as path from "path"
 import { MultiModelOrchestrator } from "../../index"
+import { ModelRouter } from "../../router" // Added import
+import { PromptService } from "../../prompt/promptService" // Added import
 import { CloudModelTier } from "../../tiers/cloudModelTier"
 import { LocalModelTier } from "../../tiers/localModelTier"
 import * as ort from "onnxruntime-node"
-
+import * as settings from "../../../config/settings" // Added settings import
 // Mock ONNX Runtime
 jest.mock("onnxruntime-node", () => {
 	const actualModule = jest.requireActual("onnxruntime-node")
@@ -35,6 +37,10 @@ jest.mock("sentencepiece-js", () => ({
 	})),
 }))
 
+// Mock the settings module to prevent VS Code API calls
+jest.mock("../../../config/settings")
+const mockedGetModelPreference = jest.spyOn(settings, "getModelPreference")
+
 describe("Local Model Inference Integration", () => {
 	let cloudTier: CloudModelTier
 	let localTier: LocalModelTier
@@ -44,6 +50,8 @@ describe("Local Model Inference Integration", () => {
 	beforeEach(async () => {
 		// Clear all mocks before each test
 		jest.clearAllMocks()
+		// Set default mock preference for tests
+		mockedGetModelPreference.mockReturnValue("auto")
 
 		// Set up real instances with mocked dependencies
 		cloudTier = new CloudModelTier({
@@ -53,7 +61,9 @@ describe("Local Model Inference Integration", () => {
 		localTier = new LocalModelTier()
 		await localTier.initialize(mockExtensionPath)
 
-		orchestrator = new MultiModelOrchestrator(cloudTier, localTier)
+		const modelRouter = new ModelRouter() // Instantiate router
+		const promptService = new PromptService() // Instantiate prompt service
+		orchestrator = new MultiModelOrchestrator(cloudTier, localTier, modelRouter, promptService)
 	})
 
 	it("should successfully generate response using local tier for simple prompts", async () => {
@@ -97,7 +107,9 @@ describe("Local Model Inference Integration", () => {
 		})
 
 		// Create new orchestrator with the failed local tier
-		orchestrator = new MultiModelOrchestrator(cloudTier, localTier)
+		const modelRouter = new ModelRouter() // Re-instantiate for this specific test case
+		const promptService = new PromptService()
+		orchestrator = new MultiModelOrchestrator(cloudTier, localTier, modelRouter, promptService)
 
 		const prompt = "Test fallback"
 		const options = {
