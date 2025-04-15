@@ -22,7 +22,7 @@ describe("MageCode Agent Integration", () => {
 				},
 				required: ["path"],
 			},
-			execute: jest.fn().mockResolvedValue("mock file content"),
+			execute: jest.fn().mockResolvedValue({ content: "mock file content" }), // Match expected result structure
 		}
 
 		// Create test dependencies
@@ -47,31 +47,26 @@ describe("MageCode Agent Integration", () => {
 			],
 		})
 
-		jest.spyOn(dependencies.llmOrchestrator, "makeApiRequest").mockImplementation(async (prompt: string) => {
-			if (prompt.includes("Create a detailed plan")) {
-				// Return plan response
-				return {
-					content: JSON.stringify({
-						steps: [
-							{
-								description: "Write the add function",
-								tools: [
-									{
-										tool: "fileReader",
-										args: { path: "test.ts" },
-									},
-								],
-							},
-						],
-					}),
+		jest.spyOn(dependencies.llmOrchestrator, "makeApiRequest").mockImplementation(
+			async (prompt: string, options?: any) => {
+				// Default mock implementation, can be overridden in specific tests
+				if (options?.taskType === "planning") {
+					return {
+						content: JSON.stringify({
+							steps: [
+								{
+									description: "Default plan step",
+									tools: [{ tool: "fileReader", args: { path: "default.ts" } }],
+								},
+							],
+						}),
+					}
+				} else if (options?.taskType === "execution") {
+					return { content: "Default execution result" }
 				}
-			} else {
-				// Return step execution response
-				return {
-					content: "function add(a: number, b: number): number {\n  return a + b;\n}",
-				}
-			}
-		})
+				return { content: "" } // Fallback
+			},
+		)
 	})
 
 	describe("Task Execution Pipeline", () => {
@@ -185,6 +180,127 @@ describe("MageCode Agent Integration", () => {
 			expect(result.status).toBe("completed")
 			// Verify mock file reader was called
 			expect(mockFileReader.execute).toHaveBeenCalledWith({ path: "test.ts" })
+			// Also check context storage
+			expect((agent as any).context.addToolResultForStep).toHaveBeenCalledWith(
+				0, // stepIndex
+				"fileReader",
+				{ path: "test.ts" },
+				{ content: "mock file content" }, // The result from the mock execute
+			)
+		})
+
+		it("should validate tool arguments successfully", async () => {
+			const validArgs = { path: "valid/path.ts" }
+			// Mock plan specifically for this test
+			jest.spyOn(dependencies.llmOrchestrator, "makeApiRequest").mockImplementation(async (prompt, options) => {
+				if (options?.taskType === "planning") {
+					return {
+						content: JSON.stringify({
+							steps: [
+								{ description: "Use fileReader", tools: [{ tool: "fileReader", args: validArgs }] },
+							],
+						}),
+					}
+				} else if (options?.taskType === "execution") {
+					return { content: "Execution done" }
+				}
+				return { content: "" }
+			})
+
+			const result = await agent.runTask({ id: "valid-args-test", query: "test", cursorFile: "f.ts" })
+
+			expect(result.status).toBe("completed")
+			expect(mockFileReader.execute).toHaveBeenCalledWith(validArgs)
+		})
+
+		it("should fail task on invalid tool arguments", async () => {
+			const invalidArgs = { paht: "invalid/path.ts" } // Missing required 'path'
+			// Mock plan specifically for this test
+			jest.spyOn(dependencies.llmOrchestrator, "makeApiRequest").mockImplementation(async (prompt, options) => {
+				if (options?.taskType === "planning") {
+					return {
+						content: JSON.stringify({
+							steps: [
+								{
+									description: "Use fileReader invalidly",
+									tools: [{ tool: "fileReader", args: invalidArgs }],
+								},
+							],
+						}),
+					}
+				}
+				// Execution should not be reached
+				return { content: "" }
+			})
+
+			const result = await agent.runTask({ id: "invalid-args-test", query: "test", cursorFile: "f.ts" })
+
+			expect(result.status).toBe("error")
+			expect(result.result).toMatch(/Invalid arguments for tool fileReader:.*?must have required property 'path'/)
+			expect(mockFileReader.execute).not.toHaveBeenCalled()
+		})
+
+		it("should pass correct tool results to subsequent step prompts", async () => {
+			const step1ToolArgs = { path: "step1.ts" }
+			const step1ToolResult = { content: "Content from step 1" }
+			const step2ToolArgs = { path: "step2.ts", content: "new content" } // Assume a writeFile tool exists
+			const step2ToolResult = { success: true }
+
+			// Mock a writeFile tool
+			const mockWriteFileTool: jest.Mocked<Tool> = {
+				name: "writeFile",
+				description: "Writes file content",
+				inputSchema: {
+					type: "object",
+					properties: { path: { type: "string" }, content: { type: "string" } },
+					required: ["path", "content"],
+				},
+				execute: jest.fn().mockResolvedValue(step2ToolResult),
+			}
+			dependencies.toolRegistry.registerTool(mockWriteFileTool) // Register it
+
+			// Mock the plan
+			jest.spyOn(dependencies.llmOrchestrator, "makeApiRequest").mockImplementation(async (prompt, options) => {
+				if (options?.taskType === "planning") {
+					return {
+						content: JSON.stringify({
+							steps: [
+								{ description: "Step 1: Read", tools: [{ tool: "fileReader", args: step1ToolArgs }] },
+								{ description: "Step 2: Write", tools: [{ tool: "writeFile", args: step2ToolArgs }] },
+							],
+						}),
+					}
+				} else if (options?.taskType === "execution") {
+					// Check which step is being executed based on system prompt or content
+					if (prompt.includes("Step 1: Read")) {
+						return { content: "Step 1 execution done" }
+					} else if (prompt.includes("Step 2: Write")) {
+						// IMPORTANT: Check the prompt content here for previous results
+						expect(prompt).toContain("Previous Steps:\nStep 1 Result: Step 1 execution done")
+						expect(prompt).toContain("Tool Results:") // Check section exists
+						expect(prompt).toContain(`Tool: ${mockWriteFileTool.name}`) // Check current tool info
+						expect(prompt).toContain(`Args: ${JSON.stringify(step2ToolArgs, null, 2)}`)
+						expect(prompt).toContain(`Result: ${JSON.stringify(step2ToolResult, null, 2)}`)
+						// Crucially, it should NOT contain step 1's tool results in the "Tool Results:" section for step 2
+						expect(prompt).not.toMatch(
+							/Tool Results:[\s\S]*Tool: fileReader[\s\S]*Args: \{\s*"path": "step1\.ts"\s*\}[\s\S]*Result: \{\s*"content": "Content from step 1"\s*\}/,
+						)
+						return { content: "Step 2 execution done" }
+					}
+				}
+				return { content: "" }
+			})
+
+			// Mock fileReader execute for step 1
+			mockFileReader.execute.mockResolvedValueOnce(step1ToolResult)
+
+			const result = await agent.runTask({ id: "multi-step-tool-test", query: "test", cursorFile: "f.ts" })
+
+			expect(result.status).toBe("completed")
+			expect(result.result).toBe("Step 2 execution done")
+			expect(mockFileReader.execute).toHaveBeenCalledWith(step1ToolArgs)
+			expect(mockWriteFileTool.execute).toHaveBeenCalledWith(step2ToolArgs)
+			expect(dependencies.llmOrchestrator.makeApiRequest).toHaveBeenCalledTimes(3) // Plan + 2 steps
 		})
 
 		it("should handle missing tools gracefully", async () => {

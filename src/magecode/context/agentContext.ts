@@ -25,7 +25,7 @@ export class AgentContext {
 	private retrievedContext: RetrievedContext | null = null
 	private plan: TaskPlan | null = null
 	private stopSignaled: boolean = false
-	private toolResults: Map<string, any> = new Map()
+	private stepToolResults: Map<number, Array<{ toolName: string; args: any; result: any }>> = new Map()
 	private stepResults: Array<string> = []
 	private progress: vscode.Progress<ProgressInfo> | null = null
 
@@ -34,7 +34,7 @@ export class AgentContext {
 		this.retrievedContext = null
 		this.plan = null
 		this.stopSignaled = false
-		this.toolResults.clear()
+		this.stepToolResults.clear()
 		this.stepResults = []
 		this.progress = progress || null
 	}
@@ -66,12 +66,15 @@ export class AgentContext {
 		return this.stopSignaled
 	}
 
-	addToolResult(toolName: string, result: any): void {
-		this.toolResults.set(toolName, result)
+	addToolResultForStep(stepIndex: number, toolName: string, args: any, result: any): void {
+		if (!this.stepToolResults.has(stepIndex)) {
+			this.stepToolResults.set(stepIndex, [])
+		}
+		this.stepToolResults.get(stepIndex)?.push({ toolName, args, result })
 	}
 
-	getToolResult(toolName: string): any | undefined {
-		return this.toolResults.get(toolName)
+	getToolResultsForStep(stepIndex: number): Array<{ toolName: string; args: any; result: any }> | undefined {
+		return this.stepToolResults.get(stepIndex)
 	}
 
 	addStepResult(stepIndex: number, result: string): void {
@@ -108,7 +111,7 @@ export class AgentContext {
 				hasTask: !!this.task,
 				hasContext: !!this.retrievedContext,
 				hasPlan: !!this.plan,
-				toolResultsCount: this.toolResults.size,
+				stepToolResultsCount: this.stepToolResults.size, // Changed property name
 				stepResultsCount: this.stepResults.length,
 				isStopSignaled: this.stopSignaled,
 			},

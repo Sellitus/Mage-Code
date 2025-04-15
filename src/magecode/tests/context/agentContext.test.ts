@@ -30,8 +30,11 @@ describe("AgentContext", () => {
 			const mockContext: RetrievedContext = { relevantCode: [] }
 			context.setRetrievedContext(mockContext)
 
+			context.addToolResultForStep(0, "toolA", { arg: 1 }, { res: "a" }) // Add some state before re-init
+
 			await context.initialize(mockTask)
 			expect(context.getRetrievedContext()).toBeNull()
+			expect(context.getToolResultsForStep(0)).toBeUndefined() // Check tool results are cleared
 		})
 	})
 
@@ -86,21 +89,52 @@ describe("AgentContext", () => {
 		})
 	})
 
-	describe("tool results", () => {
+	describe("step tool results", () => {
 		beforeEach(async () => {
 			await context.initialize(mockTask)
 		})
 
-		it("should store and retrieve tool results", () => {
+		it("should store and retrieve tool results for a specific step", () => {
+			const stepIndex = 0
 			const toolName = "testTool"
-			const result = { success: true }
+			const args = { file: "a.ts" }
+			const result = { content: "file content" }
 
-			context.addToolResult(toolName, result)
-			expect(context.getToolResult(toolName)).toEqual(result)
+			context.addToolResultForStep(stepIndex, toolName, args, result)
+			const results = context.getToolResultsForStep(stepIndex)
+
+			expect(results).toBeDefined()
+			expect(results).toHaveLength(1)
+			expect(results?.[0]).toEqual({ toolName, args, result })
 		})
 
-		it("should return undefined for unknown tool results", () => {
-			expect(context.getToolResult("nonexistent")).toBeUndefined()
+		it("should store multiple tool results for the same step", () => {
+			const stepIndex = 1
+			const tool1 = { toolName: "toolA", args: { x: 1 }, result: { y: 2 } }
+			const tool2 = { toolName: "toolB", args: { z: 3 }, result: { w: 4 } }
+
+			context.addToolResultForStep(stepIndex, tool1.toolName, tool1.args, tool1.result)
+			context.addToolResultForStep(stepIndex, tool2.toolName, tool2.args, tool2.result)
+			const results = context.getToolResultsForStep(stepIndex)
+
+			expect(results).toBeDefined()
+			expect(results).toHaveLength(2)
+			expect(results).toEqual([tool1, tool2])
+		})
+
+		it("should return undefined for a step with no tool results", () => {
+			expect(context.getToolResultsForStep(99)).toBeUndefined()
+		})
+
+		it("should store results for different steps independently", () => {
+			const toolStep0 = { toolName: "tool0", args: { a: 0 }, result: { b: 0 } }
+			const toolStep1 = { toolName: "tool1", args: { a: 1 }, result: { b: 1 } }
+
+			context.addToolResultForStep(0, toolStep0.toolName, toolStep0.args, toolStep0.result)
+			context.addToolResultForStep(1, toolStep1.toolName, toolStep1.args, toolStep1.result)
+
+			expect(context.getToolResultsForStep(0)).toEqual([toolStep0])
+			expect(context.getToolResultsForStep(1)).toEqual([toolStep1])
 		})
 	})
 
@@ -152,7 +186,7 @@ describe("AgentContext", () => {
 
 			context.setRetrievedContext(mockContext)
 			context.setPlan(mockPlan)
-			context.addToolResult("tool1", {})
+			context.addToolResultForStep(0, "tool1", { arg: "x" }, { res: "y" })
 			context.addStepResult(0, "result")
 
 			const state = JSON.parse(context.getState())
@@ -160,7 +194,7 @@ describe("AgentContext", () => {
 				hasTask: true,
 				hasContext: true,
 				hasPlan: true,
-				toolResultsCount: 1,
+				stepToolResultsCount: 1, // Check the renamed property
 				stepResultsCount: 1,
 				isStopSignaled: false,
 			})

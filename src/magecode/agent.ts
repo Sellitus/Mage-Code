@@ -1,10 +1,11 @@
 import * as vscode from "vscode"
+import Ajv, { ErrorObject } from "ajv" // Use Ajv for JSON Schema validation
 import { IAgent, TaskInput, TaskResult, IContextRetriever, ILLMOrchestrator } from "./interfaces"
 import { MageCodeDependencies } from "./factory"
 import { AgentContext, TaskPlan, ProgressInfo } from "./context/agentContext"
 import { ProgressReporter } from "./utils/progress"
 import { ToolRegistry } from "./tools/toolRegistry"
-import { Tool } from "./interfaces/tool"
+import { Tool } from "./interfaces/tool" // Tool interface defines inputSchema inline
 
 export class MageCodeAgent implements IAgent {
 	private contextRetriever: IContextRetriever
@@ -182,8 +183,27 @@ Example format:
 					if (!tool) {
 						throw new Error(`Tool not found: ${toolUse.tool}`)
 					}
-					const toolResult = await tool.execute(toolUse.args)
-					this.context.addToolResult(toolUse.tool, toolResult)
+					// Validate arguments against the tool's JSON schema using Ajv
+					if (tool.inputSchema) {
+						const ajv = new Ajv() // Consider making this a class member for efficiency
+						const validate = ajv.compile(tool.inputSchema)
+						const isValid = validate(toolUse.args)
+
+						if (!isValid) {
+							const errorMessages = (validate.errors ?? [])
+								.map((e: ErrorObject) => `${e.instancePath || "root"} ${e.message}`)
+								.join("; ")
+							throw new Error(`Invalid arguments for tool ${toolUse.tool}: ${errorMessages}`)
+						}
+						// Args are valid, proceed with execution
+						const toolResult = await tool.execute(toolUse.args)
+						this.context.addToolResultForStep(i, toolUse.tool, toolUse.args, toolResult) // Use new context method
+					} else {
+						// Proceed without validation if no schema is defined
+						console.warn(`Tool ${toolUse.tool} has no inputSchema defined. Skipping validation.`)
+						const toolResult = await tool.execute(toolUse.args)
+						this.context.addToolResultForStep(i, toolUse.tool, toolUse.args, toolResult) // Use new context method
+					}
 				}
 			}
 
@@ -216,12 +236,21 @@ Example format:
 			.map((result, idx) => `Step ${idx + 1} Result: ${result}`)
 			.join("\n\n")
 
-		const toolResults = step.tools
-			?.map((tool) => {
-				const result = this.context.getToolResult(tool.tool)
-				return `${tool.tool} Result: ${JSON.stringify(result, null, 2)}`
-			})
-			.join("\n\n")
+		// Get tool results specifically for this step
+		const currentStepToolResults = this.context.getToolResultsForStep(stepIndex)
+		const toolResultsText =
+			currentStepToolResults && currentStepToolResults.length > 0
+				? currentStepToolResults
+						.map(
+							(call) =>
+								`Tool: ${call.toolName}\nArgs: ${JSON.stringify(
+									call.args,
+									null,
+									2,
+								)}\nResult: ${JSON.stringify(call.result, null, 2)}`,
+						)
+						.join("\n---\n")
+				: "No tools used in this step"
 
 		return `Task: ${task.query}
 
@@ -235,7 +264,7 @@ Current Step (${stepIndex + 1}):
 ${step.description}
 
 Tool Results:
-${toolResults || "No tools used in this step"}
+${toolResultsText}
 
 Generate the appropriate output for this step. Consider:
 1. The overall task goal
