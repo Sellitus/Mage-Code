@@ -33,6 +33,12 @@ const vscode = {
 		fs: {
 			stat: jest.fn(),
 		},
+		getConfiguration: jest.fn().mockImplementation((section) => ({
+			get: jest.fn().mockImplementation((key, defaultValue) => defaultValue),
+			update: jest.fn(),
+			has: jest.fn(),
+			inspect: jest.fn(),
+		})),
 	},
 	Disposable: class {
 		dispose() {}

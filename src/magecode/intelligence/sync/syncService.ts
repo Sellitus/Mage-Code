@@ -9,6 +9,8 @@ import { globby } from "globby" // Using globby for initial scan
 
 import { DatabaseManager } from "../storage/databaseManager"
 import { VectorIndex } from "../vector/vectorIndex"
+import { EmbeddingService } from "../embedding/embeddingService"
+import { MultiModelOrchestrator } from "../../orchestration" // Added import
 import { ResourceGovernor, ResourceGovernorConfig } from "../../utils/resourceGovernor" // Corrected path
 import { logger } from "../../../utils/logging" // Corrected relative path
 import { sleep } from "../../../utils/sleep" // Corrected relative path, assuming sleep utility exists
@@ -36,6 +38,8 @@ export class SyncService implements vscode.Disposable {
 	private dbManager: DatabaseManager
 	private vectorIndex: VectorIndex
 	private options: SyncServiceOptions
+	private embeddingService: EmbeddingService
+	private mmo: MultiModelOrchestrator // Added member
 	private governor: ResourceGovernor
 	private workerPool: Piscina
 	private queue: PQueue
@@ -45,9 +49,17 @@ export class SyncService implements vscode.Disposable {
 	private pendingTasks: Map<string, SyncTask> = new Map()
 	private processPendingTasksDebounced: () => void
 
-	constructor(dbManager: DatabaseManager, vectorIndex: VectorIndex, options: SyncServiceOptions) {
+	constructor(
+		dbManager: DatabaseManager,
+		vectorIndex: VectorIndex,
+		embeddingService: EmbeddingService,
+		mmo: MultiModelOrchestrator, // Added parameter
+		options: SyncServiceOptions,
+	) {
 		this.dbManager = dbManager
 		this.vectorIndex = vectorIndex
+		this.embeddingService = embeddingService
+		this.mmo = mmo // Store instance
 		this.options = options
 
 		// Initialize Resource Governor
@@ -228,12 +240,21 @@ export class SyncService implements vscode.Disposable {
 	private async dispatchTask(task: SyncTask): Promise<void> {
 		if (this.disposed) return
 
+		// Clear relevant caches before processing
+		try {
+			this.embeddingService.clearCacheForFile(task.path) // Clears embedding cache (currently full clear)
+			this.mmo.clearCache() // Clears MMO cache
+			// TODO: Add relevancy cache clearing here when implemented
+			logger.debug(`[SyncService] Cleared caches for file change: ${task.path}`)
+		} catch (error) {
+			logger.error(`[SyncService] Error clearing caches for ${task.path}:`, error)
+		}
+
 		if (task.type === "delete") {
 			logger.info(`[SyncService] Deleting data for: ${task.path}`)
 			try {
-				// TODO: Implement delete logic in DatabaseManager and VectorIndex
-				// await this.dbManager.deleteDataForFile(task.path);
-				// await this.vectorIndex.deleteVectorsForFile(task.path);
+				this.dbManager.deleteCodeElementsByFilePath(task.path) // Use the correct synchronous method
+				await this.vectorIndex.removeEmbeddingsByFile(task.path) // Use existing method
 			} catch (error) {
 				logger.error(`[SyncService] Error deleting data for ${task.path}:`, error)
 			}

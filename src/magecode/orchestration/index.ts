@@ -1,3 +1,4 @@
+import * as vscode from "vscode"
 import { LRUCache } from "lru-cache"
 import type { ILLMOrchestrator, RequestOptions, LLMResponse } from "../interfaces"
 import { IModelTier, ModelRequestOptions, ModelResponse, ModelTier } from "./interfaces"
@@ -5,12 +6,6 @@ import { CloudModelTier } from "./tiers/cloudModelTier"
 import { LocalModelTier } from "./tiers/localModelTier"
 import { ModelRouter } from "./router"
 import { PromptService } from "./prompt/promptService"
-
-// Cache configuration
-const cacheOptions = {
-	max: 500, // Maximum number of items in cache
-	ttl: 1000 * 60 * 60, // Cache TTL: 1 hour
-}
 
 /**
  * Orchestrator for managing multiple model tiers (cloud, local, etc.),
@@ -33,7 +28,18 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 		this.localTier = localTier
 		this.modelRouter = modelRouter
 		this.promptService = promptService
-		this.cache = new LRUCache(cacheOptions)
+
+		// Initialize cache with configured settings
+		const config = vscode.workspace.getConfiguration("roo-code")
+		const maxItems = config.get<number>("magecode.cache.maxItems", 500)
+		const ttlSeconds = config.get<number>("magecode.cache.ttlSeconds", 3600)
+		const ttlMilliseconds = ttlSeconds * 1000 // Convert seconds to milliseconds
+
+		this.cache = new LRUCache<string, LLMResponse>({
+			max: maxItems,
+			ttl: ttlMilliseconds,
+		})
+		console.log(`[Orchestrator] Initialized cache with maxItems: ${maxItems}, ttl: ${ttlSeconds}s`)
 	}
 
 	/**
@@ -160,6 +166,15 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 			// If no fallback occurred or was allowed, throw the original error
 			throw new Error(`Model request failed for tier ${chosenTierEnum}: ${error.message || String(error)}`)
 		}
+	}
+
+	/**
+	 * Clears the entire LLM response cache.
+	 * Called by SyncService on file changes as a simple invalidation strategy.
+	 */
+	public clearCache(): void {
+		this.cache.clear()
+		console.log("[Orchestrator] LLM response cache cleared.")
 	}
 }
 

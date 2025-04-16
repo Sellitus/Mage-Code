@@ -373,6 +373,18 @@
 						"default": "auto",
 						"description": "Preference for routing LLM requests between local and cloud models (MageCode).",
 						"scope": "window"
+					},
+					"magecode.cache.maxItems": {
+						"type": "number",
+						"default": 500,
+						"description": "Maximum number of items to store in MageCode's in-memory caches (e.g., LLM responses, embeddings).",
+						"scope": "window"
+					},
+					"magecode.cache.ttlSeconds": {
+						"type": "number",
+						"default": 3600,
+						"description": "Time-to-live (in seconds) for items in MageCode's in-memory caches.",
+						"scope": "window"
 					}
 				}
 			}
