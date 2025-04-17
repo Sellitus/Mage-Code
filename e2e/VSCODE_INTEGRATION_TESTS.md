@@ -1,6 +1,6 @@
 # VSCode Integration Tests
 
-This document describes the integration test setup for the Mage Code VSCode extension.
+This document describes the integration test setup for the Roo Code VSCode extension.
 
 ## Overview
 
@@ -58,9 +58,9 @@ The following global objects are available in tests:
 
 ```typescript
 declare global {
-	var api: MageCodeAPI
+	var api: RooCodeAPI
 	var provider: ClineProvider
-	var extension: vscode.Extension<MageCodeAPI>
+	var extension: vscode.Extension<RooCodeAPI>
 	var panel: vscode.WebviewPanel
 }
 ```

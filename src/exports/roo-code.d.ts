@@ -424,7 +424,7 @@ type TokenUsage = {
 	contextTokens: number
 }
 
-type MageCodeEvents = {
+type RooCodeEvents = {
 	message: [
 		{
 			taskId: string
@@ -530,9 +530,9 @@ type MageCodeEvents = {
 }
 
 /**
- * MageCodeEvent
+ * RooCodeEvent
  */
-declare enum MageCodeEventName {
+declare enum RooCodeEventName {
 	Message = "message",
 	TaskCreated = "taskCreated",
 	TaskStarted = "taskStarted",
@@ -546,8 +546,8 @@ declare enum MageCodeEventName {
 	TaskTokenUsageUpdated = "taskTokenUsageUpdated",
 }
 
-type MageCodeSettings = GlobalSettings & ProviderSettings
-interface MageCodeAPI extends EventEmitter<MageCodeEvents> {
+type RooCodeSettings = GlobalSettings & ProviderSettings
+interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
 	/**
 	 * Starts a new task with an optional initial message and images.
 	 * @param task Optional initial task message.
@@ -560,7 +560,7 @@ interface MageCodeAPI extends EventEmitter<MageCodeEvents> {
 		images,
 		newTab,
 	}: {
-		configuration?: MageCodeSettings
+		configuration?: RooCodeSettings
 		text?: string
 		images?: string[]
 		newTab?: boolean
@@ -608,12 +608,12 @@ interface MageCodeAPI extends EventEmitter<MageCodeEvents> {
 	 * Returns the current configuration.
 	 * @returns The current configuration.
 	 */
-	getConfiguration(): MageCodeSettings
+	getConfiguration(): RooCodeSettings
 	/**
 	 * Sets the configuration for the current task.
 	 * @param values An object containing key-value pairs to set.
 	 */
-	setConfiguration(values: MageCodeSettings): Promise<void>
+	setConfiguration(values: RooCodeSettings): Promise<void>
 	/**
 	 * Creates a new API configuration profile
 	 * @param name The name of the profile
@@ -651,10 +651,10 @@ interface MageCodeAPI extends EventEmitter<MageCodeEvents> {
 export {
 	type ClineMessage,
 	type GlobalSettings,
-	type MageCodeAPI,
-	MageCodeEventName,
-	type MageCodeEvents,
-	type MageCodeSettings,
 	type ProviderSettings,
+	type RooCodeAPI,
+	RooCodeEventName,
+	type RooCodeEvents,
+	type RooCodeSettings,
 	type TokenUsage,
 }

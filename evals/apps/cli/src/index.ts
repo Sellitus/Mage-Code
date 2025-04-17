@@ -10,11 +10,11 @@ import { build, filesystem, GluegunPrompt, GluegunToolbox } from "gluegun"
 import {
 	type ExerciseLanguage,
 	exerciseLanguages,
-	MageCodeEventName,
+	RooCodeEventName,
 	IpcOrigin,
 	IpcMessageType,
 	TaskCommandName,
-	magecodeDefaults,
+	rooCodeDefaults,
 } from "@evals/types"
 import {
 	type Run,
@@ -67,9 +67,9 @@ const run = async (toolbox: GluegunToolbox) => {
 		run = await findRun(id)
 	} else {
 		run = await createRun({
-			model: magecodeDefaults.openRouterModelId!,
+			model: rooCodeDefaults.openRouterModelId!,
 			pid: process.pid,
-			socketPath: path.resolve(os.tmpdir(), `mage-code-evals-${crypto.randomUUID().slice(0, 8)}.sock`),
+			socketPath: path.resolve(os.tmpdir(), `roo-code-evals-${crypto.randomUUID().slice(0, 8)}.sock`),
 		})
 
 		if (language === "all") {
@@ -98,8 +98,8 @@ const run = async (toolbox: GluegunToolbox) => {
 		throw new Error("No tasks found.")
 	}
 
-	console.log(await execa({ cwd: exercisesPath })`git config user.name "Mage Code"`)
-	console.log(await execa({ cwd: exercisesPath })`git config user.email "support@magecode.com"`)
+	console.log(await execa({ cwd: exercisesPath })`git config user.name "Roo Code"`)
+	console.log(await execa({ cwd: exercisesPath })`git config user.email "support@roocode.com"`)
 	console.log(await execa({ cwd: exercisesPath })`git checkout -f`)
 	console.log(await execa({ cwd: exercisesPath })`git clean -fd`)
 	console.log(
@@ -108,7 +108,7 @@ const run = async (toolbox: GluegunToolbox) => {
 
 	fs.writeFileSync(
 		path.resolve(exercisesPath, "settings.json"),
-		JSON.stringify({ ...magecodeDefaults, ...run.settings }, null, 2),
+		JSON.stringify({ ...rooCodeDefaults, ...run.settings }, null, 2),
 	)
 
 	const server = new IpcServer(run.socketPath, () => {})
@@ -211,10 +211,10 @@ const runExercise = async ({ run, task, server }: { run: Run; task: Task; server
 	let rooTaskId: string | undefined
 	let isClientDisconnected = false
 
-	const ignoreEvents: MageCodeEventName[] = [
-		MageCodeEventName.Message,
-		MageCodeEventName.TaskTokenUsageUpdated,
-		MageCodeEventName.TaskAskResponded,
+	const ignoreEvents: RooCodeEventName[] = [
+		RooCodeEventName.Message,
+		RooCodeEventName.TaskTokenUsageUpdated,
+		RooCodeEventName.TaskAskResponded,
 	]
 
 	client.on(IpcMessageType.TaskEvent, async (taskEvent) => {
@@ -232,7 +232,7 @@ const runExercise = async ({ run, task, server }: { run: Run; task: Task; server
 			console.log(payload)
 		}
 
-		if (eventName === MageCodeEventName.TaskStarted) {
+		if (eventName === RooCodeEventName.TaskStarted) {
 			taskStartedAt = Date.now()
 
 			const taskMetrics = await createTaskMetrics({
@@ -253,7 +253,7 @@ const runExercise = async ({ run, task, server }: { run: Run; task: Task; server
 		}
 
 		if (
-			(eventName === MageCodeEventName.TaskTokenUsageUpdated || eventName === MageCodeEventName.TaskCompleted) &&
+			(eventName === RooCodeEventName.TaskTokenUsageUpdated || eventName === RooCodeEventName.TaskCompleted) &&
 			taskMetricsId
 		) {
 			const duration = Date.now() - taskStartedAt
@@ -272,7 +272,7 @@ const runExercise = async ({ run, task, server }: { run: Run; task: Task; server
 			})
 		}
 
-		if (eventName === MageCodeEventName.TaskCompleted || eventName === MageCodeEventName.TaskAborted) {
+		if (eventName === RooCodeEventName.TaskCompleted || eventName === RooCodeEventName.TaskAborted) {
 			taskFinishedAt = Date.now()
 			await updateTask(task.id, { finishedAt: new Date() })
 		}
@@ -293,7 +293,7 @@ const runExercise = async ({ run, task, server }: { run: Run; task: Task; server
 			commandName: TaskCommandName.StartNewTask,
 			data: {
 				configuration: {
-					...magecodeDefaults,
+					...rooCodeDefaults,
 					openRouterApiKey: process.env.OPENROUTER_API_KEY!,
 					...run.settings,
 				},

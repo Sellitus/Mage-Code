@@ -162,7 +162,7 @@ export class TerminalRegistry {
 
 		const terminal = vscode.window.createTerminal({
 			cwd,
-			name: "Mage Code",
+			name: "Roo Code",
 			iconPath: new vscode.ThemeIcon("rocket"),
 			env,
 		})

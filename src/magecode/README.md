@@ -2,7 +2,7 @@
 
 ## Purpose
 
-MageCode is an internal module designed to enhance Mage Code's capabilities by integrating local code intelligence and multi-tiered language model orchestration. It aims to provide more contextually relevant assistance and potentially reduce reliance on external cloud services for certain tasks by leveraging local processing when feasible and efficient.
+MageCode is an internal module designed to enhance Roo Code's capabilities by integrating local code intelligence and multi-tiered language model orchestration. It aims to provide more contextually relevant assistance and potentially reduce reliance on external cloud services for certain tasks by leveraging local processing when feasible and efficient.
 
 ## Architecture Overview
 

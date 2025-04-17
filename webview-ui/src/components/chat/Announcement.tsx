@@ -35,14 +35,14 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 
 			<p style={{ margin: "10px 0px 0px" }}>
 				<VSCodeLink
-					href="https://docs.magecode.com/features/boomerang-tasks"
+					href="https://docs.roocode.com/features/boomerang-tasks"
 					onClick={(e) => {
 						e.preventDefault()
 						window.postMessage(
 							{
 								type: "action",
 								action: "openExternal",
-								data: { url: "https://docs.magecode.com/features/boomerang-tasks" },
+								data: { url: "https://docs.roocode.com/features/boomerang-tasks" },
 							},
 							"*",
 						)

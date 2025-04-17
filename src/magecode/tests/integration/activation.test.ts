@@ -90,7 +90,7 @@ describe("MageCode Activation and Dispatch Integration Tests", () => {
 		// Default mock for getConfiguration
 		;(vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
 			get: jest.fn((key, defaultValue) => {
-				if (key === "mage-code.magecode.enabled") return true // Default to enabled
+				if (key === "roo-code.magecode.enabled") return true // Default to enabled
 				return defaultValue
 			}),
 			update: jest.fn(),
@@ -117,7 +117,7 @@ describe("MageCode Activation and Dispatch Integration Tests", () => {
 		// Arrange: Disable MageCode
 		;(vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
 			get: jest.fn((key, defaultValue) => {
-				if (key === "mage-code.magecode.enabled") return false
+				if (key === "roo-code.magecode.enabled") return false
 				return defaultValue
 			}),
 			update: jest.fn(),
@@ -148,7 +148,7 @@ describe("MageCode Activation and Dispatch Integration Tests", () => {
 		// Arrange: Disable MageCode
 		;(vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
 			get: jest.fn((key, defaultValue) => {
-				if (key === "mage-code.magecode.enabled") return false
+				if (key === "roo-code.magecode.enabled") return false
 				return defaultValue
 			}),
 			update: jest.fn(),
@@ -181,7 +181,7 @@ describe("MageCode Activation and Dispatch Integration Tests", () => {
 		// Arrange: Disable MageCode
 		;(vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
 			get: jest.fn((key, defaultValue) => {
-				if (key === "mage-code.magecode.enabled") return false
+				if (key === "roo-code.magecode.enabled") return false
 				return defaultValue
 			}),
 			update: jest.fn(),

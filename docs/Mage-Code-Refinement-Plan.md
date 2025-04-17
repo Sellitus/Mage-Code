@@ -60,7 +60,7 @@
 
 4.  **Configuration Review:**
     - **Action:** Search the codebase for hardcoded values (timeouts, cache sizes/TTLs, processing limits, retry counts, model names/endpoints if any).
-    - **Action:** Evaluate if these should be configurable via VS Code settings, particularly those related to performance or resource usage (e.g., cache sizes, processing limits). Target `mage-code.magecode.localProcessing` or create new sub-sections as needed.
+    - **Action:** Evaluate if these should be configurable via VS Code settings, particularly those related to performance or resource usage (e.g., cache sizes, processing limits). Target `roo-code.magecode.localProcessing` or create new sub-sections as needed.
     - **Action:** If new settings are added:
         - Update `package.json` (`contributes.configuration`).
         - Update `src/magecode/config/settings.ts` to read and potentially watch these settings.

@@ -8,7 +8,7 @@ const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve,
 import axios from "axios"
 import * as vscode from "vscode"
 
-import { GlobalState, ProviderSettings, MageCodeSettings } from "../../schemas"
+import { GlobalState, ProviderSettings, RooCodeSettings } from "../../schemas"
 import { t } from "../../i18n"
 import { setPanel } from "../../activate/registerCommands"
 import {
@@ -63,8 +63,8 @@ export type ClineProviderEvents = {
 }
 
 export class ClineProvider extends EventEmitter<ClineProviderEvents> implements vscode.WebviewViewProvider {
-	public static readonly sideBarId = "mage-code.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
-	public static readonly tabPanelId = "mage-code.TabPanelProvider"
+	public static readonly sideBarId = "roo-cline.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
+	public static readonly tabPanelId = "roo-cline.TabPanelProvider"
 	private static activeInstances: Set<ClineProvider> = new Set()
 	private disposables: vscode.Disposable[] = []
 	private view?: vscode.WebviewView | vscode.WebviewPanel
@@ -235,7 +235,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 
 		// If no visible provider, try to show the sidebar view
 		if (!visibleProvider) {
-			await vscode.commands.executeCommand("mage-code.SidebarProvider.focus")
+			await vscode.commands.executeCommand("roo-cline.SidebarProvider.focus")
 			// Wait briefly for the view to become visible
 			await delay(100)
 			visibleProvider = ClineProvider.getVisibleInstance()
@@ -683,7 +683,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 					<script nonce="${nonce}">
 						window.IMAGES_BASE_URI = "${imagesUri}"
 					</script>
-					<title>Mage Code</title>
+					<title>Roo Code</title>
 				</head>
 				<body>
 					<div id="root"></div>
@@ -768,7 +768,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 			<script nonce="${nonce}">
 				window.IMAGES_BASE_URI = "${imagesUri}"
 			</script>
-            <title>Mage Code</title>
+            <title>Roo Code</title>
           </head>
           <body>
             <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -937,7 +937,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 			await fs.mkdir(mcpServersDir, { recursive: true })
 		} catch (error) {
 			// Fallback to a relative path if directory creation fails
-			return path.join(os.homedir(), ".mage-code", "mcp")
+			return path.join(os.homedir(), ".roo-code", "mcp")
 		}
 		return mcpServersDir
 	}
@@ -1249,7 +1249,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 
 		const telemetryKey = process.env.POSTHOG_API_KEY
 		const machineId = vscode.env.machineId
-		const allowedCommands = vscode.workspace.getConfiguration("mage-code").get<string[]>("allowedCommands") || []
+		const allowedCommands = vscode.workspace.getConfiguration("roo-cline").get<string[]>("allowedCommands") || []
 		const cwd = this.cwd
 
 		return {
@@ -1441,11 +1441,11 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 		return this.contextProxy.getValue(key)
 	}
 
-	public async setValue<K extends keyof MageCodeSettings>(key: K, value: MageCodeSettings[K]) {
+	public async setValue<K extends keyof RooCodeSettings>(key: K, value: RooCodeSettings[K]) {
 		await this.contextProxy.setValue(key, value)
 	}
 
-	public getValue<K extends keyof MageCodeSettings>(key: K) {
+	public getValue<K extends keyof RooCodeSettings>(key: K) {
 		return this.contextProxy.getValue(key)
 	}
 
@@ -1453,7 +1453,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 		return this.contextProxy.getValues()
 	}
 
-	public async setValues(values: MageCodeSettings) {
+	public async setValues(values: RooCodeSettings) {
 		await this.contextProxy.setValues(values)
 	}
 

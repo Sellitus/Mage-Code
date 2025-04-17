@@ -651,12 +651,12 @@ const globalSettingsRecord: GlobalSettingsRecord = {
 export const GLOBAL_SETTINGS_KEYS = Object.keys(globalSettingsRecord) as Keys<GlobalSettings>[]
 
 /**
- * MageCodeSettings
+ * RooCodeSettings
  */
 
-export const magecodeSettingsSchema = providerSettingsSchema.merge(globalSettingsSchema)
+export const rooCodeSettingsSchema = providerSettingsSchema.merge(globalSettingsSchema)
 
-export type MageCodeSettings = GlobalSettings & ProviderSettings
+export type RooCodeSettings = GlobalSettings & ProviderSettings
 
 /**
  * SecretState
@@ -706,10 +706,10 @@ export const isSecretStateKey = (key: string): key is Keys<SecretState> =>
  * GlobalState
  */
 
-export type GlobalState = Omit<MageCodeSettings, Keys<SecretState>>
+export type GlobalState = Omit<RooCodeSettings, Keys<SecretState>>
 
 export const GLOBAL_STATE_KEYS = [...GLOBAL_SETTINGS_KEYS, ...PROVIDER_SETTINGS_KEYS].filter(
-	(key: Keys<MageCodeSettings>) => !SECRET_STATE_KEYS.includes(key as Keys<SecretState>),
+	(key: Keys<RooCodeSettings>) => !SECRET_STATE_KEYS.includes(key as Keys<SecretState>),
 ) as Keys<GlobalState>[]
 
 export const isGlobalStateKey = (key: string): key is Keys<GlobalState> =>
@@ -820,10 +820,10 @@ export const tokenUsageSchema = z.object({
 export type TokenUsage = z.infer<typeof tokenUsageSchema>
 
 /**
- * MageCodeEvent
+ * RooCodeEvent
  */
 
-export enum MageCodeEventName {
+export enum RooCodeEventName {
 	Message = "message",
 	TaskCreated = "taskCreated",
 	TaskStarted = "taskStarted",
@@ -837,27 +837,27 @@ export enum MageCodeEventName {
 	TaskTokenUsageUpdated = "taskTokenUsageUpdated",
 }
 
-export const magecodeEventsSchema = z.object({
-	[MageCodeEventName.Message]: z.tuple([
+export const rooCodeEventsSchema = z.object({
+	[RooCodeEventName.Message]: z.tuple([
 		z.object({
 			taskId: z.string(),
 			action: z.union([z.literal("created"), z.literal("updated")]),
 			message: clineMessageSchema,
 		}),
 	]),
-	[MageCodeEventName.TaskCreated]: z.tuple([z.string()]),
-	[MageCodeEventName.TaskStarted]: z.tuple([z.string()]),
-	[MageCodeEventName.TaskModeSwitched]: z.tuple([z.string(), z.string()]),
-	[MageCodeEventName.TaskPaused]: z.tuple([z.string()]),
-	[MageCodeEventName.TaskUnpaused]: z.tuple([z.string()]),
-	[MageCodeEventName.TaskAskResponded]: z.tuple([z.string()]),
-	[MageCodeEventName.TaskAborted]: z.tuple([z.string()]),
-	[MageCodeEventName.TaskSpawned]: z.tuple([z.string(), z.string()]),
-	[MageCodeEventName.TaskCompleted]: z.tuple([z.string(), tokenUsageSchema]),
-	[MageCodeEventName.TaskTokenUsageUpdated]: z.tuple([z.string(), tokenUsageSchema]),
+	[RooCodeEventName.TaskCreated]: z.tuple([z.string()]),
+	[RooCodeEventName.TaskStarted]: z.tuple([z.string()]),
+	[RooCodeEventName.TaskModeSwitched]: z.tuple([z.string(), z.string()]),
+	[RooCodeEventName.TaskPaused]: z.tuple([z.string()]),
+	[RooCodeEventName.TaskUnpaused]: z.tuple([z.string()]),
+	[RooCodeEventName.TaskAskResponded]: z.tuple([z.string()]),
+	[RooCodeEventName.TaskAborted]: z.tuple([z.string()]),
+	[RooCodeEventName.TaskSpawned]: z.tuple([z.string(), z.string()]),
+	[RooCodeEventName.TaskCompleted]: z.tuple([z.string(), tokenUsageSchema]),
+	[RooCodeEventName.TaskTokenUsageUpdated]: z.tuple([z.string(), tokenUsageSchema]),
 })
 
-export type MageCodeEvents = z.infer<typeof magecodeEventsSchema>
+export type RooCodeEvents = z.infer<typeof rooCodeEventsSchema>
 
 /**
  * TypeDefinition
@@ -873,7 +873,7 @@ export const typeDefinitions: TypeDefinition[] = [
 	{ schema: globalSettingsSchema, identifier: "GlobalSettings" },
 	{ schema: clineMessageSchema, identifier: "ClineMessage" },
 	{ schema: tokenUsageSchema, identifier: "TokenUsage" },
-	{ schema: magecodeEventsSchema, identifier: "MageCodeEvents" },
+	{ schema: rooCodeEventsSchema, identifier: "RooCodeEvents" },
 ]
 
 // Also export as default for ESM compatibility

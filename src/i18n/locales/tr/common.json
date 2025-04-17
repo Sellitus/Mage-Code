@@ -1,6 +1,6 @@
 {
 	"extension": {
-		"name": "Mage Code",
+		"name": "Roo Code",
 		"description": "Düzenleyicinizde tam bir AI geliştirici ekibi."
 	},
 	"number_format": {
@@ -82,8 +82,8 @@
 	},
 	"storage": {
 		"prompt_custom_path": "Konuşma geçmişi için özel depolama yolunu girin, varsayılan konumu kullanmak için boş bırakın",
-		"path_placeholder": "D:\\MageCodeStorage",
-		"enter_absolute_path": "Lütfen mutlak bir yol girin (örn. D:\\MageCodeStorage veya /home/user/storage)",
+		"path_placeholder": "D:\\RooCodeStorage",
+		"enter_absolute_path": "Lütfen mutlak bir yol girin (örn. D:\\RooCodeStorage veya /home/user/storage)",
 		"enter_valid_path": "Lütfen geçerli bir yol girin"
 	},
 	"input": {

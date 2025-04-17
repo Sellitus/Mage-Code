@@ -18,8 +18,8 @@ import { XmlMatcher } from "../../utils/xml-matcher"
 import { DEEP_SEEK_DEFAULT_TEMPERATURE } from "./constants"
 
 export const defaultHeaders = {
-	"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
-	"X-Title": "Mage Code",
+	"HTTP-Referer": "https://github.com/RooVetGit/Roo-Cline",
+	"X-Title": "Roo Code",
 }
 
 export interface OpenAiHandlerOptions extends ApiHandlerOptions {}

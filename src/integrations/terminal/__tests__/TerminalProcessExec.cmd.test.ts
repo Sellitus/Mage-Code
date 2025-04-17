@@ -77,7 +77,7 @@ async function testCmdCommand(
 			executeCommand: jest.fn(),
 			cwd: vscode.Uri.file("C:\\test\\path"),
 		},
-		name: "Mage Code",
+		name: "Roo Code",
 		processId: Promise.resolve(123),
 		creationOptions: {},
 		exitStatus: undefined,

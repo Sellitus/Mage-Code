@@ -1,13 +1,13 @@
-# Run Mage Code Evals
+# Run Roo Code Evals
 
 ## Get Started
 
 NOTE: This is MacOS only for now!
 
-Clone the Mage Code repo:
+Clone the Roo Code repo:
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 cd Roo-Code
 ```
 

@@ -69,7 +69,7 @@
 	Contact me if you have any questions:
 		- GitHub: KJ7LNW
 		- Discord: kj7lnw
-		- [mage-code at z.ewheeler.org]
+		- [roo-cline at z.ewheeler.org]
 
 	Cheers,
 		-Eric, KJ7LNW

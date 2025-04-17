@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import type { MageCodeAPI } from "../../../src/exports/mage-code"
+import type { RooCodeAPI } from "../../../src/exports/roo-code"
 
 type WaitForOptions = {
 	timeout?: number
@@ -42,7 +42,7 @@ export const waitFor = (
 }
 
 type WaitUntilAbortedOptions = WaitForOptions & {
-	api: MageCodeAPI
+	api: RooCodeAPI
 	taskId: string
 }
 
@@ -53,7 +53,7 @@ export const waitUntilAborted = async ({ api, taskId, ...options }: WaitUntilAbo
 }
 
 type WaitUntilCompletedOptions = WaitForOptions & {
-	api: MageCodeAPI
+	api: RooCodeAPI
 	taskId: string
 }
 
