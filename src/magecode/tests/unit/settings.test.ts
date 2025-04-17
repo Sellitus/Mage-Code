@@ -35,7 +35,7 @@ describe("MageCode Settings", () => {
 		getConfigurationMock.mockReturnValue(mockConfig)
 
 		expect(isMageCodeEnabled()).toBe(true)
-		expect(getConfigurationMock).toHaveBeenCalledWith("roo-code")
+		expect(getConfigurationMock).toHaveBeenCalledWith("mage-code")
 		expect(mockConfig.get).toHaveBeenCalledWith("magecode.enabled", true)
 	})
 

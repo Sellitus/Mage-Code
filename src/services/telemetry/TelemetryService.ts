@@ -11,7 +11,7 @@ interface ClineProviderInterface {
 }
 
 /**
- * PostHogClient handles telemetry event tracking for the Roo Code extension
+ * PostHogClient handles telemetry event tracking for the Mage Code extension
  * Uses PostHog analytics to track user interactions and system events
  * Respects user privacy settings and VSCode's global telemetry configuration
  */

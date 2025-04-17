@@ -51,9 +51,9 @@ export const About = ({ version, telemetrySetting, setTelemetrySetting, classNam
 					<Trans
 						i18nKey="settings:footer.feedback"
 						components={{
-							githubLink: <VSCodeLink href="https://github.com/RooVetGit/Roo-Code" />,
-							redditLink: <VSCodeLink href="https://reddit.com/r/RooCode" />,
-							discordLink: <VSCodeLink href="https://discord.gg/roocode" />,
+							githubLink: <VSCodeLink href="https://github.com/Sellitus/Mage-Code" />,
+							redditLink: <VSCodeLink href="https://reddit.com/r/MageCode" />,
+							discordLink: <VSCodeLink href="https://discord.gg/magecode" />,
 						}}
 					/>
 				</div>

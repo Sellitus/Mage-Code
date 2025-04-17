@@ -433,7 +433,7 @@ type TokenUsage = {
 
 export type { TokenUsage }
 
-type RooCodeEvents = {
+type MageCodeEvents = {
 	message: [
 		{
 			taskId: string
@@ -538,4 +538,4 @@ type RooCodeEvents = {
 	]
 }
 
-export type { RooCodeEvents }
+export type { MageCodeEvents }

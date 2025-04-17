@@ -108,7 +108,7 @@ export class MageCodeSettingsView {
 
 				switch (command) {
 					case "getSettings":
-						const config = vscode.workspace.getConfiguration("roo-code.magecode")
+						const config = vscode.workspace.getConfiguration("mage-code.magecode")
 						const enabled = config.get<boolean>("enabled")
 						const modelPreference = config.get<string>("modelPreference")
 
@@ -119,7 +119,7 @@ export class MageCodeSettingsView {
 						})
 						return
 					case "updateSetting":
-						const configuration = vscode.workspace.getConfiguration("roo-code.magecode")
+						const configuration = vscode.workspace.getConfiguration("mage-code.magecode")
 						// Add validation for setting key and value if necessary
 						configuration.update(setting, value, vscode.ConfigurationTarget.Global)
 						return

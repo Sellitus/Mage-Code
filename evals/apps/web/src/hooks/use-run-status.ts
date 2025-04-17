@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react"
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 
-import { RooCodeEventName, taskEventSchema } from "@evals/types"
+import { MageCodeEventName, taskEventSchema } from "@evals/types"
 import { Run } from "@evals/db"
 
 import { getTasks } from "@/lib/server/tasks"
@@ -46,12 +46,12 @@ export const useRunStatus = (run: Run) => {
 		}
 
 		switch (eventName) {
-			case RooCodeEventName.TaskStarted:
-			case RooCodeEventName.TaskCompleted:
-			case RooCodeEventName.TaskAborted:
+			case MageCodeEventName.TaskStarted:
+			case MageCodeEventName.TaskCompleted:
+			case MageCodeEventName.TaskAborted:
 				setTasksUpdatedAt(Date.now())
 				break
-			case RooCodeEventName.Message: {
+			case MageCodeEventName.Message: {
 				const [
 					{
 						message: { text },

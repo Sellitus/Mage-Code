@@ -12,8 +12,8 @@ Okay, here is a sequential series of user stories designed to implement the Mage
     1.  Create the main directory: `src/magecode/`.
     2.  Create subdirectories within `src/magecode/`: `config/`, `interfaces/`, `utils/`, `tests/`, `tests/unit/`, `tests/integration/`.
     3.  In `package.json` (**Existing File Modification 1 of 2**):
-        - Locate the `contributes.configuration.properties` section for `roo-code`.
-        - Add the `roo-code.magecode.enabled` boolean setting exactly as specified in section 2.2 of the design doc (default: `true`). **Make no other changes to this file.**
+        - Locate the `contributes.configuration.properties` section for `mage-code`.
+        - Add the `mage-code.magecode.enabled` boolean setting exactly as specified in section 2.2 of the design doc (default: `true`). **Make no other changes to this file.**
     4.  Create `src/magecode/config/settings.ts`:
         - Implement the `isMageCodeEnabled()` function as specified in section 2.2 to read the configuration setting.
         - Implement the `registerModeChangeListener()` function as specified in section 2.2 (the `handleModeChange` function can be a placeholder for now).
@@ -21,7 +21,7 @@ Okay, here is a sequential series of user stories designed to implement the Mage
         - Implement a basic `initializeMageCode(context: vscode.ExtensionContext)` function (as shown in section 2.5). For now, it can just log that MageCode is initializing and register the mode change listener using the function from the previous step. Leave placeholders for initializing other services.
         - Implement placeholder functions `registerMageCodeCommands` and `registerMageCodeTools`.
     6.  In `extension.ts` (**Existing File Modification 2 of 2 - Part 1**):
-        - At the beginning of the `activate` function, add the conditional import and call to `initializeMageCode` based on the `roo-code.magecode.enabled` setting, exactly as shown in section 2.5. **Make no other changes to the original activation logic in this file yet.**
+        - At the beginning of the `activate` function, add the conditional import and call to `initializeMageCode` based on the `mage-code.magecode.enabled` setting, exactly as shown in section 2.5. **Make no other changes to the original activation logic in this file yet.**
     7.  Create `src/magecode/interfaces/index.ts`:
         - Define the basic `IAgent`, `IContextRetriever`, and `ILLMOrchestrator` interfaces as specified in section 2.3 (implementations will come later).
     8.  Create `src/magecode/factory.ts`:
@@ -502,7 +502,7 @@ _Self-Correction: Splitting MMO into multiple stories for clarity._
         - Implement a placeholder `TaskClassifier` or simple heuristics within the router for now (as per section 3.3). The logic can initially be basic: maybe route based on prompt length or a keyword in `options.taskType`.
         - Implement `routeRequest(task: TaskType, prompt: string, options: RouterOptions): Promise<ModelTier>`:
             - Applies the classification/heuristics.
-            - Considers user preference (`roo-code.magecode.modelPreference` setting - add this setting similar to Story 1).
+            - Considers user preference (`mage-code.magecode.modelPreference` setting - add this setting similar to Story 1).
             - Returns `ModelTier.LOCAL` or `ModelTier.CLOUD`.
     2.  Create `src/magecode/orchestration/prompt/` directory and implement a basic `PromptService` (`promptService.ts`) with a `formatPrompt` method that (for now) just returns the original prompt, but provides the structure for tier-specific formatting later.
     3.  Update `src/magecode/orchestration/index.ts` (`MultiModelOrchestrator`):
@@ -519,7 +519,7 @@ _Self-Correction: Splitting MMO into multiple stories for clarity._
     4.  Update `src/magecode/initialize.ts`:
         - Instantiate `ModelRouter`, `PromptService`.
         - Inject them into `MultiModelOrchestrator`.
-    5.  Add the `roo-code.magecode.modelPreference` setting to `package.json` as defined in section 4.5. Update `settings.ts` to read it if needed by the router.
+    5.  Add the `mage-code.magecode.modelPreference` setting to `package.json` as defined in section 4.5. Update `settings.ts` to read it if needed by the router.
     6.  **Testing:**
         - Write unit tests for `ModelRouter`: Test routing logic under different conditions (prompt length, task type, user preference).
         - Write unit tests for `PromptService` (basic pass-through for now).
@@ -686,7 +686,7 @@ _Self-Correction: Splitting MMO into multiple stories for clarity._
     1.  Create `src/magecode/webview-ui/` directory.
     2.  Choose a simple UI framework for the webview (e.g., plain HTML/JS, or include a minimal setup for React/Vue if preferred, ensuring build tools handle it). Add necessary dependencies (e.g., `@vscode/webview-ui-toolkit`).
     3.  Create the UI component(s) (e.g., `src/magecode/webview-ui/SettingsView.tsx` or `settingsView.html`/`.js`):
-        - Build a simple form to display and modify MageCode settings (initially `roo-code.magecode.enabled` and `roo-code.magecode.modelPreference`).
+        - Build a simple form to display and modify MageCode settings (initially `mage-code.magecode.enabled` and `mage-code.magecode.modelPreference`).
         - Use the VS Code Webview UI Toolkit components for consistency.
         - Implement communication logic:
             - On load, request current settings from the extension host.
@@ -695,7 +695,7 @@ _Self-Correction: Splitting MMO into multiple stories for clarity._
         - Implement the `MageCodeSettingsView` class (similar to section 2.6).
         - Implement `getWebviewContent` to generate the HTML for the webview, including nonces for security and scripts for the UI logic.
         - Implement `handleMessage` to process messages from the webview:
-            - Handle requests for current settings: Read from `vscode.workspace.getConfiguration('roo-code.magecode')`.
+            - Handle requests for current settings: Read from `vscode.workspace.getConfiguration('mage-code.magecode')`.
             - Handle requests to update settings: Use `config.update()` to save changes to the appropriate scope (e.g., `ConfigurationTarget.Global`).
     5.  Update `src/magecode/initialize.ts`:
         - In `registerMageCodeCommands`, register the `magecode.showSettings` command that creates and shows a new instance of `MageCodeSettingsView` (as shown in section 2.6).
@@ -804,7 +804,7 @@ _Self-Correction: Splitting MMO into multiple stories for clarity._
         - Remove dead code or commented-out code.
         - Ensure all resources (`Disposable` items like DB connections, file watchers, potentially ORT sessions) are correctly managed and disposed of (check `context.subscriptions` usage).
     4.  **Configuration:**
-        - Review all hardcoded values (timeouts, limits, thresholds) and consider making them configurable via settings if appropriate (e.g., add settings for cache sizes, processing limits under `roo-code.magecode.localProcessing` object - see Section 4.5). Update settings UI (Story 17) if new settings are added.
+        - Review all hardcoded values (timeouts, limits, thresholds) and consider making them configurable via settings if appropriate (e.g., add settings for cache sizes, processing limits under `mage-code.magecode.localProcessing` object - see Section 4.5). Update settings UI (Story 17) if new settings are added.
     5.  **Documentation:**
         - Add or update TSDoc comments for public classes and methods.
         - Add a README section within `src/magecode/` briefly explaining its architecture and purpose.

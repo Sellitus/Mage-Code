@@ -9,7 +9,7 @@ coverage/
 
 # Builds
 bin/
-roo-cline-*.vsix
+mage-code-*.vsix
 
 # Local prompts and rules
 /local-prompts

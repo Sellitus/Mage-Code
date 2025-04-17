@@ -21,8 +21,8 @@ const tmpDir = path.join(os.tmpdir(), "CheckpointService")
 
 const initWorkspaceRepo = async ({
 	workspaceDir,
-	userName = "Roo Code",
-	userEmail = "support@roocode.com",
+	userName = "Mage Code",
+	userEmail = "support@magecode.com",
 	testFileName = "test.txt",
 	textFileContent = "Hello, world!",
 }: {
@@ -396,16 +396,16 @@ describe.each([
 			await fs.mkdir(workspaceDir, { recursive: true })
 			const mainGit = simpleGit(workspaceDir)
 			await mainGit.init()
-			await mainGit.addConfig("user.name", "Roo Code")
-			await mainGit.addConfig("user.email", "support@roocode.com")
+			await mainGit.addConfig("user.name", "Mage Code")
+			await mainGit.addConfig("user.email", "support@magecode.com")
 
 			// Create a nested repo inside the workspace.
 			const nestedRepoPath = path.join(workspaceDir, "nested-project")
 			await fs.mkdir(nestedRepoPath, { recursive: true })
 			const nestedGit = simpleGit(nestedRepoPath)
 			await nestedGit.init()
-			await nestedGit.addConfig("user.name", "Roo Code")
-			await nestedGit.addConfig("user.email", "support@roocode.com")
+			await nestedGit.addConfig("user.name", "Mage Code")
+			await nestedGit.addConfig("user.email", "support@magecode.com")
 
 			// Add a file to the nested repo.
 			const nestedFile = path.join(nestedRepoPath, "nested-file.txt")
@@ -710,7 +710,7 @@ describe("ShadowCheckpointService", () => {
 			// Create git repo without adding the specific branch
 			const git = simpleGit(workspaceRepoDir)
 			await git.init()
-			await git.addConfig("user.name", "Roo Code")
+			await git.addConfig("user.name", "Mage Code")
 			await git.addConfig("user.email", "noreply@example.com")
 
 			// We need to create a commit, but we won't create the specific branch

@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { rooCodeSettingsSchema } from "@evals/types"
+import { magecodeSettingsSchema } from "@evals/types"
 
 /**
  * CreateRun
@@ -16,7 +16,7 @@ export const createRunSchema = z
 		description: z.string().optional(),
 		suite: z.enum(["full", "partial"]),
 		exercises: z.array(z.string()).optional(),
-		settings: rooCodeSettingsSchema.optional(),
+		settings: magecodeSettingsSchema.optional(),
 		concurrency: z.number().int().min(CONCURRENCY_MIN).max(CONCURRENCY_MAX).default(CONCURRENCY_DEFAULT),
 	})
 	.refine((data) => data.suite === "full" || (data.exercises || []).length > 0, {

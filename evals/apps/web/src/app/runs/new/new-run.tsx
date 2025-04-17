@@ -9,7 +9,7 @@ import fuzzysort from "fuzzysort"
 import { toast } from "sonner"
 import { X, Rocket, Check, ChevronsUpDown, HardDriveUpload, CircleCheck } from "lucide-react"
 
-import { globalSettingsSchema, providerSettingsSchema, rooCodeDefaults } from "@evals/types"
+import { globalSettingsSchema, providerSettingsSchema, magecodeDefaults } from "@evals/types"
 
 import { createRun } from "@/lib/server/runs"
 import {
@@ -159,7 +159,7 @@ export function NewRun() {
 						throw new Error(`Unsupported API provider: ${apiProvider}`)
 				}
 
-				setValue("settings", { ...rooCodeDefaults, ...providerSettings, ...globalSettings })
+				setValue("settings", { ...magecodeDefaults, ...providerSettings, ...globalSettings })
 				setMode("settings")
 
 				event.target.value = ""
@@ -256,11 +256,11 @@ export function NewRun() {
 										<div className="flex items-center gap-1 p-2 border-b">
 											<CircleCheck className="size-4 text-ring" />
 											<div className="text-sm">
-												Imported valid Roo Code settings. Showing differences from default
+												Imported valid Mage Code settings. Showing differences from default
 												settings.
 											</div>
 										</div>
-										<SettingsDiff defaultSettings={rooCodeDefaults} customSettings={settings} />
+										<SettingsDiff defaultSettings={magecodeDefaults} customSettings={settings} />
 									</>
 								</ScrollArea>
 							)}

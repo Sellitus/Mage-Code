@@ -25,14 +25,14 @@ has_asdf_plugin() {
 }
 
 build_extension() {
-  echo "🔨 Building the Roo Code extension..."
+  echo "🔨 Building the Mage Code extension..."
   cd ..
   mkdir -p bin
   npm run install-extension -- --silent --no-audit || exit 1
   npm run install-webview -- --silent --no-audit || exit 1
   npm run install-e2e -- --silent --no-audit || exit 1
-  npx vsce package --out bin/roo-code-latest.vsix || exit 1
-  code --install-extension bin/roo-code-latest.vsix || exit 1
+  npx vsce package --out bin/mage-code-latest.vsix || exit 1
+  code --install-extension bin/mage-code-latest.vsix || exit 1
   cd evals
 }
 
@@ -312,10 +312,10 @@ else
   echo "✅ Visual Studio Code is installed ($VSCODE_VERSION)"
 fi
 
-if [[ ! -s "../bin/roo-code-latest.vsix" ]]; then
+if [[ ! -s "../bin/mage-code-latest.vsix" ]]; then
   build_extension
 else
-  read -p "💻 Do you want to build a new version of the Roo Code extension? (y/N): " build_extension
+  read -p "💻 Do you want to build a new version of the Mage Code extension? (y/N): " build_extension
 
   if [[ "$build_extension" =~ ^[Yy]$ ]]; then
     build_extension
