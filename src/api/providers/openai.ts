@@ -18,7 +18,7 @@ import { XmlMatcher } from "../../utils/xml-matcher"
 import { DEEP_SEEK_DEFAULT_TEMPERATURE } from "./constants"
 
 export const defaultHeaders = {
-	"HTTP-Referer": "https://github.com/RooVetGit/Roo-Cline",
+	"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
 	"X-Title": "Roo Code",
 }
 

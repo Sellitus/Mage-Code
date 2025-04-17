@@ -101,7 +101,7 @@ This architecture ensures that only the active mode's components are loaded and 
 
 ### 2.2. Mode Selection Mechanism - Minimal Configuration Change
 
-**Setting**: Add single entry `roo-code.magecode.enabled` to existing configuration schema in `package.json` without modifying any other settings:
+**Setting**: Add single entry `mage-code.magecode.enabled` to existing configuration schema in `package.json` without modifying any other settings:
 
 ```
 {
@@ -116,7 +116,7 @@ This architecture ensures that only the active mode's components are loaded and 
 
 ```
 export function isMageCodeEnabled(): boolean {
-  return vscode.workspace.getConfiguration('roo-code').get('magecode.enabled', true);
+  return vscode.workspace.getConfiguration('mage-code').get('magecode.enabled', true);
 }
 ```
 
@@ -126,7 +126,7 @@ export function isMageCodeEnabled(): boolean {
 export function registerModeChangeListener(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration('roo-code.magecode.enabled')) {
+      if (e.affectsConfiguration('mage-code.magecode.enabled')) {
         handleModeChange(isMageCodeEnabled());
       }
     })
@@ -244,7 +244,7 @@ In `extension.ts` (ONE OF ONLY TWO MODIFIED FILES):
 ```
 export async function activate(context: vscode.ExtensionContext) {
   // ADDED LINES BEGIN - Minimal addition for MageCode mode
-  const magecodeEnabled = vscode.workspace.getConfiguration('roo-code').get('magecode.enabled', true);
+  const magecodeEnabled = vscode.workspace.getConfiguration('mage-code').get('magecode.enabled', true);
   if (magecodeEnabled) {
     const { initializeMageCode } = require('./magecode/initialize');
     await initializeMageCode(context); // Handles all MageCode initialization
@@ -1197,7 +1197,7 @@ All data storage components are isolated from the original Roo-Code codebase:
 
 - **SQLite Database**: Stored in `.magecode/intelligence.db` in the workspace root
 - **Vector Indices**: Maintained in `.magecode/vectors` with separate files for each index
-- **Configuration Data**: Stored in standard VS Code settings with `roo-code.magecode.*` prefix
+- **Configuration Data**: Stored in standard VS Code settings with `mage-code.magecode.*` prefix
 - **Runtime Cache**: Maintained in memory with proper lifecycle management
 
 This isolation ensures that data used by MageCode never interferes with the original extension's data.
@@ -1293,12 +1293,12 @@ MageCode adds minimal configuration to the original extension:
 
 ```json
 {
-	"roo-code.magecode.enabled": {
+	"mage-code.magecode.enabled": {
 		"type": "boolean",
 		"default": true,
 		"description": "Enable MageCode agent mode for enhanced token efficiency"
 	},
-	"roo-code.magecode.localProcessing": {
+	"mage-code.magecode.localProcessing": {
 		"type": "object",
 		"properties": {
 			"maxConcurrency": {
@@ -1313,7 +1313,7 @@ MageCode adds minimal configuration to the original extension:
 			}
 		}
 	},
-	"roo-code.magecode.modelPreference": {
+	"mage-code.magecode.modelPreference": {
 		"type": "string",
 		"enum": ["auto", "localFirst", "cloudFirst"],
 		"default": "auto",

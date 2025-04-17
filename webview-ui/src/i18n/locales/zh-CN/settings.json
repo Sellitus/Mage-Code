@@ -409,7 +409,7 @@
 		"useCustomModel": "使用自定义：{{modelId}}"
 	},
 	"footer": {
-		"feedback": "如果您有任何问题或反馈，请随时在 <githubLink>github.com/RooVetGit/Roo-Code</githubLink> 上提出问题或加入 <redditLink>reddit.com/r/RooCode</redditLink> 或 <discordLink>discord.gg/roocode</discordLink>",
+		"feedback": "如果您有任何问题或反馈，请随时在 <githubLink>github.com/Sellitus/Mage-Code</githubLink> 上提出问题或加入 <redditLink>reddit.com/r/MageCode</redditLink> 或 <discordLink>discord.gg/magecode</discordLink>",
 		"version": "Roo Code v{{version}}",
 		"telemetry": {
 			"label": "允许匿名数据收集",

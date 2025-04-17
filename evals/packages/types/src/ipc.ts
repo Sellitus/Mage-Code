@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { RooCodeEventName, rooCodeEventsSchema, rooCodeSettingsSchema } from "./roo-code.js"
+import { MageCodeEventName, magecodeEventsSchema, magecodeSettingsSchema } from "./mage-code.js"
 
 /**
  * Ack
@@ -28,7 +28,7 @@ export const taskCommandSchema = z.discriminatedUnion("commandName", [
 	z.object({
 		commandName: z.literal(TaskCommandName.StartNewTask),
 		data: z.object({
-			configuration: rooCodeSettingsSchema,
+			configuration: magecodeSettingsSchema,
 			text: z.string(),
 			images: z.array(z.string()).optional(),
 			newTab: z.boolean().optional(),
@@ -52,63 +52,63 @@ export type TaskCommand = z.infer<typeof taskCommandSchema>
 
 export const taskEventSchema = z.discriminatedUnion("eventName", [
 	z.object({
-		eventName: z.literal(RooCodeEventName.Connect),
+		eventName: z.literal(MageCodeEventName.Connect),
 		payload: z.unknown(),
 		taskId: z.number(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.Message),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.Message],
+		eventName: z.literal(MageCodeEventName.Message),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.Message],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskCreated),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskCreated],
+		eventName: z.literal(MageCodeEventName.TaskCreated),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskCreated],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskStarted),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskStarted],
+		eventName: z.literal(MageCodeEventName.TaskStarted),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskStarted],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskModeSwitched),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskModeSwitched],
+		eventName: z.literal(MageCodeEventName.TaskModeSwitched),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskModeSwitched],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskPaused),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskPaused],
+		eventName: z.literal(MageCodeEventName.TaskPaused),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskPaused],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskUnpaused),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskUnpaused],
+		eventName: z.literal(MageCodeEventName.TaskUnpaused),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskUnpaused],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskAskResponded),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskAskResponded],
+		eventName: z.literal(MageCodeEventName.TaskAskResponded),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskAskResponded],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskAborted),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskAborted],
+		eventName: z.literal(MageCodeEventName.TaskAborted),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskAborted],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskSpawned),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskSpawned],
+		eventName: z.literal(MageCodeEventName.TaskSpawned),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskSpawned],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskCompleted),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskCompleted],
+		eventName: z.literal(MageCodeEventName.TaskCompleted),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskCompleted],
 		taskId: z.number().optional(),
 	}),
 	z.object({
-		eventName: z.literal(RooCodeEventName.TaskTokenUsageUpdated),
-		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskTokenUsageUpdated],
+		eventName: z.literal(MageCodeEventName.TaskTokenUsageUpdated),
+		payload: magecodeEventsSchema.shape[MageCodeEventName.TaskTokenUsageUpdated],
 		taskId: z.number().optional(),
 	}),
 ])

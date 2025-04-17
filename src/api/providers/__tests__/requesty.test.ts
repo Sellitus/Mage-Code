@@ -94,7 +94,7 @@ describe("RequestyHandler", () => {
 				baseURL: "https://router.requesty.ai/v1",
 				apiKey: defaultOptions.requestyApiKey,
 				defaultHeaders: {
-					"HTTP-Referer": "https://github.com/RooVetGit/Roo-Cline",
+					"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
 					"X-Title": "Roo Code",
 				},
 			})

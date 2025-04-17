@@ -974,7 +974,7 @@ export const ChatRowContent = ({
 									</div>
 									<br />
 									<a
-										href="http://docs.roocode.com/troubleshooting/shell-integration/"
+										href="http://docs.magecode.com/troubleshooting/shell-integration/"
 										style={{ color: "inherit", textDecoration: "underline" }}>
 										{t("chat:shellIntegration.troubleshooting")}
 									</a>

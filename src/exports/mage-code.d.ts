@@ -424,7 +424,7 @@ type TokenUsage = {
 	contextTokens: number
 }
 
-type RooCodeEvents = {
+type MageCodeEvents = {
 	message: [
 		{
 			taskId: string
@@ -530,9 +530,9 @@ type RooCodeEvents = {
 }
 
 /**
- * RooCodeEvent
+ * MageCodeEvent
  */
-declare enum RooCodeEventName {
+declare enum MageCodeEventName {
 	Message = "message",
 	TaskCreated = "taskCreated",
 	TaskStarted = "taskStarted",
@@ -546,8 +546,8 @@ declare enum RooCodeEventName {
 	TaskTokenUsageUpdated = "taskTokenUsageUpdated",
 }
 
-type RooCodeSettings = GlobalSettings & ProviderSettings
-interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
+type MageCodeSettings = GlobalSettings & ProviderSettings
+interface MageCodeAPI extends EventEmitter<MageCodeEvents> {
 	/**
 	 * Starts a new task with an optional initial message and images.
 	 * @param task Optional initial task message.
@@ -560,7 +560,7 @@ interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
 		images,
 		newTab,
 	}: {
-		configuration?: RooCodeSettings
+		configuration?: MageCodeSettings
 		text?: string
 		images?: string[]
 		newTab?: boolean
@@ -608,12 +608,12 @@ interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
 	 * Returns the current configuration.
 	 * @returns The current configuration.
 	 */
-	getConfiguration(): RooCodeSettings
+	getConfiguration(): MageCodeSettings
 	/**
 	 * Sets the configuration for the current task.
 	 * @param values An object containing key-value pairs to set.
 	 */
-	setConfiguration(values: RooCodeSettings): Promise<void>
+	setConfiguration(values: MageCodeSettings): Promise<void>
 	/**
 	 * Creates a new API configuration profile
 	 * @param name The name of the profile
@@ -651,10 +651,10 @@ interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
 export {
 	type ClineMessage,
 	type GlobalSettings,
+	type MageCodeAPI,
+	MageCodeEventName,
+	type MageCodeEvents,
+	type MageCodeSettings,
 	type ProviderSettings,
-	type RooCodeAPI,
-	RooCodeEventName,
-	type RooCodeEvents,
-	type RooCodeSettings,
 	type TokenUsage,
 }

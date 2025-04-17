@@ -94,7 +94,7 @@ export class EmbeddingService {
 	/** Helper to initialize the cache */
 	private initializeCache(): void {
 		try {
-			const config = vscode.workspace.getConfiguration("roo-code")
+			const config = vscode.workspace.getConfiguration("mage-code")
 			const maxItems = config.get<number>("magecode.cache.maxItems", 500) // Use same settings as MMO
 			const ttlSeconds = config.get<number>("magecode.cache.ttlSeconds", 3600)
 			const ttlMilliseconds = ttlSeconds * 1000

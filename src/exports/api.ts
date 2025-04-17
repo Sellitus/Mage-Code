@@ -6,14 +6,14 @@ import * as path from "path"
 import { getWorkspacePath } from "../utils/path"
 import { ClineProvider } from "../core/webview/ClineProvider"
 import { openClineInNewTab } from "../activate/registerCommands"
-import { RooCodeSettings, RooCodeEvents, RooCodeEventName, ClineMessage } from "../schemas"
+import { MageCodeSettings, MageCodeEvents, MageCodeEventName, ClineMessage } from "../schemas"
 import { IpcOrigin, IpcMessageType, TaskCommandName, TaskEvent } from "../schemas/ipc"
 
-import { RooCodeAPI } from "./interface"
+import { MageCodeAPI } from "./interface"
 import { IpcServer } from "./ipc"
 import { outputChannelLog } from "./log"
 
-export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
+export class API extends EventEmitter<MageCodeEvents> implements MageCodeAPI {
 	private readonly outputChannel: vscode.OutputChannel
 	private readonly sidebarProvider: ClineProvider
 	private readonly context: vscode.ExtensionContext
@@ -40,7 +40,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 				console.log(args)
 			}
 
-			this.logfile = path.join(getWorkspacePath(), "roo-code-messages.log")
+			this.logfile = path.join(getWorkspacePath(), "mage-code-messages.log")
 		} else {
 			this.log = () => {}
 		}
@@ -73,11 +73,11 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 		}
 	}
 
-	public override emit<K extends keyof RooCodeEvents>(
+	public override emit<K extends keyof MageCodeEvents>(
 		eventName: K,
-		...args: K extends keyof RooCodeEvents ? RooCodeEvents[K] : never
+		...args: K extends keyof MageCodeEvents ? MageCodeEvents[K] : never
 	) {
-		const data = { eventName: eventName as RooCodeEventName, payload: args } as TaskEvent
+		const data = { eventName: eventName as MageCodeEventName, payload: args } as TaskEvent
 		this.ipc?.broadcast({ type: IpcMessageType.TaskEvent, origin: IpcOrigin.Server, data })
 		return super.emit(eventName, ...args)
 	}
@@ -88,7 +88,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 		images,
 		newTab,
 	}: {
-		configuration: RooCodeSettings
+		configuration: MageCodeSettings
 		text?: string
 		images?: string[]
 		newTab?: boolean
@@ -102,7 +102,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 			provider = await openClineInNewTab({ context: this.context, outputChannel: this.outputChannel })
 			this.registerListeners(provider)
 		} else {
-			await vscode.commands.executeCommand("roo-cline.SidebarProvider.focus")
+			await vscode.commands.executeCommand("mage-code.SidebarProvider.focus")
 
 			provider = this.sidebarProvider
 		}
@@ -112,7 +112,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 
 			if (configuration.allowedCommands) {
 				await vscode.workspace
-					.getConfiguration("roo-cline")
+					.getConfiguration("mage-code")
 					.update("allowedCommands", configuration.allowedCommands, vscode.ConfigurationTarget.Global)
 			}
 		}
@@ -182,7 +182,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 		return this.sidebarProvider.getValues()
 	}
 
-	public async setConfiguration(values: RooCodeSettings) {
+	public async setConfiguration(values: MageCodeSettings) {
 		await this.sidebarProvider.setValues(values)
 		await this.sidebarProvider.providerSettingsManager.saveConfig(values.currentApiConfigName || "default", values)
 		await this.sidebarProvider.postStateToWebview()
@@ -251,7 +251,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 		profiles.splice(targetIndex, 1)
 
 		// If we're deleting the active profile, clear the currentApiConfigName.
-		const newSettings: RooCodeSettings = {
+		const newSettings: MageCodeSettings = {
 			...currentSettings,
 			listApiConfigMeta: profiles,
 			currentApiConfigName:
@@ -270,34 +270,34 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 	private registerListeners(provider: ClineProvider) {
 		provider.on("clineCreated", (cline) => {
 			cline.on("taskStarted", async () => {
-				this.emit(RooCodeEventName.TaskStarted, cline.taskId)
+				this.emit(MageCodeEventName.TaskStarted, cline.taskId)
 				this.taskMap.set(cline.taskId, provider)
 				await this.fileLog(`[${new Date().toISOString()}] taskStarted -> ${cline.taskId}\n`)
 			})
 
 			cline.on("message", async (message) => {
-				this.emit(RooCodeEventName.Message, { taskId: cline.taskId, ...message })
+				this.emit(MageCodeEventName.Message, { taskId: cline.taskId, ...message })
 
 				if (message.message.partial !== true) {
 					await this.fileLog(`[${new Date().toISOString()}] ${JSON.stringify(message.message, null, 2)}\n`)
 				}
 			})
 
-			cline.on("taskModeSwitched", (taskId, mode) => this.emit(RooCodeEventName.TaskModeSwitched, taskId, mode))
+			cline.on("taskModeSwitched", (taskId, mode) => this.emit(MageCodeEventName.TaskModeSwitched, taskId, mode))
 
 			cline.on("taskTokenUsageUpdated", (_, usage) =>
-				this.emit(RooCodeEventName.TaskTokenUsageUpdated, cline.taskId, usage),
+				this.emit(MageCodeEventName.TaskTokenUsageUpdated, cline.taskId, usage),
 			)
 
-			cline.on("taskAskResponded", () => this.emit(RooCodeEventName.TaskAskResponded, cline.taskId))
+			cline.on("taskAskResponded", () => this.emit(MageCodeEventName.TaskAskResponded, cline.taskId))
 
 			cline.on("taskAborted", () => {
-				this.emit(RooCodeEventName.TaskAborted, cline.taskId)
+				this.emit(MageCodeEventName.TaskAborted, cline.taskId)
 				this.taskMap.delete(cline.taskId)
 			})
 
 			cline.on("taskCompleted", async (_, usage) => {
-				this.emit(RooCodeEventName.TaskCompleted, cline.taskId, usage)
+				this.emit(MageCodeEventName.TaskCompleted, cline.taskId, usage)
 				this.taskMap.delete(cline.taskId)
 
 				await this.fileLog(
@@ -305,11 +305,13 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 				)
 			})
 
-			cline.on("taskSpawned", (childTaskId) => this.emit(RooCodeEventName.TaskSpawned, cline.taskId, childTaskId))
-			cline.on("taskPaused", () => this.emit(RooCodeEventName.TaskPaused, cline.taskId))
-			cline.on("taskUnpaused", () => this.emit(RooCodeEventName.TaskUnpaused, cline.taskId))
+			cline.on("taskSpawned", (childTaskId) =>
+				this.emit(MageCodeEventName.TaskSpawned, cline.taskId, childTaskId),
+			)
+			cline.on("taskPaused", () => this.emit(MageCodeEventName.TaskPaused, cline.taskId))
+			cline.on("taskUnpaused", () => this.emit(MageCodeEventName.TaskUnpaused, cline.taskId))
 
-			this.emit(RooCodeEventName.TaskCreated, cline.taskId)
+			this.emit(MageCodeEventName.TaskCreated, cline.taskId)
 		})
 	}
 

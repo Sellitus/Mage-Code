@@ -1,14 +1,14 @@
 import { EventEmitter } from "events"
 
-import type { ProviderSettings, GlobalSettings, ClineMessage, TokenUsage, RooCodeEvents } from "./types"
-export type { RooCodeSettings, ProviderSettings, GlobalSettings, ClineMessage, TokenUsage, RooCodeEvents }
+import type { ProviderSettings, GlobalSettings, ClineMessage, TokenUsage, MageCodeEvents } from "./types"
+export type { MageCodeSettings, ProviderSettings, GlobalSettings, ClineMessage, TokenUsage, MageCodeEvents }
 
-import { RooCodeEventName } from "../schemas"
-export type { RooCodeEventName }
+import { MageCodeEventName } from "../schemas"
+export type { MageCodeEventName }
 
-type RooCodeSettings = GlobalSettings & ProviderSettings
+type MageCodeSettings = GlobalSettings & ProviderSettings
 
-export interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
+export interface MageCodeAPI extends EventEmitter<MageCodeEvents> {
 	/**
 	 * Starts a new task with an optional initial message and images.
 	 * @param task Optional initial task message.
@@ -21,7 +21,7 @@ export interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
 		images,
 		newTab,
 	}: {
-		configuration?: RooCodeSettings
+		configuration?: MageCodeSettings
 		text?: string
 		images?: string[]
 		newTab?: boolean
@@ -78,13 +78,13 @@ export interface RooCodeAPI extends EventEmitter<RooCodeEvents> {
 	 * Returns the current configuration.
 	 * @returns The current configuration.
 	 */
-	getConfiguration(): RooCodeSettings
+	getConfiguration(): MageCodeSettings
 
 	/**
 	 * Sets the configuration for the current task.
 	 * @param values An object containing key-value pairs to set.
 	 */
-	setConfiguration(values: RooCodeSettings): Promise<void>
+	setConfiguration(values: MageCodeSettings): Promise<void>
 
 	/**
 	 * Creates a new API configuration profile

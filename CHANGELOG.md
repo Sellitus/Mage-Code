@@ -244,7 +244,7 @@
 - Improve support for NixOS & direnv (thanks @wkordalski!)
 - Fix wheel scrolling when Roo is opened in editor tabs (thanks @GitlyHallows!)
 - Don’t automatically mention the file when using the "Add to context" code action (thanks @qdaxb!)
-- Expose task stack in `RooCodeAPI` (thanks @franekp!)
+- Expose task stack in `MageCodeAPI` (thanks @franekp!)
 - Give the models visibility into the current task's API cost
 
 ## [3.8.6] - 2025-03-13
@@ -382,7 +382,7 @@
 
 ## [3.7.5] - 2025-02-26
 
-- Fix context window truncation math (see [#1173](https://github.com/RooVetGit/Roo-Code/issues/1173))
+- Fix context window truncation math (see [#1173](https://github.com/Sellitus/Mage-Code/issues/1173))
 - Fix various issues with the model picker (thanks @System233!)
 - Fix model input / output cost parsing (thanks @System233!)
 - Add drag-and-drop for files
@@ -597,7 +597,7 @@
 - Ask and Architect modes can now edit markdown files
 - Custom modes can now be restricted to specific file patterns (for example, a technical writer who can only edit markdown files 👋)
 - Support for configuring the Bedrock provider with AWS Profiles
-- New Roo Code community Discord at https://roocode.com/discord!
+- New Roo Code community Discord at https://magecode.com/discord!
 
 ## [3.2.8]
 
@@ -637,7 +637,7 @@
     - Create specialized assistants for any workflow
     - Just type "Create a new mode for <X>" or visit the Prompts tab in the top menu to get started
 
-Join us at https://www.reddit.com/r/RooCode to share your custom modes and be part of our next chapter!
+Join us at https://www.reddit.com/r/MageCode to share your custom modes and be part of our next chapter!
 
 ## [3.1.7]
 
@@ -690,7 +690,7 @@ Join us at https://www.reddit.com/r/RooCode to share your custom modes and be pa
 
 ## [3.0.0]
 
-- This release adds chat modes! Now you can ask Roo Code questions about system architecture or the codebase without immediately jumping into writing code. You can even assign different API configuration profiles to each mode if you prefer to use different models for thinking vs coding. Would love feedback in the new Roo Code Reddit! https://www.reddit.com/r/RooCode
+- This release adds chat modes! Now you can ask Roo Code questions about system architecture or the codebase without immediately jumping into writing code. You can even assign different API configuration profiles to each mode if you prefer to use different models for thinking vs coding. Would love feedback in the new Roo Code Reddit! https://www.reddit.com/r/MageCode
 
 ## [2.2.46]
 
@@ -811,7 +811,7 @@ Join us at https://www.reddit.com/r/RooCode to share your custom modes and be pa
 
 ## [2.2.16]
 
-- Incorporate Premshay's [PR](https://github.com/RooVetGit/Roo-Cline/pull/60) to add support for Amazon Nova and Meta Llama Models via Bedrock (3, 3.1, 3.2) and unified Bedrock calls using BedrockClient and Bedrock Runtime API
+- Incorporate Premshay's [PR](https://github.com/Sellitus/Mage-Code/pull/60) to add support for Amazon Nova and Meta Llama Models via Bedrock (3, 3.1, 3.2) and unified Bedrock calls using BedrockClient and Bedrock Runtime API
 
 ## [2.2.14 - 2.2.15]
 
@@ -883,7 +883,7 @@ Join us at https://www.reddit.com/r/RooCode to share your custom modes and be pa
 
 ## [2.1.15]
 
-- Incorporate dbasclpy's [PR](https://github.com/RooVetGit/Roo-Cline/pull/54) to add support for gemini-exp-1206
+- Incorporate dbasclpy's [PR](https://github.com/Sellitus/Mage-Code/pull/54) to add support for gemini-exp-1206
 - Make it clear that diff editing is very experimental
 
 ## [2.1.14]
@@ -893,7 +893,7 @@ Join us at https://www.reddit.com/r/RooCode to share your custom modes and be pa
 
 ## [2.1.13]
 
-- Fix https://github.com/RooVetGit/Roo-Cline/issues/50 where sound effects were not respecting settings
+- Fix https://github.com/Sellitus/Mage-Code/issues/50 where sound effects were not respecting settings
 
 ## [2.1.12]
 
@@ -901,7 +901,7 @@ Join us at https://www.reddit.com/r/RooCode to share your custom modes and be pa
 
 ## [2.1.11]
 
-- Incorporate lloydchang's [PR](https://github.com/RooVetGit/Roo-Cline/pull/42) to add support for OpenRouter compression
+- Incorporate lloydchang's [PR](https://github.com/Sellitus/Mage-Code/pull/42) to add support for OpenRouter compression
 
 ## [2.1.10]
 

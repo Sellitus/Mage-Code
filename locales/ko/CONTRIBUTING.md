@@ -4,7 +4,7 @@ Roo Code에 기여하는 데 관심을 가져주셔서 기쁩니다. 버그를 �
 
 ## 우리 커뮤니티에 참여하세요
 
-모든 기여자가 우리의 [Discord 커뮤니티](https://discord.gg/roocode)에 참여할 것을 강력히 권장합니다! Discord 서버의 일원이 되면 다음과 같은 도움을 받을 수 있습니다:
+모든 기여자가 우리의 [Discord 커뮤니티](https://discord.gg/magecode)에 참여할 것을 강력히 권장합니다! Discord 서버의 일원이 되면 다음과 같은 도움을 받을 수 있습니다:
 
 - 기여에 대한 실시간 도움과 지침 얻기
 - 다른 기여자 및 핵심 팀원과 연결
@@ -14,20 +14,20 @@ Roo Code에 기여하는 데 관심을 가져주셔서 기쁩니다. 버그를 �
 
 ## 버그 또는 이슈 보고하기
 
-버그 보고는 모두를 위해 Roo Code를 더 좋게 만드는 데 도움이 됩니다! 새 이슈를 만들기 전에, 중복을 피하기 위해 [기존 이슈 검색](https://github.com/RooVetGit/Roo-Code/issues)을 해주세요. 버그를 보고할 준비가 되면, 관련 정보를 작성하는 데 도움이 되는 템플릿이 있는 [이슈 페이지](https://github.com/RooVetGit/Roo-Code/issues/new/choose)로 이동하세요.
+버그 보고는 모두를 위해 Roo Code를 더 좋게 만드는 데 도움이 됩니다! 새 이슈를 만들기 전에, 중복을 피하기 위해 [기존 이슈 검색](https://github.com/Sellitus/Mage-Code/issues)을 해주세요. 버그를 보고할 준비가 되면, 관련 정보를 작성하는 데 도움이 되는 템플릿이 있는 [이슈 페이지](https://github.com/Sellitus/Mage-Code/issues/new/choose)로 이동하세요.
 
 <blockquote class='warning-note'>
-     🔐 <b>중요:</b> 보안 취약점을 발견한 경우, <a href="https://github.com/RooVetGit/Roo-Code/security/advisories/new">비공개로 보고하기 위해 Github 보안 도구를 사용하세요</a>.
+     🔐 <b>중요:</b> 보안 취약점을 발견한 경우, <a href="https://github.com/Sellitus/Mage-Code/security/advisories/new">비공개로 보고하기 위해 Github 보안 도구를 사용하세요</a>.
 </blockquote>
 
 ## 작업할 내용 결정하기
 
-첫 기여를 위한 좋은 시작점을 찾고 계신가요? 우리의 [Roo Code 이슈](https://github.com/orgs/RooVetGit/projects/1) Github 프로젝트의 "Issue [Unassigned]" 섹션에서 이슈를 확인하세요. 이러한 이슈들은 새로운 기여자와 우리가 도움을 필요로 하는 영역을 위해 특별히 선별되었습니다!
+첫 기여를 위한 좋은 시작점을 찾고 계신가요? 우리의 [Roo Code 이슈](https://github.com/orgs/Sellitus/projects/1) Github 프로젝트의 "Issue [Unassigned]" 섹션에서 이슈를 확인하세요. 이러한 이슈들은 새로운 기여자와 우리가 도움을 필요로 하는 영역을 위해 특별히 선별되었습니다!
 
-우리는 [문서](https://docs.roocode.com/)에 대한 기여도 환영합니다! 오타 수정, 기존 가이드 개선 또는 새로운 교육 콘텐츠 생성 등 - 모든 사람이 Roo Code를 최대한 활용할 수 있도록 도와주는 커뮤니티 기반 리소스 저장소를 구축하고 싶습니다. 모든
-페이지에서 "Edit this page"를 클릭하여 파일을 편집할 수 있는 Github의 적절한 위치로 빠르게 이동하거나, https://github.com/RooVetGit/Roo-Code-Docs에 직접 접근할 수 있습니다.
+우리는 [문서](https://docs.magecode.com/)에 대한 기여도 환영합니다! 오타 수정, 기존 가이드 개선 또는 새로운 교육 콘텐츠 생성 등 - 모든 사람이 Roo Code를 최대한 활용할 수 있도록 도와주는 커뮤니티 기반 리소스 저장소를 구축하고 싶습니다. 모든
+페이지에서 "Edit this page"를 클릭하여 파일을 편집할 수 있는 Github의 적절한 위치로 빠르게 이동하거나, https://github.com/Sellitus/Mage-Code-Docs에 직접 접근할 수 있습니다.
 
-더 큰 기능 작업을 계획하고 있다면, Roo Code의 비전과 일치하는지 논의할 수 있도록 먼저 [기능 요청](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)을 생성해주세요. 또한 아이디어가 우리의 전략적 방향과 일치하는지 확인하기 위해 아래의 [프로젝트 로드맵](#프로젝트-로드맵)을 확인할 수도 있습니다.
+더 큰 기능 작업을 계획하고 있다면, Roo Code의 비전과 일치하는지 논의할 수 있도록 먼저 [기능 요청](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)을 생성해주세요. 또한 아이디어가 우리의 전략적 방향과 일치하는지 확인하기 위해 아래의 [프로젝트 로드맵](#프로젝트-로드맵)을 확인할 수도 있습니다.
 
 ## 프로젝트 로드맵
 
@@ -95,7 +95,7 @@ Roo가 모든 사람의 언어를 말하기를 원합니다:
 1. 저장소 **클론**:
 
 ```sh
-git clone https://github.com/RooVetGit/Roo-Code.git
+git clone https://github.com/Sellitus/Mage-Code.git
 ```
 
 2. **의존성 설치**:
@@ -124,7 +124,7 @@ npm run build
 `bin/` 디렉토리에 `.vsix` 파일이 나타나며 다음 명령으로 설치할 수 있습니다:
 
 ```sh
-code --install-extension bin/roo-cline-<version>.vsix
+code --install-extension bin/mage-code-<version>.vsix
 ```
 
 ## 코드 작성 및 제출

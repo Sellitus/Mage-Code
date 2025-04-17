@@ -17,7 +17,7 @@ import { getExercisesForLanguage } from "./exercises"
 export async function createRun({ suite, exercises = [], ...values }: CreateRun) {
 	const run = await db.createRun({
 		...values,
-		socketPath: path.join(os.tmpdir(), `roo-code-evals-${crypto.randomUUID()}.sock`),
+		socketPath: path.join(os.tmpdir(), `mage-code-evals-${crypto.randomUUID()}.sock`),
 	})
 
 	if (suite === "partial") {
@@ -43,7 +43,7 @@ export async function createRun({ suite, exercises = [], ...values }: CreateRun)
 	revalidatePath("/runs")
 
 	try {
-		const logFile = fs.openSync(`/tmp/roo-code-evals-${run.id}.log`, "a")
+		const logFile = fs.openSync(`/tmp/mage-code-evals-${run.id}.log`, "a")
 
 		const process = spawn("pnpm", ["--filter", "@evals/cli", "dev", "run", "all", "--runId", run.id.toString()], {
 			detached: true,

@@ -14,7 +14,7 @@ describe("MageCode Orchestration Integration Tests", () => {
 	before(async () => {
 		// Get the extension instance and potentially the orchestrator
 		// This might need adjustment based on how the orchestrator is exposed
-		const extension = vscode.extensions.getExtension("RooVeterinaryInc.roo-cline")
+		const extension = vscode.extensions.getExtension("RooVeterinaryInc.mage-code")
 		if (!extension) {
 			throw new Error("Roo Code extension not found.")
 		}
@@ -28,7 +28,7 @@ describe("MageCode Orchestration Integration Tests", () => {
 		// If not, these tests would need significant rework based on extension architecture.
 
 		// Store original preference
-		originalPreference = vscode.workspace.getConfiguration("roo-code").get("magecode.modelPreference")
+		originalPreference = vscode.workspace.getConfiguration("mage-code").get("magecode.modelPreference")
 		console.log("Original modelPreference:", originalPreference)
 
 		// For testing, we need a way to get the orchestrator instance.
@@ -44,7 +44,7 @@ describe("MageCode Orchestration Integration Tests", () => {
 		// Restore original preference
 		console.log("Restoring modelPreference to:", originalPreference)
 		await vscode.workspace
-			.getConfiguration("roo-code")
+			.getConfiguration("mage-code")
 			.update("magecode.modelPreference", originalPreference, vscode.ConfigurationTarget.Global)
 		await delay(500) // Allow time for setting to apply
 	})
@@ -53,10 +53,10 @@ describe("MageCode Orchestration Integration Tests", () => {
 	async function updatePreference(preference: string) {
 		console.log(`Updating modelPreference to: ${preference}`)
 		await vscode.workspace
-			.getConfiguration("roo-code")
+			.getConfiguration("mage-code")
 			.update("magecode.modelPreference", preference, vscode.ConfigurationTarget.Global)
 		await delay(500) // Allow time for setting update to propagate
-		const updatedPref = vscode.workspace.getConfiguration("roo-code").get("magecode.modelPreference")
+		const updatedPref = vscode.workspace.getConfiguration("mage-code").get("magecode.modelPreference")
 		console.log(`Preference updated to: ${updatedPref}`)
 		assert.strictEqual(updatedPref, preference, "Setting did not update correctly")
 	}
