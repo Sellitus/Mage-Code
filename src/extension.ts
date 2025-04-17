@@ -42,7 +42,7 @@ let extensionContext: vscode.ExtensionContext
 // Your extension is activated the very first time the command is executed.
 export async function activate(context: vscode.ExtensionContext) {
 	// ADDED LINES BEGIN - Minimal addition for MageCode mode
-	const magecodeEnabled = vscode.workspace.getConfiguration("mage-code").get("magecode.enabled", true)
+	const magecodeEnabled = vscode.workspace.getConfiguration("roo-code").get("magecode.enabled", true)
 	if (magecodeEnabled) {
 		const { initializeMageCode } = require("./magecode/initialize")
 		await initializeMageCode(context) // Handles all MageCode initialization
@@ -66,7 +66,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	TerminalRegistry.initialize()
 
 	// Get default commands from configuration.
-	const defaultCommands = vscode.workspace.getConfiguration("mage-code").get<string[]>("allowedCommands") || []
+	const defaultCommands = vscode.workspace.getConfiguration("roo-cline").get<string[]>("allowedCommands") || []
 
 	// Initialize global state if not already set.
 	if (!context.globalState.get("allowedCommands")) {
@@ -123,9 +123,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	registerTerminalActions(context)
 
 	// Allows other extensions to activate once Roo is ready.
-	vscode.commands.executeCommand("mage-code.activationCompleted")
+	vscode.commands.executeCommand("roo-cline.activationCompleted")
 
-	// Implements the `MageCodeAPI` interface.
+	// Implements the `RooCodeAPI` interface.
 	const socketPath = process.env.ROO_CODE_IPC_SOCKET_PATH
 	const enableLogging = typeof socketPath === "string"
 	return new API(outputChannel, provider, socketPath, enableLogging)

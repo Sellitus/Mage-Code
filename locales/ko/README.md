@@ -15,8 +15,8 @@
   <h2>Roo Code 커뮤니티에 참여하세요</h2>
   <p>개발자들과 연결하고, 아이디어를 기여하고, 최신 AI 기반 코딩 도구를 계속 확인하세요.</p>
   
-  <a href="https://discord.gg/magecode" target="_blank"><img src="https://img.shields.io/badge/Discord%20참여-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord 참여"></a>
-  <a href="https://www.reddit.com/r/MageCode/" target="_blank"><img src="https://img.shields.io/badge/Reddit%20참여-FF4500?style=for-the-badge&logo=reddit&logoColor=white" alt="Reddit 참여"></a>
+  <a href="https://discord.gg/roocode" target="_blank"><img src="https://img.shields.io/badge/Discord%20참여-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord 참여"></a>
+  <a href="https://www.reddit.com/r/RooCode/" target="_blank"><img src="https://img.shields.io/badge/Reddit%20참여-FF4500?style=for-the-badge&logo=reddit&logoColor=white" alt="Reddit 참여"></a>
   
 </div>
 <br>
@@ -25,10 +25,10 @@
 <div align="center">
 <h1>Roo Code (이전 Roo Cline)</h1>
 
-<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code" target="_blank"><img src="https://img.shields.io/badge/VS%20Marketplace에서%20다운로드-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Marketplace에서 다운로드"></a>
-<a href="https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/기능%20요청-yellow?style=for-the-badge" alt="기능 요청"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code&ssr=false#review-details" target="_blank"><img src="https://img.shields.io/badge/평가%20%26%20리뷰-green?style=for-the-badge" alt="평가 & 리뷰"></a>
-<a href="https://docs.magecode.com" target="_blank"><img src="https://img.shields.io/badge/문서-6B46C1?style=for-the-badge&logo=readthedocs&logoColor=white" alt="문서"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline" target="_blank"><img src="https://img.shields.io/badge/VS%20Marketplace에서%20다운로드-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Marketplace에서 다운로드"></a>
+<a href="https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/기능%20요청-yellow?style=for-the-badge" alt="기능 요청"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline&ssr=false#review-details" target="_blank"><img src="https://img.shields.io/badge/평가%20%26%20리뷰-green?style=for-the-badge" alt="평가 & 리뷰"></a>
+<a href="https://docs.roocode.com" target="_blank"><img src="https://img.shields.io/badge/문서-6B46C1?style=for-the-badge&logo=readthedocs&logoColor=white" alt="문서"></a>
 
 </div>
 
@@ -70,30 +70,30 @@ Roo Code 3.11이 중요한 성능 개선과 새로운 기능을 제공합니다!
 
 ## 빠른 시작
 
-1. [Roo Code 설치](https://docs.magecode.com/getting-started/installing)
-2. [AI 제공자 연결](https://docs.magecode.com/getting-started/connecting-api-provider)
-3. [첫 번째 작업 시도](https://docs.magecode.com/getting-started/your-first-task)
+1. [Roo Code 설치](https://docs.roocode.com/getting-started/installing)
+2. [AI 제공자 연결](https://docs.roocode.com/getting-started/connecting-api-provider)
+3. [첫 번째 작업 시도](https://docs.roocode.com/getting-started/your-first-task)
 
 ## 주요 기능
 
 ### 다중 모드
 
-Roo Code는 전문화된 [모드](https://docs.magecode.com/basic-usage/using-modes)로 사용자의 필요에 맞게 적응합니다:
+Roo Code는 전문화된 [모드](https://docs.roocode.com/basic-usage/using-modes)로 사용자의 필요에 맞게 적응합니다:
 
 - **코드 모드:** 일반적인 코딩 작업용
 - **아키텍트 모드:** 계획 및 기술 리더십용
 - **질문 모드:** 질문에 답변하고 정보 제공용
 - **디버그 모드:** 체계적인 문제 진단용
-- **[커스텀 모드](https://docs.magecode.com/advanced-usage/custom-modes):** 보안 감사, 성능 최적화, 문서화 또는 기타 작업을 위한 무제한 전문 페르소나 생성
+- **[커스텀 모드](https://docs.roocode.com/advanced-usage/custom-modes):** 보안 감사, 성능 최적화, 문서화 또는 기타 작업을 위한 무제한 전문 페르소나 생성
 
 ### 스마트 도구
 
-Roo Code는 다음과 같은 강력한 [도구](https://docs.magecode.com/basic-usage/how-tools-work)를 제공합니다:
+Roo Code는 다음과 같은 강력한 [도구](https://docs.roocode.com/basic-usage/how-tools-work)를 제공합니다:
 
 - 프로젝트에서 파일 읽기 및 쓰기
 - VS Code 터미널에서 명령 실행
 - 웹 브라우저 제어
-- [MCP(Model Context Protocol)](https://docs.magecode.com/advanced-usage/mcp)를 통한 외부 도구 사용
+- [MCP(Model Context Protocol)](https://docs.roocode.com/advanced-usage/mcp)를 통한 외부 도구 사용
 
 MCP는 무제한 커스텀 도구를 추가할 수 있게 하여 Roo Code의 기능을 확장합니다. 외부 API와 통합하고, 데이터베이스에 연결하거나, 특수한 개발 도구를 만들 수 있으며 - MCP는 사용자의 특정 요구를 충족하기 위해 Roo Code의 기능을 확장하는 프레임워크를 제공합니다.
 
@@ -101,24 +101,24 @@ MCP는 무제한 커스텀 도구를 추가할 수 있게 하여 Roo Code의 기
 
 다음과 같은 방법으로 Roo Code를 원하는 방식으로 작동하게 할 수 있습니다:
 
-- 개인화된 동작을 위한 [커스텀 명령](https://docs.magecode.com/advanced-usage/custom-instructions)
-- 특수 작업을 위한 [커스텀 모드](https://docs.magecode.com/advanced-usage/custom-modes)
-- 오프라인 사용을 위한 [로컬 모델](https://docs.magecode.com/advanced-usage/local-models)
-- 더 빠른 워크플로우를 위한 [자동 승인 설정](https://docs.magecode.com/advanced-usage/auto-approving-actions)
+- 개인화된 동작을 위한 [커스텀 명령](https://docs.roocode.com/advanced-usage/custom-instructions)
+- 특수 작업을 위한 [커스텀 모드](https://docs.roocode.com/advanced-usage/custom-modes)
+- 오프라인 사용을 위한 [로컬 모델](https://docs.roocode.com/advanced-usage/local-models)
+- 더 빠른 워크플로우를 위한 [자동 승인 설정](https://docs.roocode.com/advanced-usage/auto-approving-actions)
 
 ## 리소스
 
 ### 문서
 
-- [기본 사용 가이드](https://docs.magecode.com/basic-usage/the-chat-interface)
-- [고급 기능](https://docs.magecode.com/advanced-usage/auto-approving-actions)
-- [자주 묻는 질문](https://docs.magecode.com/faq)
+- [기본 사용 가이드](https://docs.roocode.com/basic-usage/the-chat-interface)
+- [고급 기능](https://docs.roocode.com/advanced-usage/auto-approving-actions)
+- [자주 묻는 질문](https://docs.roocode.com/faq)
 
 ### 커뮤니티
 
-- **Discord:** 실시간 도움과 토론을 위한 [Discord 서버 참여](https://discord.gg/magecode)
-- **Reddit:** 경험과 팁을 공유하는 [서브레딧 방문](https://www.reddit.com/r/MageCode)
-- **GitHub:** [문제 보고](https://github.com/Sellitus/Mage-Code/issues) 또는 [기능 요청](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)
+- **Discord:** 실시간 도움과 토론을 위한 [Discord 서버 참여](https://discord.gg/roocode)
+- **Reddit:** 경험과 팁을 공유하는 [서브레딧 방문](https://www.reddit.com/r/RooCode)
+- **GitHub:** [문제 보고](https://github.com/RooVetGit/Roo-Code/issues) 또는 [기능 요청](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)
 
 ---
 
@@ -127,7 +127,7 @@ MCP는 무제한 커스텀 도구를 추가할 수 있게 하여 Roo Code의 기
 1. 저장소 **클론**:
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 ```
 
 2. **의존성 설치**:
@@ -156,7 +156,7 @@ npm run build
 `bin/` 디렉토리에 `.vsix` 파일이 나타나며 다음 명령으로 설치할 수 있습니다:
 
 ```sh
-code --install-extension bin/mage-code-<version>.vsix
+code --install-extension bin/roo-cline-<version>.vsix
 ```
 
 버전 관리 및 게시를 위해 [changesets](https://github.com/changesets/changesets)를 사용합니다. 릴리스 노트는 `CHANGELOG.md`를 확인하세요.
@@ -212,4 +212,4 @@ Roo Code를 더 좋게 만드는 데 도움을 준 모든 기여자에게 감사
 
 ---
 
-**Roo Code를 즐기세요!** 짧은 목줄에 묶어두든 자율적으로 돌아다니게 하든, 여러분이 무엇을 만들지 기대됩니다. 질문이나 기능 아이디어가 있으시면 [Reddit 커뮤니티](https://www.reddit.com/r/MageCode/) 또는 [Discord](https://discord.gg/magecode)를 방문해 주세요. 행복한 코딩 되세요!
+**Roo Code를 즐기세요!** 짧은 목줄에 묶어두든 자율적으로 돌아다니게 하든, 여러분이 무엇을 만들지 기대됩니다. 질문이나 기능 아이디어가 있으시면 [Reddit 커뮤니티](https://www.reddit.com/r/RooCode/) 또는 [Discord](https://discord.gg/roocode)를 방문해 주세요. 행복한 코딩 되세요!

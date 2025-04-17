@@ -62,40 +62,40 @@ export const registerCommands = (options: RegisterCommandOptions) => {
 
 const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOptions) => {
 	return {
-		"mage-code.activationCompleted": () => {},
-		"mage-code.plusButtonClicked": async () => {
+		"roo-cline.activationCompleted": () => {},
+		"roo-cline.plusButtonClicked": async () => {
 			const visibleProvider = getVisibleProviderOrLog(outputChannel)
 			if (!visibleProvider) return
 			await visibleProvider.removeClineFromStack()
 			await visibleProvider.postStateToWebview()
 			await visibleProvider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
 		},
-		"mage-code.mcpButtonClicked": () => {
+		"roo-cline.mcpButtonClicked": () => {
 			const visibleProvider = getVisibleProviderOrLog(outputChannel)
 			if (!visibleProvider) return
 			visibleProvider.postMessageToWebview({ type: "action", action: "mcpButtonClicked" })
 		},
-		"mage-code.promptsButtonClicked": () => {
+		"roo-cline.promptsButtonClicked": () => {
 			const visibleProvider = getVisibleProviderOrLog(outputChannel)
 			if (!visibleProvider) return
 			visibleProvider.postMessageToWebview({ type: "action", action: "promptsButtonClicked" })
 		},
-		"mage-code.popoutButtonClicked": () => openClineInNewTab({ context, outputChannel }),
-		"mage-code.openInNewTab": () => openClineInNewTab({ context, outputChannel }),
-		"mage-code.settingsButtonClicked": () => {
+		"roo-cline.popoutButtonClicked": () => openClineInNewTab({ context, outputChannel }),
+		"roo-cline.openInNewTab": () => openClineInNewTab({ context, outputChannel }),
+		"roo-cline.settingsButtonClicked": () => {
 			const visibleProvider = getVisibleProviderOrLog(outputChannel)
 			if (!visibleProvider) return
 			visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
 		},
-		"mage-code.historyButtonClicked": () => {
+		"roo-cline.historyButtonClicked": () => {
 			const visibleProvider = getVisibleProviderOrLog(outputChannel)
 			if (!visibleProvider) return
 			visibleProvider.postMessageToWebview({ type: "action", action: "historyButtonClicked" })
 		},
-		"mage-code.helpButtonClicked": () => {
-			vscode.env.openExternal(vscode.Uri.parse("https://docs.magecode.com"))
+		"roo-cline.helpButtonClicked": () => {
+			vscode.env.openExternal(vscode.Uri.parse("https://docs.roocode.com"))
 		},
-		"mage-code.showHumanRelayDialog": (params: { requestId: string; promptText: string }) => {
+		"roo-cline.showHumanRelayDialog": (params: { requestId: string; promptText: string }) => {
 			const panel = getPanel()
 
 			if (panel) {
@@ -106,15 +106,15 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 				})
 			}
 		},
-		"mage-code.registerHumanRelayCallback": registerHumanRelayCallback,
-		"mage-code.unregisterHumanRelayCallback": unregisterHumanRelayCallback,
-		"mage-code.handleHumanRelayResponse": handleHumanRelayResponse,
-		"mage-code.newTask": handleNewTask,
-		"mage-code.setCustomStoragePath": async () => {
+		"roo-cline.registerHumanRelayCallback": registerHumanRelayCallback,
+		"roo-cline.unregisterHumanRelayCallback": unregisterHumanRelayCallback,
+		"roo-cline.handleHumanRelayResponse": handleHumanRelayResponse,
+		"roo-cline.newTask": handleNewTask,
+		"roo-cline.setCustomStoragePath": async () => {
 			const { promptForCustomStoragePath } = await import("../shared/storagePathManager.js")
 			await promptForCustomStoragePath()
 		},
-		"mage-code.focusInput": () => {
+		"roo-cline.focusInput": () => {
 			provider.postMessageToWebview({ type: "action", action: "focusInput" })
 		},
 	}

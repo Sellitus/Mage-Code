@@ -4,7 +4,7 @@
 
 ## 加入我们的社区
 
-我们强烈鼓励所有贡献者加入我们的 [Discord 社区](https://discord.gg/magecode)！成为我们 Discord 服务器的一部分可以帮助您：
+我们强烈鼓励所有贡献者加入我们的 [Discord 社区](https://discord.gg/roocode)！成为我们 Discord 服务器的一部分可以帮助您：
 
 - 获得关于您贡献的实时帮助和指导
 - 与其他贡献者和核心团队成员建立联系
@@ -14,19 +14,19 @@
 
 ## 报告错误或问题
 
-错误报告有助于使 Roo Code 对每个人都更好！在创建新问题之前，请[搜索现有问题](https://github.com/Sellitus/Mage-Code/issues)以避免重复。当您准备报告错误时，前往我们的[问题页面](https://github.com/Sellitus/Mage-Code/issues/new/choose)，那里有模板可以帮助您填写相关信息。
+错误报告有助于使 Roo Code 对每个人都更好！在创建新问题之前，请[搜索现有问题](https://github.com/RooVetGit/Roo-Code/issues)以避免重复。当您准备报告错误时，前往我们的[问题页面](https://github.com/RooVetGit/Roo-Code/issues/new/choose)，那里有模板可以帮助您填写相关信息。
 
 <blockquote class='warning-note'>
-     🔐 <b>重要提示：</b>如果您发现安全漏洞，请使用 <a href="https://github.com/Sellitus/Mage-Code/security/advisories/new">Github 安全工具私下报告它</a>。
+     🔐 <b>重要提示：</b>如果您发现安全漏洞，请使用 <a href="https://github.com/RooVetGit/Roo-Code/security/advisories/new">Github 安全工具私下报告它</a>。
 </blockquote>
 
 ## 决定做什么
 
-寻找一个好的首次贡献？查看我们 [Roo Code Issues](https://github.com/orgs/Sellitus/projects/1) Github 项目中"Issue [Unassigned]"部分的问题。这些是专门为新贡献者精心挑选的，也是我们希望得到一些帮助的领域！
+寻找一个好的首次贡献？查看我们 [Roo Code Issues](https://github.com/orgs/RooVetGit/projects/1) Github 项目中"Issue [Unassigned]"部分的问题。这些是专门为新贡献者精心挑选的，也是我们希望得到一些帮助的领域！
 
-我们也欢迎对我们的[文档](https://docs.magecode.com/)做贡献！无论是修复错别字、改进现有指南，还是创建新的教育内容 - 我们希望建立一个由社区驱动的资源库，帮助每个人充分利用 Roo Code。您可以点击任何页面上的"Edit this page"快速进入 Github 中编辑文件的正确位置，或者直接访问 https://github.com/Sellitus/Mage-Code-Docs。
+我们也欢迎对我们的[文档](https://docs.roocode.com/)做贡献！无论是修复错别字、改进现有指南，还是创建新的教育内容 - 我们希望建立一个由社区驱动的资源库，帮助每个人充分利用 Roo Code。您可以点击任何页面上的"Edit this page"快速进入 Github 中编辑文件的正确位置，或者直接访问 https://github.com/RooVetGit/Roo-Code-Docs。
 
-如果您计划处理更大的功能，请先创建一个[功能请求](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)，以便我们讨论它是否符合 Roo Code 的愿景。您还可以查看下面的[项目路线图](#项目路线图)，看看您的想法是否符合我们的战略方向。
+如果您计划处理更大的功能，请先创建一个[功能请求](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)，以便我们讨论它是否符合 Roo Code 的愿景。您还可以查看下面的[项目路线图](#项目路线图)，看看您的想法是否符合我们的战略方向。
 
 ## 项目路线图
 
@@ -94,7 +94,7 @@ Roo Code 有一个明确的开发路线图，指导我们的优先事项和未�
 1. **克隆**仓库：
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 ```
 
 2. **安装依赖**：
@@ -123,7 +123,7 @@ npm run build
 `bin/` 目录中将出现一个 `.vsix` 文件，可以用以下命令安装：
 
 ```sh
-code --install-extension bin/mage-code-<version>.vsix
+code --install-extension bin/roo-cline-<version>.vsix
 ```
 
 ## 编写和提交代码

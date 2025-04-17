@@ -15,8 +15,8 @@
   <h2>Roo Codeコミュニティに参加しよう</h2>
   <p>開発者とつながり、アイデアを提供し、最新のAIパワードコーディングツールで先を行きましょう。</p>
   
-  <a href="https://discord.gg/magecode" target="_blank"><img src="https://img.shields.io/badge/Discord%E3%81%AB%E5%8F%82%E5%8A%A0-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discordに参加"></a>
-  <a href="https://www.reddit.com/r/MageCode/" target="_blank"><img src="https://img.shields.io/badge/Reddit%E3%81%AB%E5%8F%82%E5%8A%A0-FF4500?style=for-the-badge&logo=reddit&logoColor=white" alt="Redditに参加"></a>
+  <a href="https://discord.gg/roocode" target="_blank"><img src="https://img.shields.io/badge/Discord%E3%81%AB%E5%8F%82%E5%8A%A0-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discordに参加"></a>
+  <a href="https://www.reddit.com/r/RooCode/" target="_blank"><img src="https://img.shields.io/badge/Reddit%E3%81%AB%E5%8F%82%E5%8A%A0-FF4500?style=for-the-badge&logo=reddit&logoColor=white" alt="Redditに参加"></a>
   
 </div>
 <br>
@@ -25,10 +25,10 @@
 <div align="center">
 <h1>Roo Code（旧Roo Cline）</h1>
 
-<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code" target="_blank"><img src="https://img.shields.io/badge/VS%20Marketplace%E3%81%A7%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Marketplaceでダウンロード"></a>
-<a href="https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/%E6%A9%9F%E8%83%BD%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88-yellow?style=for-the-badge" alt="機能リクエスト"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code&ssr=false#review-details" target="_blank"><img src="https://img.shields.io/badge/%E8%A9%95%E4%BE%A1%E3%81%A8%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC-green?style=for-the-badge" alt="評価とレビュー"></a>
-<a href="https://docs.magecode.com" target="_blank"><img src="https://img.shields.io/badge/%E3%83%89%E3%82%AD%E3%83%A5%E3%83%A1%E3%83%B3%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3-6B46C1?style=for-the-badge&logo=readthedocs&logoColor=white" alt="ドキュメンテーション"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline" target="_blank"><img src="https://img.shields.io/badge/VS%20Marketplace%E3%81%A7%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Marketplaceでダウンロード"></a>
+<a href="https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/%E6%A9%9F%E8%83%BD%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88-yellow?style=for-the-badge" alt="機能リクエスト"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline&ssr=false#review-details" target="_blank"><img src="https://img.shields.io/badge/%E8%A9%95%E4%BE%A1%E3%81%A8%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC-green?style=for-the-badge" alt="評価とレビュー"></a>
+<a href="https://docs.roocode.com" target="_blank"><img src="https://img.shields.io/badge/%E3%83%89%E3%82%AD%E3%83%A5%E3%83%A1%E3%83%B3%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3-6B46C1?style=for-the-badge&logo=readthedocs&logoColor=white" alt="ドキュメンテーション"></a>
 
 </div>
 
@@ -70,30 +70,30 @@ Roo Code 3.11は大幅なパフォーマンス向上と新機能をもたらし�
 
 ## クイックスタート
 
-1. [Roo Codeをインストール](https://docs.magecode.com/getting-started/installing)
-2. [AIプロバイダーを接続](https://docs.magecode.com/getting-started/connecting-api-provider)
-3. [最初のタスクを試す](https://docs.magecode.com/getting-started/your-first-task)
+1. [Roo Codeをインストール](https://docs.roocode.com/getting-started/installing)
+2. [AIプロバイダーを接続](https://docs.roocode.com/getting-started/connecting-api-provider)
+3. [最初のタスクを試す](https://docs.roocode.com/getting-started/your-first-task)
 
 ## 主な機能
 
 ### 複数のモード
 
-Roo Codeは専門化された[モード](https://docs.magecode.com/basic-usage/using-modes)であなたのニーズに適応します：
+Roo Codeは専門化された[モード](https://docs.roocode.com/basic-usage/using-modes)であなたのニーズに適応します：
 
 - **コードモード：** 汎用的なコーディングタスク向け
 - **アーキテクトモード：** 計画と技術的リーダーシップ向け
 - **質問モード：** 質問への回答と情報提供向け
 - **デバッグモード：** 体系的な問題診断向け
-- **[カスタムモード](https://docs.magecode.com/advanced-usage/custom-modes)：** セキュリティ監査、パフォーマンス最適化、ドキュメント作成、またはその他のタスクのための無制限の専門ペルソナを作成
+- **[カスタムモード](https://docs.roocode.com/advanced-usage/custom-modes)：** セキュリティ監査、パフォーマンス最適化、ドキュメント作成、またはその他のタスクのための無制限の専門ペルソナを作成
 
 ### スマートツール
 
-Roo Codeには強力な[ツール](https://docs.magecode.com/basic-usage/how-tools-work)が付属しています：
+Roo Codeには強力な[ツール](https://docs.roocode.com/basic-usage/how-tools-work)が付属しています：
 
 - プロジェクト内のファイルの読み書き
 - VS Codeターミナルでコマンドを実行
 - Webブラウザを制御
-- [MCP（モデルコンテキストプロトコル）](https://docs.magecode.com/advanced-usage/mcp)を介して外部ツールを使用
+- [MCP（モデルコンテキストプロトコル）](https://docs.roocode.com/advanced-usage/mcp)を介して外部ツールを使用
 
 MCPは無制限のカスタムツールを追加できるようにしてRoo Codeの機能を拡張します。外部APIとの統合、データベースへの接続、または特殊な開発ツールの作成 - MCPはRoo Codeの機能を拡張してあなたの特定のニーズを満たすためのフレームワークを提供します。
 
@@ -101,24 +101,24 @@ MCPは無制限のカスタムツールを追加できるようにしてRoo Code
 
 Roo Codeをあなた好みに動作させる方法：
 
-- パーソナライズされた動作のための[カスタム指示](https://docs.magecode.com/advanced-usage/custom-instructions)
-- 専門タスク用の[カスタムモード](https://docs.magecode.com/advanced-usage/custom-modes)
-- オフライン使用のための[ローカルモデル](https://docs.magecode.com/advanced-usage/local-models)
-- より高速なワークフローのための[自動承認設定](https://docs.magecode.com/advanced-usage/auto-approving-actions)
+- パーソナライズされた動作のための[カスタム指示](https://docs.roocode.com/advanced-usage/custom-instructions)
+- 専門タスク用の[カスタムモード](https://docs.roocode.com/advanced-usage/custom-modes)
+- オフライン使用のための[ローカルモデル](https://docs.roocode.com/advanced-usage/local-models)
+- より高速なワークフローのための[自動承認設定](https://docs.roocode.com/advanced-usage/auto-approving-actions)
 
 ## リソース
 
 ### ドキュメンテーション
 
-- [基本的な使用ガイド](https://docs.magecode.com/basic-usage/the-chat-interface)
-- [高度な機能](https://docs.magecode.com/advanced-usage/auto-approving-actions)
-- [よくある質問](https://docs.magecode.com/faq)
+- [基本的な使用ガイド](https://docs.roocode.com/basic-usage/the-chat-interface)
+- [高度な機能](https://docs.roocode.com/advanced-usage/auto-approving-actions)
+- [よくある質問](https://docs.roocode.com/faq)
 
 ### コミュニティ
 
-- **Discord：** リアルタイムのヘルプとディスカッションについては[Discord サーバーに参加](https://discord.gg/magecode)
-- **Reddit：** 経験とヒントを共有するには[サブレディット](https://www.reddit.com/r/MageCode)にアクセス
-- **GitHub：** [問題](https://github.com/Sellitus/Mage-Code/issues)を報告したり[機能](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)をリクエスト
+- **Discord：** リアルタイムのヘルプとディスカッションについては[Discord サーバーに参加](https://discord.gg/roocode)
+- **Reddit：** 経験とヒントを共有するには[サブレディット](https://www.reddit.com/r/RooCode)にアクセス
+- **GitHub：** [問題](https://github.com/RooVetGit/Roo-Code/issues)を報告したり[機能](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)をリクエスト
 
 ---
 
@@ -127,7 +127,7 @@ Roo Codeをあなた好みに動作させる方法：
 1. レポジトリを**クローン**：
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 ```
 
 2. **依存関係をインストール**：
@@ -156,7 +156,7 @@ npm run build
 `bin/`ディレクトリに`.vsix`ファイルが作成され、次のコマンドでインストールできます：
 
 ```sh
-code --install-extension bin/mage-code-<version>.vsix
+code --install-extension bin/roo-cline-<version>.vsix
 ```
 
 バージョン管理と公開には[changesets](https://github.com/changesets/changesets)を使用しています。リリースノートについては`CHANGELOG.md`をご確認ください。
@@ -212,4 +212,4 @@ Roo Codeの改善に貢献してくれたすべての貢献者に感謝します
 
 ---
 
-**Roo Codeをお楽しみください！** 短いリードで保持するか、自律的に動き回らせるかにかかわらず、あなたが何を構築するのか楽しみにしています。質問や機能のアイデアがある場合は、[Redditコミュニティ](https://www.reddit.com/r/MageCode/)や[Discord](https://discord.gg/magecode)にお立ち寄りください。ハッピーコーディング！
+**Roo Codeをお楽しみください！** 短いリードで保持するか、自律的に動き回らせるかにかかわらず、あなたが何を構築するのか楽しみにしています。質問や機能のアイデアがある場合は、[Redditコミュニティ](https://www.reddit.com/r/RooCode/)や[Discord](https://discord.gg/roocode)にお立ち寄りください。ハッピーコーディング！

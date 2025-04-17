@@ -15,8 +15,8 @@
   <h2>Dołącz do społeczności Roo Code</h2>
   <p>Połącz się z programistami, wnieś swoje pomysły i bądź na bieżąco z najnowszymi narzędziami do kodowania opartymi na AI.</p>
   
-  <a href="https://discord.gg/magecode" target="_blank"><img src="https://img.shields.io/badge/Dołącz%20do%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Dołącz do Discord"></a>
-  <a href="https://www.reddit.com/r/MageCode/" target="_blank"><img src="https://img.shields.io/badge/Dołącz%20do%20Reddit-FF4500?style=for-the-badge&logo=reddit&logoColor=white" alt="Dołącz do Reddit"></a>
+  <a href="https://discord.gg/roocode" target="_blank"><img src="https://img.shields.io/badge/Dołącz%20do%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Dołącz do Discord"></a>
+  <a href="https://www.reddit.com/r/RooCode/" target="_blank"><img src="https://img.shields.io/badge/Dołącz%20do%20Reddit-FF4500?style=for-the-badge&logo=reddit&logoColor=white" alt="Dołącz do Reddit"></a>
   
 </div>
 <br>
@@ -25,10 +25,10 @@
 <div align="center">
 <h1>Roo Code (wcześniej Roo Cline)</h1>
 
-<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code" target="_blank"><img src="https://img.shields.io/badge/Pobierz%20z%20VS%20Marketplace-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Pobierz z VS Marketplace"></a>
-<a href="https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/Prośby%20o%20funkcje-yellow?style=for-the-badge" alt="Prośby o funkcje"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code&ssr=false#review-details" target="_blank"><img src="https://img.shields.io/badge/Oceń%20%26%20Zrecenzuj-green?style=for-the-badge" alt="Oceń & Zrecenzuj"></a>
-<a href="https://docs.magecode.com" target="_blank"><img src="https://img.shields.io/badge/Dokumentacja-6B46C1?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Dokumentacja"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline" target="_blank"><img src="https://img.shields.io/badge/Pobierz%20z%20VS%20Marketplace-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Pobierz z VS Marketplace"></a>
+<a href="https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/Prośby%20o%20funkcje-yellow?style=for-the-badge" alt="Prośby o funkcje"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline&ssr=false#review-details" target="_blank"><img src="https://img.shields.io/badge/Oceń%20%26%20Zrecenzuj-green?style=for-the-badge" alt="Oceń & Zrecenzuj"></a>
+<a href="https://docs.roocode.com" target="_blank"><img src="https://img.shields.io/badge/Dokumentacja-6B46C1?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Dokumentacja"></a>
 
 </div>
 
@@ -70,30 +70,30 @@ Roo Code 3.11 przynosi znaczące usprawnienia wydajności i nowe funkcje!
 
 ## Szybki start
 
-1. [Zainstaluj Roo Code](https://docs.magecode.com/getting-started/installing)
-2. [Połącz swojego dostawcę AI](https://docs.magecode.com/getting-started/connecting-api-provider)
-3. [Wypróbuj swoje pierwsze zadanie](https://docs.magecode.com/getting-started/your-first-task)
+1. [Zainstaluj Roo Code](https://docs.roocode.com/getting-started/installing)
+2. [Połącz swojego dostawcę AI](https://docs.roocode.com/getting-started/connecting-api-provider)
+3. [Wypróbuj swoje pierwsze zadanie](https://docs.roocode.com/getting-started/your-first-task)
 
 ## Kluczowe funkcje
 
 ### Wiele trybów
 
-Roo Code dostosowuje się do Twoich potrzeb za pomocą wyspecjalizowanych [trybów](https://docs.magecode.com/basic-usage/using-modes):
+Roo Code dostosowuje się do Twoich potrzeb za pomocą wyspecjalizowanych [trybów](https://docs.roocode.com/basic-usage/using-modes):
 
 - **Tryb Code:** Do ogólnych zadań kodowania
 - **Tryb Architect:** Do planowania i przywództwa technicznego
 - **Tryb Ask:** Do odpowiadania na pytania i dostarczania informacji
 - **Tryb Debug:** Do systematycznej diagnozy problemów
-- **[Niestandardowe tryby](https://docs.magecode.com/advanced-usage/custom-modes):** Twórz nieograniczoną liczbę wyspecjalizowanych person do audytów bezpieczeństwa, optymalizacji wydajności, dokumentacji lub dowolnych innych zadań
+- **[Niestandardowe tryby](https://docs.roocode.com/advanced-usage/custom-modes):** Twórz nieograniczoną liczbę wyspecjalizowanych person do audytów bezpieczeństwa, optymalizacji wydajności, dokumentacji lub dowolnych innych zadań
 
 ### Inteligentne narzędzia
 
-Roo Code jest wyposażony w potężne [narzędzia](https://docs.magecode.com/basic-usage/how-tools-work), które mogą:
+Roo Code jest wyposażony w potężne [narzędzia](https://docs.roocode.com/basic-usage/how-tools-work), które mogą:
 
 - Czytać i zapisywać pliki w Twoim projekcie
 - Wykonywać polecenia w terminalu VS Code
 - Kontrolować przeglądarkę internetową
-- Korzystać z zewnętrznych narzędzi poprzez [MCP (Model Context Protocol)](https://docs.magecode.com/advanced-usage/mcp)
+- Korzystać z zewnętrznych narzędzi poprzez [MCP (Model Context Protocol)](https://docs.roocode.com/advanced-usage/mcp)
 
 MCP rozszerza możliwości Roo Code, umożliwiając dodawanie nieograniczonej liczby niestandardowych narzędzi. Integruj się z zewnętrznymi API, łącz z bazami danych lub twórz wyspecjalizowane narzędzia deweloperskie - MCP zapewnia framework, aby rozszerzyć funkcjonalność Roo Code w celu spełnienia Twoich specyficznych potrzeb.
 
@@ -101,24 +101,24 @@ MCP rozszerza możliwości Roo Code, umożliwiając dodawanie nieograniczonej li
 
 Spraw, aby Roo Code działał po Twojemu za pomocą:
 
-- [Niestandardowych instrukcji](https://docs.magecode.com/advanced-usage/custom-instructions) dla spersonalizowanego zachowania
-- [Niestandardowych trybów](https://docs.magecode.com/advanced-usage/custom-modes) dla wyspecjalizowanych zadań
-- [Lokalnych modeli](https://docs.magecode.com/advanced-usage/local-models) do użytku offline
-- [Ustawień auto-zatwierdzania](https://docs.magecode.com/advanced-usage/auto-approving-actions) dla szybszych przepływów pracy
+- [Niestandardowych instrukcji](https://docs.roocode.com/advanced-usage/custom-instructions) dla spersonalizowanego zachowania
+- [Niestandardowych trybów](https://docs.roocode.com/advanced-usage/custom-modes) dla wyspecjalizowanych zadań
+- [Lokalnych modeli](https://docs.roocode.com/advanced-usage/local-models) do użytku offline
+- [Ustawień auto-zatwierdzania](https://docs.roocode.com/advanced-usage/auto-approving-actions) dla szybszych przepływów pracy
 
 ## Zasoby
 
 ### Dokumentacja
 
-- [Podstawowy przewodnik użytkowania](https://docs.magecode.com/basic-usage/the-chat-interface)
-- [Zaawansowane funkcje](https://docs.magecode.com/advanced-usage/auto-approving-actions)
-- [Często zadawane pytania](https://docs.magecode.com/faq)
+- [Podstawowy przewodnik użytkowania](https://docs.roocode.com/basic-usage/the-chat-interface)
+- [Zaawansowane funkcje](https://docs.roocode.com/advanced-usage/auto-approving-actions)
+- [Często zadawane pytania](https://docs.roocode.com/faq)
 
 ### Społeczność
 
-- **Discord:** [Dołącz do naszego serwera Discord](https://discord.gg/magecode), aby uzyskać pomoc w czasie rzeczywistym i dyskusje
-- **Reddit:** [Odwiedź nasz subreddit](https://www.reddit.com/r/MageCode), aby dzielić się doświadczeniami i wskazówkami
-- **GitHub:** [Zgłaszaj problemy](https://github.com/Sellitus/Mage-Code/issues) lub [proś o funkcje](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)
+- **Discord:** [Dołącz do naszego serwera Discord](https://discord.gg/roocode), aby uzyskać pomoc w czasie rzeczywistym i dyskusje
+- **Reddit:** [Odwiedź nasz subreddit](https://www.reddit.com/r/RooCode), aby dzielić się doświadczeniami i wskazówkami
+- **GitHub:** [Zgłaszaj problemy](https://github.com/RooVetGit/Roo-Code/issues) lub [proś o funkcje](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop)
 
 ---
 
@@ -127,7 +127,7 @@ Spraw, aby Roo Code działał po Twojemu za pomocą:
 1. **Sklonuj** repozytorium:
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 ```
 
 2. **Zainstaluj zależności**:
@@ -156,7 +156,7 @@ npm run build
 Plik `.vsix` pojawi się w katalogu `bin/` i można go zainstalować za pomocą:
 
 ```sh
-code --install-extension bin/mage-code-<version>.vsix
+code --install-extension bin/roo-cline-<version>.vsix
 ```
 
 Używamy [changesets](https://github.com/changesets/changesets) do wersjonowania i publikowania. Sprawdź nasz `CHANGELOG.md`, aby zobaczyć informacje o wydaniu.
@@ -212,4 +212,4 @@ Dziękujemy wszystkim naszym współtwórcom, którzy pomogli ulepszyć Roo Code
 
 ---
 
-**Ciesz się Roo Code!** Niezależnie od tego, czy trzymasz go na krótkiej smyczy, czy pozwalasz mu swobodnie działać autonomicznie, nie możemy się doczekać, aby zobaczyć, co zbudujesz. Jeśli masz pytania lub pomysły na funkcje, wpadnij na naszą [społeczność Reddit](https://www.reddit.com/r/MageCode/) lub [Discord](https://discord.gg/magecode). Szczęśliwego kodowania!
+**Ciesz się Roo Code!** Niezależnie od tego, czy trzymasz go na krótkiej smyczy, czy pozwalasz mu swobodnie działać autonomicznie, nie możemy się doczekać, aby zobaczyć, co zbudujesz. Jeśli masz pytania lub pomysły na funkcje, wpadnij na naszą [społeczność Reddit](https://www.reddit.com/r/RooCode/) lub [Discord](https://discord.gg/roocode). Szczęśliwego kodowania!

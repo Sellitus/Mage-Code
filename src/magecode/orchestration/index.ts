@@ -39,7 +39,7 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 		this.promptService = promptService
 
 		// Initialize cache with configured settings
-		const config = vscode.workspace.getConfiguration("mage-code")
+		const config = vscode.workspace.getConfiguration("roo-code")
 		const maxItems = config.get<number>("magecode.cache.maxItems", 500)
 		const ttlSeconds = config.get<number>("magecode.cache.ttlSeconds", 3600)
 		const ttlMilliseconds = ttlSeconds * 1000 // Convert seconds to milliseconds

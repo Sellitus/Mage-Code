@@ -3,16 +3,16 @@ import Mocha from "mocha"
 import { glob } from "glob"
 import * as vscode from "vscode"
 
-import type { MageCodeAPI } from "../../../src/exports/mage-code"
+import type { RooCodeAPI } from "../../../src/exports/roo-code"
 
 import { waitFor } from "./utils"
 
 declare global {
-	var api: MageCodeAPI
+	var api: RooCodeAPI
 }
 
 export async function run() {
-	const extension = vscode.extensions.getExtension<MageCodeAPI>("RooVeterinaryInc.mage-code")
+	const extension = vscode.extensions.getExtension<RooCodeAPI>("RooVeterinaryInc.roo-cline")
 
 	if (!extension) {
 		throw new Error("Extension not found")
@@ -35,7 +35,7 @@ export async function run() {
 		},
 	})
 
-	await vscode.commands.executeCommand("mage-code.SidebarProvider.focus")
+	await vscode.commands.executeCommand("roo-cline.SidebarProvider.focus")
 	await waitFor(() => api.isReady())
 
 	// Expose the API to the tests.

@@ -4,7 +4,7 @@ Estamos entusiasmados por você estar interessado em contribuir para o Roo Code.
 
 ## Junte-se à Nossa Comunidade
 
-Incentivamos fortemente todos os colaboradores a se juntarem à nossa [comunidade no Discord](https://discord.gg/magecode)! Fazer parte do nosso servidor Discord ajuda você a:
+Incentivamos fortemente todos os colaboradores a se juntarem à nossa [comunidade no Discord](https://discord.gg/roocode)! Fazer parte do nosso servidor Discord ajuda você a:
 
 - Obter ajuda e orientação em tempo real sobre suas contribuições
 - Conectar-se com outros colaboradores e membros da equipe principal
@@ -14,19 +14,19 @@ Incentivamos fortemente todos os colaboradores a se juntarem à nossa [comunidad
 
 ## Relatando Bugs ou Problemas
 
-Relatórios de bugs ajudam a tornar o Roo Code melhor para todos! Antes de criar uma nova issue, por favor [pesquise as existentes](https://github.com/Sellitus/Mage-Code/issues) para evitar duplicatas. Quando estiver pronto para relatar um bug, vá para nossa [página de issues](https://github.com/Sellitus/Mage-Code/issues/new/choose) onde você encontrará um modelo para ajudá-lo a preencher as informações relevantes.
+Relatórios de bugs ajudam a tornar o Roo Code melhor para todos! Antes de criar uma nova issue, por favor [pesquise as existentes](https://github.com/RooVetGit/Roo-Code/issues) para evitar duplicatas. Quando estiver pronto para relatar um bug, vá para nossa [página de issues](https://github.com/RooVetGit/Roo-Code/issues/new/choose) onde você encontrará um modelo para ajudá-lo a preencher as informações relevantes.
 
 <blockquote class='warning-note'>
-     🔐 <b>Importante:</b> Se você descobrir uma vulnerabilidade de segurança, por favor use a <a href="https://github.com/Sellitus/Mage-Code/security/advisories/new">ferramenta de segurança do Github para relatá-la de forma privada</a>.
+     🔐 <b>Importante:</b> Se você descobrir uma vulnerabilidade de segurança, por favor use a <a href="https://github.com/RooVetGit/Roo-Code/security/advisories/new">ferramenta de segurança do Github para relatá-la de forma privada</a>.
 </blockquote>
 
 ## Decidindo no que Trabalhar
 
-Procurando uma boa primeira contribuição? Verifique as issues na seção "Issue [Unassigned]" do nosso [Projeto Github Roo Code](https://github.com/orgs/Sellitus/projects/1). Estas são especialmente selecionadas para novos colaboradores e áreas onde gostaríamos de ter alguma ajuda!
+Procurando uma boa primeira contribuição? Verifique as issues na seção "Issue [Unassigned]" do nosso [Projeto Github Roo Code](https://github.com/orgs/RooVetGit/projects/1). Estas são especialmente selecionadas para novos colaboradores e áreas onde gostaríamos de ter alguma ajuda!
 
-Também damos as boas-vindas a contribuições para nossa [documentação](https://docs.magecode.com/)! Seja corrigindo erros de digitação, melhorando guias existentes ou criando novo conteúdo educacional - adoraríamos construir um repositório de recursos impulsionado pela comunidade que ajude todos a obter o máximo do Roo Code. Você pode clicar em "Edit this page" em qualquer página para ir rapidamente ao local certo no Github para editar o arquivo, ou pode mergulhar diretamente em https://github.com/Sellitus/Mage-Code-Docs.
+Também damos as boas-vindas a contribuições para nossa [documentação](https://docs.roocode.com/)! Seja corrigindo erros de digitação, melhorando guias existentes ou criando novo conteúdo educacional - adoraríamos construir um repositório de recursos impulsionado pela comunidade que ajude todos a obter o máximo do Roo Code. Você pode clicar em "Edit this page" em qualquer página para ir rapidamente ao local certo no Github para editar o arquivo, ou pode mergulhar diretamente em https://github.com/RooVetGit/Roo-Code-Docs.
 
-Se você está planejando trabalhar em um recurso maior, por favor crie primeiro uma [solicitação de recurso](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop) para que possamos discutir se está alinhado com a visão do Roo Code. Você também pode verificar nosso [Roteiro do Projeto](#roteiro-do-projeto) abaixo para ver se sua ideia se encaixa em nossa direção estratégica.
+Se você está planejando trabalhar em um recurso maior, por favor crie primeiro uma [solicitação de recurso](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop) para que possamos discutir se está alinhado com a visão do Roo Code. Você também pode verificar nosso [Roteiro do Projeto](#roteiro-do-projeto) abaixo para ver se sua ideia se encaixa em nossa direção estratégica.
 
 ## Roteiro do Projeto
 
@@ -94,7 +94,7 @@ Damos especialmente as boas-vindas a contribuições que avançam os objetivos d
 1. **Clone** o repositório:
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 ```
 
 2. **Instale as dependências**:
@@ -123,7 +123,7 @@ npm run build
 Um arquivo `.vsix` aparecerá no diretório `bin/` que pode ser instalado com:
 
 ```sh
-code --install-extension bin/mage-code-<version>.vsix
+code --install-extension bin/roo-cline-<version>.vsix
 ```
 
 ## Escrevendo e Enviando Código

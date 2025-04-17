@@ -1,6 +1,6 @@
-import { MageCodeSettings } from "./mage-code.js"
+import { RooCodeSettings } from "./roo-code.js"
 
-export const magecodeDefaults: MageCodeSettings = {
+export const rooCodeDefaults: RooCodeSettings = {
 	apiProvider: "openrouter",
 	openRouterModelId: "google/gemini-2.0-flash-001", // "anthropic/claude-3.7-sonnet",
 

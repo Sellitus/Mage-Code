@@ -10,7 +10,7 @@ import {
 	GlobalSettings,
 	SecretState,
 	GlobalState,
-	MageCodeSettings,
+	RooCodeSettings,
 	providerSettingsSchema,
 	globalSettingsSchema,
 	isSecretStateKey,
@@ -20,7 +20,7 @@ import { telemetryService } from "../../services/telemetry/TelemetryService"
 
 type GlobalStateKey = keyof GlobalState
 type SecretStateKey = keyof SecretState
-type MageCodeSettingsKey = keyof MageCodeSettings
+type RooCodeSettingsKey = keyof RooCodeSettings
 
 const PASS_THROUGH_STATE_KEYS = ["taskHistory"]
 
@@ -200,25 +200,25 @@ export class ContextProxy {
 	}
 
 	/**
-	 * MageCodeSettings
+	 * RooCodeSettings
 	 */
 
-	public setValue<K extends MageCodeSettingsKey>(key: K, value: MageCodeSettings[K]) {
+	public setValue<K extends RooCodeSettingsKey>(key: K, value: RooCodeSettings[K]) {
 		return isSecretStateKey(key) ? this.storeSecret(key, value as string) : this.updateGlobalState(key, value)
 	}
 
-	public getValue<K extends MageCodeSettingsKey>(key: K): MageCodeSettings[K] {
+	public getValue<K extends RooCodeSettingsKey>(key: K): RooCodeSettings[K] {
 		return isSecretStateKey(key)
-			? (this.getSecret(key) as MageCodeSettings[K])
-			: (this.getGlobalState(key) as MageCodeSettings[K])
+			? (this.getSecret(key) as RooCodeSettings[K])
+			: (this.getGlobalState(key) as RooCodeSettings[K])
 	}
 
-	public getValues(): MageCodeSettings {
+	public getValues(): RooCodeSettings {
 		return { ...this.getAllGlobalState(), ...this.getAllSecretState() }
 	}
 
-	public async setValues(values: MageCodeSettings) {
-		const entries = Object.entries(values) as [MageCodeSettingsKey, unknown][]
+	public async setValues(values: RooCodeSettings) {
+		const entries = Object.entries(values) as [RooCodeSettingsKey, unknown][]
 		await Promise.all(entries.map(([key, value]) => this.setValue(key, value)))
 	}
 

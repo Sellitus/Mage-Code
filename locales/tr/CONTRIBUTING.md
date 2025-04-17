@@ -4,7 +4,7 @@ Roo Code'a katkıda bulunmakla ilgilendiğiniz için çok mutluyuz. İster bir h
 
 ## Topluluğumuza Katılın
 
-Tüm katkıda bulunanları [Discord topluluğumuza](https://discord.gg/magecode) katılmaya şiddetle teşvik ediyoruz! Discord sunucumuzun bir parçası olmak size şu konularda yardımcı olur:
+Tüm katkıda bulunanları [Discord topluluğumuza](https://discord.gg/roocode) katılmaya şiddetle teşvik ediyoruz! Discord sunucumuzun bir parçası olmak size şu konularda yardımcı olur:
 
 - Katkılarınız hakkında gerçek zamanlı yardım ve rehberlik alın
 - Diğer katkıda bulunanlar ve çekirdek ekip üyeleriyle bağlantı kurun
@@ -14,19 +14,19 @@ Tüm katkıda bulunanları [Discord topluluğumuza](https://discord.gg/magecode)
 
 ## Hataları veya Sorunları Bildirme
 
-Hata raporları Roo Code'u herkes için daha iyi hale getirmeye yardımcı olur! Yeni bir sorun oluşturmadan önce, lütfen yinelemeleri önlemek için [mevcut olanları arayın](https://github.com/Sellitus/Mage-Code/issues). Bir hatayı bildirmeye hazır olduğunuzda, ilgili bilgileri doldurmanıza yardımcı olacak bir şablon bulacağınız [sorunlar sayfamıza](https://github.com/Sellitus/Mage-Code/issues/new/choose) gidin.
+Hata raporları Roo Code'u herkes için daha iyi hale getirmeye yardımcı olur! Yeni bir sorun oluşturmadan önce, lütfen yinelemeleri önlemek için [mevcut olanları arayın](https://github.com/RooVetGit/Roo-Code/issues). Bir hatayı bildirmeye hazır olduğunuzda, ilgili bilgileri doldurmanıza yardımcı olacak bir şablon bulacağınız [sorunlar sayfamıza](https://github.com/RooVetGit/Roo-Code/issues/new/choose) gidin.
 
 <blockquote class='warning-note'>
-     🔐 <b>Önemli:</b> Bir güvenlik açığı keşfederseniz, lütfen <a href="https://github.com/Sellitus/Mage-Code/security/advisories/new">özel olarak bildirmek için Github güvenlik aracını kullanın</a>.
+     🔐 <b>Önemli:</b> Bir güvenlik açığı keşfederseniz, lütfen <a href="https://github.com/RooVetGit/Roo-Code/security/advisories/new">özel olarak bildirmek için Github güvenlik aracını kullanın</a>.
 </blockquote>
 
 ## Ne Üzerinde Çalışacağınıza Karar Verme
 
-İyi bir ilk katkı mı arıyorsunuz? [Roo Code Sorunları](https://github.com/orgs/Sellitus/projects/1) Github Projemizin "Issue [Unassigned]" bölümündeki sorunları kontrol edin. Bunlar özellikle yeni katkıda bulunanlar ve biraz yardıma ihtiyaç duyduğumuz alanlar için seçilmiştir!
+İyi bir ilk katkı mı arıyorsunuz? [Roo Code Sorunları](https://github.com/orgs/RooVetGit/projects/1) Github Projemizin "Issue [Unassigned]" bölümündeki sorunları kontrol edin. Bunlar özellikle yeni katkıda bulunanlar ve biraz yardıma ihtiyaç duyduğumuz alanlar için seçilmiştir!
 
-[Belgelerimize](https://docs.magecode.com/) katkıları da memnuniyetle karşılıyoruz! İster yazım hatalarını düzeltmek, mevcut kılavuzları geliştirmek veya yeni eğitim içeriği oluşturmak olsun - herkesin Roo Code'dan en iyi şekilde yararlanmasına yardımcı olan topluluk odaklı bir kaynak deposu oluşturmak istiyoruz. Dosyayı düzenlemek için Github'daki doğru yere hızlıca gitmek için herhangi bir sayfada "Edit this page" düğmesine tıklayabilir veya doğrudan https://github.com/Sellitus/Mage-Code-Docs adresine dalabilirsiniz.
+[Belgelerimize](https://docs.roocode.com/) katkıları da memnuniyetle karşılıyoruz! İster yazım hatalarını düzeltmek, mevcut kılavuzları geliştirmek veya yeni eğitim içeriği oluşturmak olsun - herkesin Roo Code'dan en iyi şekilde yararlanmasına yardımcı olan topluluk odaklı bir kaynak deposu oluşturmak istiyoruz. Dosyayı düzenlemek için Github'daki doğru yere hızlıca gitmek için herhangi bir sayfada "Edit this page" düğmesine tıklayabilir veya doğrudan https://github.com/RooVetGit/Roo-Code-Docs adresine dalabilirsiniz.
 
-Daha büyük bir özellik üzerinde çalışmayı planlıyorsanız, lütfen önce bir [özellik isteği](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop) oluşturun, böylece Roo Code'un vizyonuyla uyumlu olup olmadığını tartışabiliriz. Ayrıca, fikrinizin stratejik yönümüze uyup uymadığını görmek için aşağıdaki [Proje Yol Haritası](#proje-yol-haritası)'nı kontrol edebilirsiniz.
+Daha büyük bir özellik üzerinde çalışmayı planlıyorsanız, lütfen önce bir [özellik isteği](https://github.com/RooVetGit/Roo-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop) oluşturun, böylece Roo Code'un vizyonuyla uyumlu olup olmadığını tartışabiliriz. Ayrıca, fikrinizin stratejik yönümüze uyup uymadığını görmek için aşağıdaki [Proje Yol Haritası](#proje-yol-haritası)'nı kontrol edebilirsiniz.
 
 ## Proje Yol Haritası
 
@@ -94,7 +94,7 @@ Roo'nun herkesin dilini konuşmasını istiyoruz:
 1. Depoyu **klonlayın**:
 
 ```sh
-git clone https://github.com/Sellitus/Mage-Code.git
+git clone https://github.com/RooVetGit/Roo-Code.git
 ```
 
 2. **Bağımlılıkları yükleyin**:
@@ -123,7 +123,7 @@ npm run build
 `bin/` dizininde bir `.vsix` dosyası görünecek ve şu komutla kurulabilir:
 
 ```sh
-code --install-extension bin/mage-code-<version>.vsix
+code --install-extension bin/roo-cline-<version>.vsix
 ```
 
 ## Kod Yazma ve Gönderme

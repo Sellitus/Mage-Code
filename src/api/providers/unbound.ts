@@ -100,7 +100,7 @@ export class UnboundHandler extends BaseProvider implements SingleCompletionHand
 						labels: [
 							{
 								key: "app",
-								value: "mage-code",
+								value: "roo-code",
 							},
 						],
 					}),
@@ -172,7 +172,7 @@ export class UnboundHandler extends BaseProvider implements SingleCompletionHand
 						labels: [
 							{
 								key: "app",
-								value: "mage-code",
+								value: "roo-code",
 							},
 						],
 					}),
