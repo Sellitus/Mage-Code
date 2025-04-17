@@ -1,6 +1,6 @@
-# Contributing to Mage Code
+# Contributing to Roo Code
 
-We're thrilled you're interested in contributing to Mage Code. Whether you're fixing a bug, adding a feature, or improving our docs, every contribution makes Mage Code smarter! To keep our community vibrant and welcoming, all members must adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
+We're thrilled you're interested in contributing to Roo Code. Whether you're fixing a bug, adding a feature, or improving our docs, every contribution makes Roo Code smarter! To keep our community vibrant and welcoming, all members must adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Join Our Community
 
@@ -9,12 +9,12 @@ We strongly encourage all contributors to join our [Discord community](https://d
 - Get real-time help and guidance on your contributions
 - Connect with other contributors and core team members
 - Stay updated on project developments and priorities
-- Participate in discussions that shape Mage Code's future
+- Participate in discussions that shape Roo Code's future
 - Find collaboration opportunities with other developers
 
 ## Reporting Bugs or Issues
 
-Bug reports help make Mage Code better for everyone! Before creating a new issue, please [search existing ones](https://github.com/Sellitus/Mage-Code/issues) to avoid duplicates. When you're ready to report a bug, head over to our [issues page](https://github.com/Sellitus/Mage-Code/issues/new/choose) where you'll find a template to help you with filling out the relevant information.
+Bug reports help make Roo Code better for everyone! Before creating a new issue, please [search existing ones](https://github.com/Sellitus/Mage-Code/issues) to avoid duplicates. When you're ready to report a bug, head over to our [issues page](https://github.com/Sellitus/Mage-Code/issues/new/choose) where you'll find a template to help you with filling out the relevant information.
 
 <blockquote class='warning-note'>
      🔐 <b>Important:</b> If you discover a security vulnerability, please use the <a href="https://github.com/Sellitus/Mage-Code/security/advisories/new">Github security tool to report it privately</a>.
@@ -22,15 +22,15 @@ Bug reports help make Mage Code better for everyone! Before creating a new issue
 
 ## Deciding What to Work On
 
-Looking for a good first contribution? Check out issues in the "Issue [Unassigned]" section of our [Mage Code Issues](https://github.com/orgs/Sellitus/projects/1) Github Project. These are specifically curated for new contributors and areas where we'd love some help!
+Looking for a good first contribution? Check out issues in the "Issue [Unassigned]" section of our [Roo Code Issues](https://github.com/orgs/Sellitus/projects/1) Github Project. These are specifically curated for new contributors and areas where we'd love some help!
 
-We also welcome contributions to our [documentation](https://docs.magecode.com/)! Whether it's fixing typos, improving existing guides, or creating new educational content - we'd love to build a community-driven repository of resources that helps everyone get the most out of Mage Code. You can click "Edit this page" on any page to quickly get to the right spot in Github to edit the file, or you can dive directly into https://github.com/Sellitus/Mage-Code-Docs.
+We also welcome contributions to our [documentation](https://docs.magecode.com/)! Whether it's fixing typos, improving existing guides, or creating new educational content - we'd love to build a community-driven repository of resources that helps everyone get the most out of Roo Code. You can click "Edit this page" on any page to quickly get to the right spot in Github to edit the file, or you can dive directly into https://github.com/Sellitus/Mage-Code-Docs.
 
-If you're planning to work on a bigger feature, please create a [feature request](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop) first so we can discuss whether it aligns with Mage Code's vision. You may also want to check our [Project Roadmap](#project-roadmap) below to see if your idea fits with our strategic direction.
+If you're planning to work on a bigger feature, please create a [feature request](https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop) first so we can discuss whether it aligns with Roo Code's vision. You may also want to check our [Project Roadmap](#project-roadmap) below to see if your idea fits with our strategic direction.
 
 ## Project Roadmap
 
-Mage Code has a clear development roadmap that guides our priorities and future direction. Understanding our roadmap can help you:
+Roo Code has a clear development roadmap that guides our priorities and future direction. Understanding our roadmap can help you:
 
 - Align your contributions with project goals
 - Identify areas where your expertise would be most valuable
@@ -82,10 +82,10 @@ We want to significantly decrease the number of bugs and increase automated test
 
 We want Roo to speak everyone's language:
 
-- 我们希望 Mage Code 说每个人的语言
-- Queremos que Mage Code hable el idioma de todos
-- हम चाहते हैं कि Mage Code हर किसी की भाषा बोले
-- نريد أن يتحدث Mage Code لغة الجميع
+- 我们希望 Roo Code 说每个人的语言
+- Queremos que Roo Code hable el idioma de todos
+- हम चाहते हैं कि Roo Code हर किसी की भाषा बोले
+- نريد أن يتحدث Roo Code لغة الجميع
 
 We especially welcome contributions that advance our roadmap goals. If you're working on something that aligns with these pillars, please mention it in your PR description.
 
@@ -110,7 +110,7 @@ npm run dev
 ```
 
 4. **Debug**:
-   Press `F5` (or **Run** → **Start Debugging**) in VSCode to open a new session with Mage Code loaded.
+   Press `F5` (or **Run** → **Start Debugging**) in VSCode to open a new session with Roo Code loaded.
 
 Changes to the webview will appear immediately. Changes to the core extension will require a restart of the extension host.
 
@@ -128,7 +128,7 @@ code --install-extension bin/mage-code-<version>.vsix
 
 ## Writing and Submitting Code
 
-Anyone can contribute code to Mage Code, but we ask that you follow these guidelines to ensure your contributions can be smoothly integrated:
+Anyone can contribute code to Roo Code, but we ask that you follow these guidelines to ensure your contributions can be smoothly integrated:
 
 1. **Keep Pull Requests Focused**
 

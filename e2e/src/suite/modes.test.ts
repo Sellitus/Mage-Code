@@ -4,7 +4,7 @@ import type { ClineMessage } from "../../../src/exports/mage-code"
 
 import { waitUntilCompleted } from "./utils"
 
-suite("Mage Code Modes", () => {
+suite("Roo Code Modes", () => {
 	test("Should handle switching modes correctly", async () => {
 		const api = globalThis.api
 

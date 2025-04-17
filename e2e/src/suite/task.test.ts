@@ -4,7 +4,7 @@ import type { ClineMessage } from "../../../src/exports/mage-code"
 
 import { waitUntilCompleted } from "./utils"
 
-suite("Mage Code Task", () => {
+suite("Roo Code Task", () => {
 	test("Should handle prompt and response correctly", async () => {
 		const api = globalThis.api
 

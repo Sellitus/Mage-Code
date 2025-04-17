@@ -1,7 +1,7 @@
 import * as assert from "assert"
 import * as vscode from "vscode"
 
-suite("Mage Code Extension", () => {
+suite("Roo Code Extension", () => {
 	test("Commands should be registered", async () => {
 		const expectedCommands = [
 			"mage-code.plusButtonClicked",

@@ -1,6 +1,6 @@
 {
 	"name": "mage-code",
-	"displayName": "Mage Code",
+	"displayName": "Roo Code",
 	"description": "A whole dev team of AI agents in your editor. Previously Roo Cline.",
 	"publisher": "RooVeterinaryInc",
 	"version": "3.11.14",
@@ -14,7 +14,7 @@
 		"node": "20.18.1"
 	},
 	"author": {
-		"name": "Mage Code"
+		"name": "Roo Code"
 	},
 	"repository": {
 		"type": "git",
@@ -42,7 +42,7 @@
 		"sonnet",
 		"ai",
 		"llama",
-		"mage code",
+		"roo code",
 		"magecode"
 	],
 	"activationEvents": [
@@ -54,18 +54,18 @@
 		"submenus": [
 			{
 				"id": "mage-code.contextMenu",
-				"label": "Mage Code"
+				"label": "Roo Code"
 			},
 			{
 				"id": "mage-code.terminalMenu",
-				"label": "Mage Code"
+				"label": "Roo Code"
 			}
 		],
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "mage-code-ActivityBar",
-					"title": "Mage Code",
+					"title": "Roo Code",
 					"icon": "assets/icons/icon.svg"
 				}
 			]
@@ -118,32 +118,32 @@
 			{
 				"command": "mage-code.openInNewTab",
 				"title": "Open In New Tab",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.explainCode",
 				"title": "Explain Code",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.fixCode",
 				"title": "Fix Code",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.improveCode",
 				"title": "Improve Code",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.addToContext",
 				"title": "Add To Context",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.newTask",
 				"title": "New Task",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.terminalAddToContext",
@@ -173,17 +173,17 @@
 			{
 				"command": "mage-code.setCustomStoragePath",
 				"title": "Set Custom Storage Path",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "mage-code.focusInput",
 				"title": "Focus Input Field",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			},
 			{
 				"command": "magecode.showSettings",
 				"title": "MageCode Settings",
-				"category": "Mage Code"
+				"category": "Roo Code"
 			}
 		],
 		"menus": {
@@ -315,7 +315,7 @@
 			]
 		},
 		"configuration": {
-			"title": "Mage Code",
+			"title": "Roo Code",
 			"properties": {
 				"mage-code.allowedCommands": {
 					"type": "array",

@@ -101,7 +101,7 @@ describe("OpenAiHandler", () => {
 				apiKey: expect.any(String),
 				defaultHeaders: {
 					"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
-					"X-Title": "Mage Code",
+					"X-Title": "Roo Code",
 				},
 			})
 		})

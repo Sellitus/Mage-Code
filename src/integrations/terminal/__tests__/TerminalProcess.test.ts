@@ -46,7 +46,7 @@ describe("TerminalProcess", () => {
 			shellIntegration: {
 				executeCommand: jest.fn(),
 			},
-			name: "Mage Code",
+			name: "Roo Code",
 			processId: Promise.resolve(123),
 			creationOptions: {},
 			exitStatus: undefined,

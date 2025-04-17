@@ -12,7 +12,7 @@
 </div>
 <br>
 <div align="center">
-  <h2>Uniu-vos a la Comunitat Mage Code</h2>
+  <h2>Uniu-vos a la Comunitat Roo Code</h2>
   <p>Connecteu-vos amb desenvolupadors, contribuïu amb idees i manteniu-vos al dia amb les últimes eines de programació amb IA.</p>
   
   <a href="https://discord.gg/magecode" target="_blank"><img src="https://img.shields.io/badge/Uniu%2Dvos%20a%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Uniu-vos a Discord"></a>
@@ -23,7 +23,7 @@
 <br>
 
 <div align="center">
-<h1>Mage Code (abans Roo Cline)</h1>
+<h1>Roo Code (abans Roo Cline)</h1>
 
 <a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.mage-code" target="_blank"><img src="https://img.shields.io/badge/Descarregueu%20al%20VS%20Marketplace-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Descarregueu al VS Marketplace"></a>
 <a href="https://github.com/Sellitus/Mage-Code/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop" target="_blank"><img src="https://img.shields.io/badge/Sol·licituds%20de%20funcions-yellow?style=for-the-badge" alt="Sol·licituds de funcions"></a>
@@ -32,7 +32,7 @@
 
 </div>
 
-**Mage Code** és un **agent de programació autònom** impulsat per IA que viu en el vostre editor. Pot:
+**Roo Code** és un **agent de programació autònom** impulsat per IA que viu en el vostre editor. Pot:
 
 - Comunicar-se en llenguatge natural
 - Llegir i escriure fitxers directament en el vostre espai de treball
@@ -41,15 +41,15 @@
 - Integrar-se amb qualsevol API/model compatible amb OpenAI o personalitzat
 - Adaptar la seva "personalitat" i capacitats mitjançant **Modes Personalitzats**
 
-Tant si busqueu un soci de programació flexible, un arquitecte de sistemes o rols especialitzats com un enginyer de control de qualitat o un gestor de producte, Mage Code us pot ajudar a construir programari de manera més eficient.
+Tant si busqueu un soci de programació flexible, un arquitecte de sistemes o rols especialitzats com un enginyer de control de qualitat o un gestor de producte, Roo Code us pot ajudar a construir programari de manera més eficient.
 
 Consulteu el [CHANGELOG](../CHANGELOG.md) per a actualitzacions i correccions detallades.
 
 ---
 
-## 🎉 Mage Code 3.11 Llançat
+## 🎉 Roo Code 3.11 Llançat
 
-Mage Code 3.11 aporta millores significatives de rendiment i noves funcionalitats!
+Roo Code 3.11 aporta millores significatives de rendiment i noves funcionalitats!
 
 - Edicions ràpides - Les edicions ara s'apliquen molt més ràpid. Menys espera, més codificació.
 - Saldos de claus d'API - Visualitza els teus saldos d'OpenRouter i Requesty a la configuració.
@@ -59,7 +59,7 @@ Mage Code 3.11 aporta millores significatives de rendiment i noves funcionalitat
 
 ---
 
-## Què pot fer Mage Code?
+## Què pot fer Roo Code?
 
 - 🚀 **Generar codi** a partir de descripcions en llenguatge natural
 - 🔧 **Refactoritzar i depurar** codi existent
@@ -70,7 +70,7 @@ Mage Code 3.11 aporta millores significatives de rendiment i noves funcionalitat
 
 ## Inici ràpid
 
-1. [Instal·leu Mage Code](https://docs.magecode.com/getting-started/installing)
+1. [Instal·leu Roo Code](https://docs.magecode.com/getting-started/installing)
 2. [Connecteu el vostre proveïdor d'IA](https://docs.magecode.com/getting-started/connecting-api-provider)
 3. [Proveu la vostra primera tasca](https://docs.magecode.com/getting-started/your-first-task)
 
@@ -78,7 +78,7 @@ Mage Code 3.11 aporta millores significatives de rendiment i noves funcionalitat
 
 ### Múltiples modes
 
-Mage Code s'adapta a les vostres necessitats amb [modes](https://docs.magecode.com/basic-usage/using-modes) especialitzats:
+Roo Code s'adapta a les vostres necessitats amb [modes](https://docs.magecode.com/basic-usage/using-modes) especialitzats:
 
 - **Mode Codi:** Per a tasques de programació de propòsit general
 - **Mode Arquitecte:** Per a planificació i lideratge tècnic
@@ -88,18 +88,18 @@ Mage Code s'adapta a les vostres necessitats amb [modes](https://docs.magecode.c
 
 ### Eines intel·ligents
 
-Mage Code ve amb potents [eines](https://docs.magecode.com/basic-usage/how-tools-work) que poden:
+Roo Code ve amb potents [eines](https://docs.magecode.com/basic-usage/how-tools-work) que poden:
 
 - Llegir i escriure fitxers en el vostre projecte
 - Executar comandes en el vostre terminal de VS Code
 - Controlar un navegador web
 - Utilitzar eines externes a través del [MCP (Model Context Protocol)](https://docs.magecode.com/advanced-usage/mcp)
 
-MCP amplia les capacitats de Mage Code permetent-vos afegir eines personalitzades il·limitades. Integreu amb APIs externes, connecteu-vos a bases de dades o creeu eines de desenvolupament especialitzades - MCP proporciona el marc per expandir la funcionalitat de Mage Code per satisfer les vostres necessitats específiques.
+MCP amplia les capacitats de Roo Code permetent-vos afegir eines personalitzades il·limitades. Integreu amb APIs externes, connecteu-vos a bases de dades o creeu eines de desenvolupament especialitzades - MCP proporciona el marc per expandir la funcionalitat de Roo Code per satisfer les vostres necessitats específiques.
 
 ### Personalització
 
-Feu que Mage Code funcioni a la vostra manera amb:
+Feu que Roo Code funcioni a la vostra manera amb:
 
 - [Instruccions personalitzades](https://docs.magecode.com/advanced-usage/custom-instructions) per a comportament personalitzat
 - [Modes personalitzats](https://docs.magecode.com/advanced-usage/custom-modes) per a tasques especialitzades
@@ -143,7 +143,7 @@ npm run dev
 ```
 
 4. **Depuració**:
-   Premeu `F5` (o **Execució** → **Inicia la depuració**) a VSCode per obrir una nova sessió amb Mage Code carregat.
+   Premeu `F5` (o **Execució** → **Inicia la depuració**) a VSCode per obrir una nova sessió amb Roo Code carregat.
 
 Els canvis a la vista web apareixeran immediatament. Els canvis a l'extensió principal requeriran reiniciar l'amfitrió de l'extensió.
 
@@ -165,7 +165,7 @@ Utilitzem [changesets](https://github.com/changesets/changesets) per a la gesti�
 
 ## Avís legal
 
-**Tingueu en compte** que Mage Code, Inc **no** fa cap representació ni garantia pel que fa a qualsevol codi, model o altres eines proporcionades o posades a disposició en relació amb Mage Code, qualsevol eina de tercers associada, o qualsevol resultat. Assumiu **tots els riscos** associats amb l'ús de tals eines o resultats; aquestes eines es proporcionen "TAL COM ESTAN" i "SEGONS DISPONIBILITAT". Aquests riscos poden incloure, sense limitació, infraccions de propietat intel·lectual, vulnerabilitats o atacs cibernètics, biaixos, inexactituds, errors, defectes, virus, temps d'inactivitat, pèrdua o dany de propietat i/o lesions personals. Sou únicament responsables del vostre ús de tals eines o resultats (incloent, sense limitació, la legalitat, idoneïtat i resultats d'aquests).
+**Tingueu en compte** que Roo Code, Inc **no** fa cap representació ni garantia pel que fa a qualsevol codi, model o altres eines proporcionades o posades a disposició en relació amb Roo Code, qualsevol eina de tercers associada, o qualsevol resultat. Assumiu **tots els riscos** associats amb l'ús de tals eines o resultats; aquestes eines es proporcionen "TAL COM ESTAN" i "SEGONS DISPONIBILITAT". Aquests riscos poden incloure, sense limitació, infraccions de propietat intel·lectual, vulnerabilitats o atacs cibernètics, biaixos, inexactituds, errors, defectes, virus, temps d'inactivitat, pèrdua o dany de propietat i/o lesions personals. Sou únicament responsables del vostre ús de tals eines o resultats (incloent, sense limitació, la legalitat, idoneïtat i resultats d'aquests).
 
 ---
 
@@ -177,7 +177,7 @@ Ens encanten les contribucions de la comunitat! Comenceu llegint el nostre [CONT
 
 ## Col·laboradors
 
-Gràcies a tots els nostres col·laboradors que han ajudat a millorar Mage Code!
+Gràcies a tots els nostres col·laboradors que han ajudat a millorar Roo Code!
 
 <!-- START CONTRIBUTORS SECTION - AUTO-GENERATED, DO NOT EDIT MANUALLY -->
 
@@ -208,8 +208,8 @@ Gràcies a tots els nostres col·laboradors que han ajudat a millorar Mage Code!
 
 ## Llicència
 
-[Apache 2.0 © 2025 Mage Code, Inc.](../LICENSE)
+[Apache 2.0 © 2025 Roo Code, Inc.](../LICENSE)
 
 ---
 
-**Gaudiu de Mage Code!** Tant si el manteniu amb corretja curta com si el deixeu actuar de forma autònoma, estem impacients per veure què construïu. Si teniu preguntes o idees per a noves funcionalitats, passeu per la nostra [comunitat de Reddit](https://www.reddit.com/r/MageCode/) o [Discord](https://discord.gg/magecode). Feliç programació!
+**Gaudiu de Roo Code!** Tant si el manteniu amb corretja curta com si el deixeu actuar de forma autònoma, estem impacients per veure què construïu. Si teniu preguntes o idees per a noves funcionalitats, passeu per la nostra [comunitat de Reddit](https://www.reddit.com/r/MageCode/) o [Discord](https://discord.gg/magecode). Feliç programació!
