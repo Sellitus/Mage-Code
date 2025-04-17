@@ -12,7 +12,7 @@ English • [Català](locales/ca/README.md) • [Deutsch](locales/de/README.md) 
 </div>
 <br>
 <div align="center">
-  <h1>Roo Code (prev. Roo Cline)</h1>
+  <h1>Mage Code (prev. Roo Cline)</h1>
   <p align="center">
   <img src="https://media.githubusercontent.com/media/Sellitus/Mage-Code/main/assets/docs/demo.gif" width="100%" />
   </p>
@@ -34,7 +34,7 @@ English • [Català](locales/ca/README.md) • [Deutsch](locales/de/README.md) 
 
 </div>
 
-**Roo Code** is an AI-powered **autonomous coding agent** that lives in your editor. It can:
+**Mage Code** is an AI-powered **autonomous coding agent** that lives in your editor. It can:
 
 - Communicate in natural language
 - Read and write files directly in your workspace
@@ -43,15 +43,15 @@ English • [Català](locales/ca/README.md) • [Deutsch](locales/de/README.md) 
 - Integrate with any OpenAI-compatible or custom API/model
 - Adapt its “personality” and capabilities through **Custom Modes**
 
-Whether you’re seeking a flexible coding partner, a system architect, or specialized roles like a QA engineer or product manager, Roo Code can help you build software more efficiently.
+Whether you’re seeking a flexible coding partner, a system architect, or specialized roles like a QA engineer or product manager, Mage Code can help you build software more efficiently.
 
 Check out the [CHANGELOG](CHANGELOG.md) for detailed updates and fixes.
 
 ---
 
-## 🎉 Roo Code 3.11 Released
+## 🎉 Mage Code 3.11 Released
 
-Roo Code 3.11 brings significant performance improvements and new features!
+Mage Code 3.11 brings significant performance improvements and new features!
 
 - Fast Edits - Edits now apply way faster. Less waiting, more coding.
 - API Key Balances - View your OpenRouter and Requesty balances in settings.
@@ -61,7 +61,7 @@ Roo Code 3.11 brings significant performance improvements and new features!
 
 ---
 
-## What Can Roo Code Do?
+## What Can Mage Code Do?
 
 - 🚀 **Generate Code** from natural language descriptions
 - 🔧 **Refactor & Debug** existing code
@@ -72,7 +72,7 @@ Roo Code 3.11 brings significant performance improvements and new features!
 
 ## Quick Start
 
-1. [Install Roo Code](https://docs.magecode.com/getting-started/installing)
+1. [Install Mage Code](https://docs.magecode.com/getting-started/installing)
 2. [Connect Your AI Provider](https://docs.magecode.com/getting-started/connecting-api-provider)
 3. [Try Your First Task](https://docs.magecode.com/getting-started/your-first-task)
 
@@ -80,7 +80,7 @@ Roo Code 3.11 brings significant performance improvements and new features!
 
 ### Multiple Modes
 
-Roo Code adapts to your needs with specialized [modes](https://docs.magecode.com/basic-usage/using-modes):
+Mage Code adapts to your needs with specialized [modes](https://docs.magecode.com/basic-usage/using-modes):
 
 - **Code Mode:** For general-purpose coding tasks
 - **Architect Mode:** For planning and technical leadership
@@ -90,18 +90,18 @@ Roo Code adapts to your needs with specialized [modes](https://docs.magecode.com
 
 ### Smart Tools
 
-Roo Code comes with powerful [tools](https://docs.magecode.com/basic-usage/how-tools-work) that can:
+Mage Code comes with powerful [tools](https://docs.magecode.com/basic-usage/how-tools-work) that can:
 
 - Read and write files in your project
 - Execute commands in your VS Code terminal
 - Control a web browser
 - Use external tools via [MCP (Model Context Protocol)](https://docs.magecode.com/advanced-usage/mcp)
 
-MCP extends Roo Code's capabilities by allowing you to add unlimited custom tools. Integrate with external APIs, connect to databases, or create specialized development tools - MCP provides the framework to expand Roo Code's functionality to meet your specific needs.
+MCP extends Mage Code's capabilities by allowing you to add unlimited custom tools. Integrate with external APIs, connect to databases, or create specialized development tools - MCP provides the framework to expand Mage Code's functionality to meet your specific needs.
 
 ### Customization
 
-Make Roo Code work your way with:
+Make Mage Code work your way with:
 
 - [Custom Instructions](https://docs.magecode.com/advanced-usage/custom-instructions) for personalized behavior
 - [Custom Modes](https://docs.magecode.com/advanced-usage/custom-modes) for specialized tasks
@@ -145,7 +145,7 @@ npm run dev
 ```
 
 4. **Debug**:
-   Press `F5` (or **Run** → **Start Debugging**) in VSCode to open a new session with Roo Code loaded.
+   Press `F5` (or **Run** → **Start Debugging**) in VSCode to open a new session with Mage Code loaded.
 
 Changes to the webview will appear immediately. Changes to the core extension will require a restart of the extension host.
 
@@ -167,7 +167,7 @@ We use [changesets](https://github.com/changesets/changesets) for versioning and
 
 ## Disclaimer
 
-**Please note** that Roo Code, Inc does **not** make any representations or warranties regarding any code, models, or other tools provided or made available in connection with Roo Code, any associated third-party tools, or any resulting outputs. You assume **all risks** associated with the use of any such tools or outputs; such tools are provided on an **"AS IS"** and **"AS AVAILABLE"** basis. Such risks may include, without limitation, intellectual property infringement, cyber vulnerabilities or attacks, bias, inaccuracies, errors, defects, viruses, downtime, property loss or damage, and/or personal injury. You are solely responsible for your use of any such tools or outputs (including, without limitation, the legality, appropriateness, and results thereof).
+**Please note** that Mage Code, Inc does **not** make any representations or warranties regarding any code, models, or other tools provided or made available in connection with Mage Code, any associated third-party tools, or any resulting outputs. You assume **all risks** associated with the use of any such tools or outputs; such tools are provided on an **"AS IS"** and **"AS AVAILABLE"** basis. Such risks may include, without limitation, intellectual property infringement, cyber vulnerabilities or attacks, bias, inaccuracies, errors, defects, viruses, downtime, property loss or damage, and/or personal injury. You are solely responsible for your use of any such tools or outputs (including, without limitation, the legality, appropriateness, and results thereof).
 
 ---
 
@@ -179,7 +179,7 @@ We love community contributions! Get started by reading our [CONTRIBUTING.md](CO
 
 ## Contributors
 
-Thanks to all our contributors who have helped make Roo Code better!
+Thanks to all our contributors who have helped make Mage Code better!
 
 <!-- START CONTRIBUTORS SECTION - AUTO-GENERATED, DO NOT EDIT MANUALLY -->
 
@@ -210,8 +210,8 @@ Thanks to all our contributors who have helped make Roo Code better!
 
 ## License
 
-[Apache 2.0 © 2025 Roo Code, Inc.](./LICENSE)
+[Apache 2.0 © 2025 Mage Code, Inc.](./LICENSE)
 
 ---
 
-**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can’t wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/MageCode/) or [Discord](https://discord.gg/magecode). Happy coding!
+**Enjoy Mage Code!** Whether you keep it on a short leash or let it roam autonomously, we can’t wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/MageCode/) or [Discord](https://discord.gg/magecode). Happy coding!

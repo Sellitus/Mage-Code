@@ -19,7 +19,7 @@ import { DEEP_SEEK_DEFAULT_TEMPERATURE } from "./constants"
 
 export const defaultHeaders = {
 	"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
-	"X-Title": "Roo Code",
+	"X-Title": "Mage Code",
 }
 
 export interface OpenAiHandlerOptions extends ApiHandlerOptions {}

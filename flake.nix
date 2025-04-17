@@ -1,5 +1,5 @@
 {
-  description = "Roo Code development environment";
+  description = "Mage Code development environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";

@@ -98,7 +98,7 @@ const run = async (toolbox: GluegunToolbox) => {
 		throw new Error("No tasks found.")
 	}
 
-	console.log(await execa({ cwd: exercisesPath })`git config user.name "Roo Code"`)
+	console.log(await execa({ cwd: exercisesPath })`git config user.name "Mage Code"`)
 	console.log(await execa({ cwd: exercisesPath })`git config user.email "support@magecode.com"`)
 	console.log(await execa({ cwd: exercisesPath })`git checkout -f`)
 	console.log(await execa({ cwd: exercisesPath })`git clean -fd`)

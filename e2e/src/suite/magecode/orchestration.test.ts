@@ -16,7 +16,7 @@ describe("MageCode Orchestration Integration Tests", () => {
 		// This might need adjustment based on how the orchestrator is exposed
 		const extension = vscode.extensions.getExtension("RooVeterinaryInc.mage-code")
 		if (!extension) {
-			throw new Error("Roo Code extension not found.")
+			throw new Error("Mage Code extension not found.")
 		}
 		await extension.activate() // Ensure extension is active
 

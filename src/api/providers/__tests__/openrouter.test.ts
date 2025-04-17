@@ -39,7 +39,7 @@ describe("OpenRouterHandler", () => {
 			apiKey: mockOptions.openRouterApiKey,
 			defaultHeaders: {
 				"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
-				"X-Title": "Roo Code",
+				"X-Title": "Mage Code",
 			},
 		})
 	})

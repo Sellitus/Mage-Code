@@ -1,6 +1,6 @@
-# Roo Code API
+# Mage Code API
 
-The Roo Code extension exposes an API that can be used by other extensions. To use this API in your extension:
+The Mage Code extension exposes an API that can be used by other extensions. To use this API in your extension:
 
 1. Copy `src/extension-api/mage-code.d.ts` to your extension's source directory.
 2. Include `mage-code.d.ts` in your extension's compilation.
@@ -20,7 +20,7 @@ if (!api) {
 }
 
 // Start a new task with an initial message.
-await api.startNewTask("Hello, Roo Code API! Let's make a new project...")
+await api.startNewTask("Hello, Mage Code API! Let's make a new project...")
 
 // Start a new task with an initial message and images.
 await api.startNewTask("Use this design language", ["data:image/webp;base64,..."])

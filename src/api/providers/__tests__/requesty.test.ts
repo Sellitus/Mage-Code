@@ -95,7 +95,7 @@ describe("RequestyHandler", () => {
 				apiKey: defaultOptions.requestyApiKey,
 				defaultHeaders: {
 					"HTTP-Referer": "https://github.com/Sellitus/Mage-Code",
-					"X-Title": "Roo Code",
+					"X-Title": "Mage Code",
 				},
 			})
 		})

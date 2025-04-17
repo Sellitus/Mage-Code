@@ -683,7 +683,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 					<script nonce="${nonce}">
 						window.IMAGES_BASE_URI = "${imagesUri}"
 					</script>
-					<title>Roo Code</title>
+					<title>Mage Code</title>
 				</head>
 				<body>
 					<div id="root"></div>
@@ -768,7 +768,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 			<script nonce="${nonce}">
 				window.IMAGES_BASE_URI = "${imagesUri}"
 			</script>
-            <title>Roo Code</title>
+            <title>Mage Code</title>
           </head>
           <body>
             <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -4,7 +4,7 @@ import type { ClineMessage } from "../../../src/exports/mage-code"
 
 import { sleep, waitFor, waitUntilCompleted } from "./utils"
 
-suite("Roo Code Subtasks", () => {
+suite("Mage Code Subtasks", () => {
 	test("Should handle subtask cancellation and resumption correctly", async () => {
 		const api = globalThis.api
 
