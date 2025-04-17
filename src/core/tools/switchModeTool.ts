@@ -4,7 +4,7 @@ import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "./ty
 import { formatResponse } from "../prompts/responses"
 import { defaultModeSlug } from "../../shared/modes"
 import { getModeBySlug } from "../../shared/modes"
-import delay from "delay"
+// Removed static import for delay (ESM)
 
 export async function switchModeTool(
 	cline: Cline,
@@ -65,7 +65,8 @@ export async function switchModeTool(
 					targetMode.name
 				} mode${reason ? ` because: ${reason}` : ""}.`,
 			)
-			await delay(500) // delay to allow mode change to take effect before next tool is executed
+			// Use dynamic import for delay
+			await (await import("delay")).default(500) // delay to allow mode change to take effect before next tool is executed
 			return
 		}
 	} catch (error) {

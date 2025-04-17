@@ -11,6 +11,12 @@ const vscode = {
 	window: {
 		showInformationMessage: jest.fn(),
 		showErrorMessage: jest.fn(),
+		// Add mock for createOutputChannel
+		createOutputChannel: jest.fn().mockReturnValue({
+			appendLine: jest.fn(),
+			show: jest.fn(),
+			dispose: jest.fn(),
+		}),
 		createTextEditorDecorationType: jest.fn().mockReturnValue({
 			dispose: jest.fn(),
 		}),

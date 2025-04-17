@@ -3,11 +3,12 @@
 import * as os from "os"
 import * as path from "path"
 
-import pWaitFor from "p-wait-for"
+// import pWaitFor from "p-wait-for" // Removed unused static import causing TS error
 import * as vscode from "vscode"
 import { Anthropic } from "@anthropic-ai/sdk"
 
 import { GlobalState } from "../../schemas"
+import { AnthropicHandler } from "../../api/providers/anthropic" // Add static import
 import { Cline } from "../Cline"
 import { ClineProvider } from "../webview/ClineProvider"
 import { ApiConfiguration, ModelInfo } from "../../shared/api"
@@ -32,6 +33,23 @@ jest.mock("../../utils/fs", () => ({
 		return filePath.includes("ui_messages.json") || filePath.includes("api_conversation_history.json")
 	}),
 }))
+
+// Mock the dynamic import of storagePathManager used in ClineProvider
+jest.mock(
+	"../../shared/storagePathManager.js",
+	() => ({
+		getTaskDirectoryPath: jest.fn().mockImplementation((globalStoragePath, taskId) => {
+			return Promise.resolve(`${globalStoragePath}/tasks/${taskId}`)
+		}),
+		getSettingsDirectoryPath: jest.fn().mockImplementation((globalStoragePath) => {
+			return Promise.resolve(`${globalStoragePath}/settings`)
+		}),
+		getCacheDirectoryPath: jest.fn().mockImplementation((globalStoragePath) => {
+			return Promise.resolve(`${globalStoragePath}/cache`)
+		}),
+	}),
+	{ virtual: true },
+) // Use virtual: true for dynamic imports
 
 // Mock fs/promises
 const mockMessages = [
@@ -164,7 +182,11 @@ describe("Cline", () => {
 	let mockOutputChannel: any
 	let mockExtensionContext: vscode.ExtensionContext
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		// Make beforeEach async
+		// Restore spyOn for countTokens
+		jest.spyOn(AnthropicHandler.prototype, "countTokens").mockResolvedValue(10)
+
 		// Setup mock extension context
 		const storageUri = {
 			fsPath: path.join(os.tmpdir(), "test-storage"),
@@ -267,9 +289,9 @@ describe("Cline", () => {
 		}))
 	})
 
-	describe("constructor", () => {
+	describe("constructor and create", () => {
 		it("should respect provided settings", async () => {
-			const cline = new Cline({
+			const cline = await Cline.create({
 				provider: mockProvider,
 				apiConfiguration: mockApiConfig,
 				customInstructions: "custom instructions",
@@ -283,7 +305,7 @@ describe("Cline", () => {
 		})
 
 		it("should use default fuzzy match threshold when not provided", async () => {
-			const cline = new Cline({
+			const cline = await Cline.create({
 				provider: mockProvider,
 				apiConfiguration: mockApiConfig,
 				customInstructions: "custom instructions",
@@ -302,7 +324,7 @@ describe("Cline", () => {
 		it("should use provided fuzzy match threshold", async () => {
 			const getDiffStrategySpy = jest.spyOn(require("../diff/DiffStrategy"), "getDiffStrategy")
 
-			const cline = new Cline({
+			const cline = await Cline.create({
 				provider: mockProvider,
 				apiConfiguration: mockApiConfig,
 				customInstructions: "custom instructions",
@@ -325,7 +347,7 @@ describe("Cline", () => {
 		it("should pass default threshold to diff strategy when not provided", async () => {
 			const getDiffStrategySpy = jest.spyOn(require("../diff/DiffStrategy"), "getDiffStrategy")
 
-			const cline = new Cline({
+			const cline = await Cline.create({
 				provider: mockProvider,
 				apiConfiguration: mockApiConfig,
 				customInstructions: "custom instructions",
@@ -343,10 +365,12 @@ describe("Cline", () => {
 			})
 		})
 
-		it("should require either task or historyItem", () => {
-			expect(() => {
-				new Cline({ provider: mockProvider, apiConfiguration: mockApiConfig })
-			}).toThrow("Either historyItem or task/images must be provided")
+		it("should require either task or historyItem", async () => {
+			// Test the create method which includes the validation check
+			await expect(
+				Cline.create({ provider: mockProvider, apiConfiguration: mockApiConfig }),
+				// Update the expected error message to match the actual one thrown by Cline.create
+			).rejects.toThrow("Either historyItem or task/images must be provided when starting a task")
 		})
 	})
 
@@ -395,7 +419,7 @@ describe("Cline", () => {
 		})
 
 		it("should include timezone information in environment details", async () => {
-			const cline = new Cline({
+			const cline = await Cline.create({
 				provider: mockProvider,
 				apiConfiguration: mockApiConfig,
 				task: "test task",
@@ -413,14 +437,19 @@ describe("Cline", () => {
 
 		describe("API conversation handling", () => {
 			it("should clean conversation history before sending to API", async () => {
-				const [cline, task] = Cline.create({
+				const cline = await Cline.create({
 					provider: mockProvider,
 					apiConfiguration: mockApiConfig,
 					task: "test task",
+					startTask: false, // Prevent task from starting automatically
 				})
 
-				cline.abandoned = true
-				await task
+				// Manually start the task loop for testing purposes if needed,
+				// or directly test methods that use apiConversationHistory.
+				// For this test, we just need the instance.
+
+				// cline.abandoned = true // No longer needed as startTask is false
+				// await task // No longer needed
 
 				// Set up mock stream.
 				const mockStreamForClean = (async function* () {
@@ -463,8 +492,8 @@ describe("Cline", () => {
 
 				cline.apiConversationHistory = [messageWithExtra]
 
-				// Trigger an API request
-				await cline.recursivelyMakeClineRequests([{ type: "text", text: "test request" }], false)
+				// Trigger an API request - Use 'any' cast to access private method for testing
+				await (cline as any).recursivelyMakeClineRequests([{ type: "text", text: "test request" }], false)
 
 				// Get the conversation history from the first API call
 				const history = cleanMessageSpy.mock.calls[0][1]
@@ -527,10 +556,11 @@ describe("Cline", () => {
 				]
 
 				// Test with model that supports images
-				const [clineWithImages, taskWithImages] = Cline.create({
+				const clineWithImages = await Cline.create({
 					provider: mockProvider,
 					apiConfiguration: configWithImages,
 					task: "test task",
+					startTask: false, // Prevent task from starting automatically
 				})
 
 				// Mock the model info to indicate image support
@@ -550,10 +580,11 @@ describe("Cline", () => {
 				clineWithImages.apiConversationHistory = conversationHistory
 
 				// Test with model that doesn't support images
-				const [clineWithoutImages, taskWithoutImages] = Cline.create({
+				const clineWithoutImages = await Cline.create({
 					provider: mockProvider,
 					apiConfiguration: configWithoutImages,
 					task: "test task",
+					startTask: false, // Prevent task from starting automatically
 				})
 
 				// Mock the model info to indicate no image support
@@ -621,15 +652,15 @@ describe("Cline", () => {
 					},
 				]
 
-				clineWithImages.abandoned = true
-				await taskWithImages.catch(() => {})
+				// clineWithImages.abandoned = true // No longer needed
+				// await taskWithImages.catch(() => {}) // No longer needed
 
-				clineWithoutImages.abandoned = true
-				await taskWithoutImages.catch(() => {})
+				// clineWithoutImages.abandoned = true // No longer needed
+				// await taskWithoutImages.catch(() => {}) // No longer needed
 
-				// Trigger API requests
-				await clineWithImages.recursivelyMakeClineRequests([{ type: "text", text: "test request" }])
-				await clineWithoutImages.recursivelyMakeClineRequests([{ type: "text", text: "test request" }])
+				// Trigger API requests - Use 'any' cast to access private method for testing
+				await (clineWithImages as any).recursivelyMakeClineRequests([{ type: "text", text: "test request" }])
+				await (clineWithoutImages as any).recursivelyMakeClineRequests([{ type: "text", text: "test request" }])
 
 				// Get the calls
 				const imagesCalls = imagesSpy.mock.calls
@@ -650,10 +681,11 @@ describe("Cline", () => {
 			})
 
 			it.skip("should handle API retry with countdown", async () => {
-				const [cline, task] = Cline.create({
+				const cline = await Cline.create({
 					provider: mockProvider,
 					apiConfiguration: mockApiConfig,
 					task: "test task",
+					startTask: false, // Prevent task from starting automatically
 				})
 
 				// Mock delay to track countdown timing
@@ -770,14 +802,15 @@ describe("Cline", () => {
 				)
 
 				await cline.abortTask(true)
-				await task.catch(() => {})
+				// await task.catch(() => {}) // No longer needed
 			})
 
 			it.skip("should not apply retry delay twice", async () => {
-				const [cline, task] = Cline.create({
+				const cline = await Cline.create({
 					provider: mockProvider,
 					apiConfiguration: mockApiConfig,
 					task: "test task",
+					startTask: false, // Prevent task from starting automatically
 				})
 
 				// Mock delay to track countdown timing
@@ -893,15 +926,16 @@ describe("Cline", () => {
 				)
 
 				await cline.abortTask(true)
-				await task.catch(() => {})
+				// await task.catch(() => {}) // No longer needed
 			})
 
 			describe("loadContext", () => {
 				it("should process mentions in task and feedback tags", async () => {
-					const [cline, task] = Cline.create({
+					const cline = await Cline.create({
 						provider: mockProvider,
 						apiConfiguration: mockApiConfig,
 						task: "test task",
+						startTask: false, // Prevent task from starting automatically
 					})
 
 					// Mock parseMentions to track calls
@@ -971,7 +1005,7 @@ describe("Cline", () => {
 					expect((content2 as Anthropic.TextBlockParam).text).toBe("Regular tool result with @/path")
 
 					await cline.abortTask(true)
-					await task.catch(() => {})
+					// await task.catch(() => {}) // 'task' variable removed as Cline.create only returns instance
 				})
 			})
 		})

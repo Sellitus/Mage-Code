@@ -4,9 +4,8 @@ import fs from "fs/promises"
 import EventEmitter from "events"
 
 import { Anthropic } from "@anthropic-ai/sdk"
-import delay from "delay"
+const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 import axios from "axios"
-import pWaitFor from "p-wait-for"
 import * as vscode from "vscode"
 
 import { GlobalState, ProviderSettings, RooCodeSettings } from "../../schemas"
@@ -500,7 +499,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 		const modePrompt = customModePrompts?.[mode] as PromptComponent
 		const effectiveInstructions = [globalInstructions, modePrompt?.customInstructions].filter(Boolean).join("\n\n")
 
-		const cline = new Cline({
+		const cline = await Cline.create({
 			provider: this,
 			apiConfiguration,
 			customInstructions: effectiveInstructions,
@@ -515,6 +514,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 			parentTask,
 			taskNumber: this.clineStack.length + 1,
 			onCreated: (cline) => this.emit("clineCreated", cline),
+			startTask: true, // Explicitly start the task
 			...options,
 		})
 
@@ -571,7 +571,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 			}
 		}
 
-		const cline = new Cline({
+		const cline = await Cline.create({
 			provider: this,
 			apiConfiguration,
 			customInstructions: effectiveInstructions,
@@ -584,6 +584,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 			parentTask: historyItem.parentTask,
 			taskNumber: historyItem.number,
 			onCreated: (cline) => this.emit("clineCreated", cline),
+			startTask: true, // Explicitly start the task
 		})
 
 		await this.addClineToStack(cline)
@@ -877,6 +878,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 
 		cline.abortTask()
 
+		const { default: pWaitFor } = await import("p-wait-for")
 		await pWaitFor(
 			() =>
 				this.getCurrentCline()! === undefined ||
@@ -941,13 +943,13 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 	}
 
 	async ensureSettingsDirectoryExists(): Promise<string> {
-		const { getSettingsDirectoryPath } = await import("../../shared/storagePathManager")
+		const { getSettingsDirectoryPath } = await import("../../shared/storagePathManager.js") // Added .js back
 		const globalStoragePath = this.contextProxy.globalStorageUri.fsPath
 		return getSettingsDirectoryPath(globalStoragePath)
 	}
 
 	private async ensureCacheDirectoryExists() {
-		const { getCacheDirectoryPath } = await import("../../shared/storagePathManager")
+		const { getCacheDirectoryPath } = await import("../../shared/storagePathManager.js") // Added .js back
 		const globalStoragePath = this.contextProxy.globalStorageUri.fsPath
 		return getCacheDirectoryPath(globalStoragePath)
 	}
@@ -1085,7 +1087,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 		const historyItem = history.find((item) => item.id === id)
 
 		if (historyItem) {
-			const { getTaskDirectoryPath } = await import("../../shared/storagePathManager")
+			const { getTaskDirectoryPath } = await import("../../shared/storagePathManager.js") // Added .js back
 			const globalStoragePath = this.contextProxy.globalStorageUri.fsPath
 			const taskDirPath = await getTaskDirectoryPath(globalStoragePath, id)
 			const apiConversationHistoryFilePath = path.join(taskDirPath, GlobalFileNames.apiConversationHistory)

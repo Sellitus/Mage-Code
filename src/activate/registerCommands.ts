@@ -1,5 +1,5 @@
 import * as vscode from "vscode"
-import delay from "delay"
+const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 import { ClineProvider } from "../core/webview/ClineProvider"
 
@@ -111,7 +111,7 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 		"roo-cline.handleHumanRelayResponse": handleHumanRelayResponse,
 		"roo-cline.newTask": handleNewTask,
 		"roo-cline.setCustomStoragePath": async () => {
-			const { promptForCustomStoragePath } = await import("../shared/storagePathManager")
+			const { promptForCustomStoragePath } = await import("../shared/storagePathManager.js")
 			await promptForCustomStoragePath()
 		},
 		"roo-cline.focusInput": () => {

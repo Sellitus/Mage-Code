@@ -6,10 +6,7 @@ import EventEmitter from "events"
 
 import { Anthropic } from "@anthropic-ai/sdk"
 import cloneDeep from "clone-deep"
-import delay from "delay"
-import pWaitFor from "p-wait-for"
-import getFolderSize from "get-folder-size"
-import { serializeError } from "serialize-error"
+const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 import * as vscode from "vscode"
 
 import { TokenUsage } from "../schemas"
@@ -178,7 +175,8 @@ export class Cline extends EventEmitter<ClineEvents> {
 	private didAlreadyUseTool = false
 	private didCompleteReadingStream = false
 
-	constructor({
+	// Make the constructor private
+	private constructor({
 		provider,
 		apiConfiguration,
 		customInstructions,
@@ -191,7 +189,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 		images,
 		historyItem,
 		experiments,
-		startTask = true,
+		// startTask is removed, handled by the static create method
 		rootTask,
 		parentTask,
 		taskNumber = -1,
@@ -199,9 +197,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 	}: ClineOptions) {
 		super()
 
-		if (startTask && !task && !images && !historyItem) {
-			throw new Error("Either historyItem or task/images must be provided")
-		}
+		// Validation moved to the static create method
 
 		this.taskId = historyItem ? historyItem.id : crypto.randomUUID()
 		this.instanceId = crypto.randomUUID().slice(0, 8)
@@ -222,6 +218,8 @@ export class Cline extends EventEmitter<ClineEvents> {
 		this.consecutiveMistakeLimit = consecutiveMistakeLimit
 		this.providerRef = new WeakRef(provider)
 		this.diffViewProvider = new DiffViewProvider(this.cwd)
+		// Initialize DiffViewProvider here (constructor is now private)
+		// Note: We can't await here directly, initialization happens in the static create method.
 		this.enableCheckpoints = enableCheckpoints
 		this.checkpointStorage = checkpointStorage
 
@@ -240,31 +238,56 @@ export class Cline extends EventEmitter<ClineEvents> {
 
 		onCreated?.(this)
 
-		if (startTask) {
-			if (task || images) {
-				this.startTask(task, images)
-			} else if (historyItem) {
-				this.resumeTaskFromHistory()
-			} else {
-				throw new Error("Either historyItem or task/images must be provided")
-			}
-		}
+		// Constructor now only initializes properties.
+		// Async initialization and task starting are handled by the create method.
 	}
 
-	static create(options: ClineOptions): [Cline, Promise<void>] {
-		const instance = new Cline({ ...options, startTask: false })
-		const { images, task, historyItem } = options
-		let promise
+	// Public static async factory method
+	public static async create(options: ClineOptions): Promise<Cline> {
+		const { provider, task, images, historyItem, onCreated, startTask = true } = options
 
-		if (images || task) {
-			promise = instance.startTask(task, images)
-		} else if (historyItem) {
-			promise = instance.resumeTaskFromHistory()
-		} else {
-			throw new Error("Either historyItem or task/images must be provided")
+		// Validate inputs if a task is intended to start immediately
+		if (startTask && !task && !images && !historyItem) {
+			throw new Error("Either historyItem or task/images must be provided when starting a task")
 		}
 
-		return [instance, promise]
+		// Instantiate using the private constructor
+		// Pass all options except startTask, as it's handled here
+		const instance = new Cline({
+			...options,
+			// Explicitly exclude startTask if it exists in options, though it's not used by constructor
+		})
+
+		// Perform async initializations
+		await instance.diffViewProvider.initialize()
+		// Initialize checkpoint service asynchronously if enabled
+		if (instance.enableCheckpoints) {
+			// Don't await here, let it initialize in the background
+			instance.getCheckpointService()
+		}
+		// Add other async initializations here if needed
+
+		// Call the onCreated callback if provided
+		onCreated?.(instance)
+
+		// Start or resume the task based on the original options if startTask is true
+		if (startTask) {
+			if (task || images) {
+				await instance.startTask(task, images)
+			} else if (historyItem) {
+				await instance.resumeTaskFromHistory()
+			}
+			// The validation check at the beginning ensures one of these conditions is met
+		} else {
+			// If startTask is false, initialize necessary state without starting the loop
+			instance.clineMessages = []
+			instance.apiConversationHistory = []
+			await instance.providerRef.deref()?.postStateToWebview() // Ensure webview has initial empty state
+			instance.isInitialized = true // Mark as initialized even if task loop doesn't start
+			console.log(`[subtasks] task ${instance.taskId}.${instance.instanceId} created but not started`)
+		}
+
+		return instance
 	}
 
 	get cwd() {
@@ -289,7 +312,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 		}
 
 		// Use storagePathManager to retrieve the task storage directory
-		const { getTaskDirectoryPath } = await import("../shared/storagePathManager")
+		const { getTaskDirectoryPath } = await import("../shared/storagePathManager.js")
 		return getTaskDirectoryPath(globalStoragePath, this.taskId)
 	}
 
@@ -382,6 +405,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 			let taskDirSize = 0
 
 			try {
+				const { default: getFolderSize } = await import("get-folder-size")
 				taskDirSize = await getFolderSize.loose(taskDir)
 			} catch (err) {
 				console.error(
@@ -496,6 +520,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 			await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text })
 		}
 
+		const { default: pWaitFor } = await import("p-wait-for")
 		await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs, { interval: 100 })
 
 		if (this.lastMessageTs !== askTs) {
@@ -592,9 +617,9 @@ export class Cline extends EventEmitter<ClineEvents> {
 
 	// Task lifecycle
 
+	// Renamed to indicate it's called internally after construction
 	private async startTask(task?: string, images?: string[]): Promise<void> {
-		// conversationHistory (for API) and clineMessages (for webview) need to be in sync
-		// if the extension process were killed, then on restart the clineMessages might not be empty, so we need to set it to [] when we create a new Cline client (otherwise webview would show stale messages from previous session)
+		// Ensure clean state when starting a new task
 		this.clineMessages = []
 		this.apiConversationHistory = []
 		await this.providerRef.deref()?.postStateToWebview()
@@ -606,7 +631,8 @@ export class Cline extends EventEmitter<ClineEvents> {
 
 		console.log(`[subtasks] task ${this.taskId}.${this.instanceId} starting`)
 
-		await this.initiateTaskLoop([
+		// Call the renamed method to start the task loop
+		await this.runTaskLoop([
 			{
 				type: "text",
 				text: `<task>\n${task}\n</task>`,
@@ -642,10 +668,12 @@ export class Cline extends EventEmitter<ClineEvents> {
 		}
 	}
 
+	// Renamed to indicate it's called internally after construction
 	private async resumeTaskFromHistory() {
+		// Load existing messages for the history item
 		const modifiedClineMessages = await this.getSavedClineMessages()
 
-		// Remove any resume messages that may have been added before
+		// Clean up previous resume attempts from the message history
 		const lastRelevantMessageIndex = findLastIndex(
 			modifiedClineMessages,
 			(m) => !(m.ask === "resume_task" || m.ask === "resume_completed_task"),
@@ -866,23 +894,26 @@ export class Cline extends EventEmitter<ClineEvents> {
 
 		console.log(`[subtasks] task ${this.taskId}.${this.instanceId} resuming from history item`)
 
-		await this.initiateTaskLoop(newUserContent)
+		// Call the renamed method to start the task loop
+		await this.runTaskLoop(newUserContent)
 	}
 
-	private async initiateTaskLoop(userContent: UserContent): Promise<void> {
-		// Kicks off the checkpoints initialization process in the background.
-		this.getCheckpointService()
+	// Renamed for clarity - This is the main loop starter
+	private async runTaskLoop(userContent: UserContent): Promise<void> {
+		// Checkpoint service initialization is now handled in the `create` method
 
 		let nextUserContent = userContent
-		let includeFileDetails = true
+		let includeFileDetails = true // Include full details on the first loop iteration
 
 		this.emit("taskStarted")
 
 		while (!this.abort) {
+			// The core recursive loop that handles API requests and tool execution
 			const didEndLoop = await this.recursivelyMakeClineRequests(nextUserContent, includeFileDetails)
-			includeFileDetails = false // we only need file details the first time
+			includeFileDetails = false // Only include full details on the first iteration
 
-			// The way this agentic loop works is that cline will be given a
+			// Logic for handling the agentic loop:
+			// Cline is given a task, calls tools to complete it.
 			// task that he then calls tools to complete. Unless there's an
 			// attempt_completion call, we keep responding back to him with his
 			// tool's responses until he either attempt_completion or does not
@@ -1116,6 +1147,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 				throw new Error("MCP hub not available")
 			}
 			// Wait for MCP servers to be connected before generating system prompt
+			const { default: pWaitFor } = await import("p-wait-for")
 			await pWaitFor(() => mcpHub!.isConnecting !== true, { timeout: 10_000 }).catch(() => {
 				console.error("MCP servers failed to connect in time")
 			})
@@ -1280,6 +1312,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 				yield* this.attemptApiRequest(previousApiReqIndex, retryAttempt + 1)
 				return
 			} else {
+				const { serializeError } = await import("serialize-error")
 				const { response } = await this.ask(
 					"api_req_failed",
 					error.message ?? JSON.stringify(serializeError(error), null, 2),
@@ -1502,6 +1535,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 				}
 
 				const handleError = async (action: string, error: Error) => {
+					const { serializeError } = await import("serialize-error")
 					const errorString = `Error ${action}: ${JSON.stringify(serializeError(error))}`
 					await this.say(
 						"error",
@@ -1717,7 +1751,8 @@ export class Cline extends EventEmitter<ClineEvents> {
 		})
 	}
 
-	async recursivelyMakeClineRequests(
+	// Renamed for clarity, this is the core recursive function
+	private async recursivelyMakeClineRequests(
 		userContent: UserContent,
 		includeFileDetails: boolean = false,
 	): Promise<boolean> {
@@ -1958,6 +1993,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 				if (!this.abandoned) {
 					this.abortTask() // if the stream failed, there's various states the task could be in (i.e. could have streamed some tools the user may have executed), so we just resort to replicating a cancel task
 
+					const { serializeError } = await import("serialize-error")
 					await abortStream(
 						"streaming_failed",
 						error.message ?? JSON.stringify(serializeError(error), null, 2),
@@ -2014,6 +2050,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 				// 	this.userMessageContentReady = true
 				// }
 
+				const { default: pWaitFor } = await import("p-wait-for")
 				await pWaitFor(() => this.userMessageContentReady)
 
 				// if the model did not tool use, then we need to tell it to either use a tool or attempt_completion
@@ -2026,10 +2063,11 @@ export class Cline extends EventEmitter<ClineEvents> {
 					this.consecutiveMistakeCount++
 				}
 
+				// Recursively call itself with the results from the tool use
 				const recDidEndLoop = await this.recursivelyMakeClineRequests(this.userMessageContent)
 				didEndLoop = recDidEndLoop
 			} else {
-				// if there's no assistant_responses, that means we got no text or tool_use content blocks from API which we should assume is an error
+				// Handle case where the API response was empty (no text or tool use)
 				await this.say(
 					"error",
 					"Unexpected API Response: The language model did not provide any assistant messages. This may indicate an issue with the API or the model's output.",
@@ -2179,6 +2217,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 
 		if (busyTerminals.length > 0) {
 			// wait for terminals to cool down
+			const { default: pWaitFor } = await import("p-wait-for")
 			await pWaitFor(() => busyTerminals.every((t) => !TerminalRegistry.isProcessHot(t.id)), {
 				interval: 100,
 				timeout: 15_000,
@@ -2481,6 +2520,7 @@ export class Cline extends EventEmitter<ClineEvents> {
 		}
 
 		try {
+			const { default: pWaitFor } = await import("p-wait-for")
 			await pWaitFor(
 				() => {
 					console.log("[Cline#getCheckpointService] waiting for service to initialize")

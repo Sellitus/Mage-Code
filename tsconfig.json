@@ -5,8 +5,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
 		"lib": ["es2022", "esnext.disposable", "DOM"],
-		"module": "esnext",
-		"moduleResolution": "Bundler",
+		"module": "Node16", // Change from esnext to Node16
+		"moduleResolution": "node16", // Change from Bundler to node16
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitOverride": true,
 		"noImplicitReturns": true,

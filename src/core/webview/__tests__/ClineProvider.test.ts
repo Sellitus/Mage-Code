@@ -214,26 +214,65 @@ jest.mock("../../../integrations/workspace/WorkspaceTracker", () => {
 })
 
 // Mock Cline
-jest.mock("../../Cline", () => ({
-	Cline: jest
-		.fn()
-		.mockImplementation(
-			(provider, apiConfiguration, customInstructions, diffEnabled, fuzzyMatchThreshold, task, taskId) => ({
-				api: undefined,
-				abortTask: jest.fn(),
-				handleWebviewAskResponse: jest.fn(),
-				clineMessages: [],
-				apiConversationHistory: [],
-				overwriteClineMessages: jest.fn(),
-				overwriteApiConversationHistory: jest.fn(),
-				getTaskNumber: jest.fn().mockReturnValue(0),
-				setTaskNumber: jest.fn(),
-				setParentTask: jest.fn(),
-				setRootTask: jest.fn(),
-				taskId: taskId || "test-task-id",
-			}),
-		),
-}))
+jest.mock("../../Cline", () => {
+	// Create a mock class with mocked constructor and static method
+	class MockCline {
+		// Declare properties
+		taskId: string
+		api: any = undefined
+		clineMessages: any[] = []
+		apiConversationHistory: any[] = []
+
+		// Declare and initialize mock instance methods as class properties
+		abortTask = jest.fn()
+		handleWebviewAskResponse = jest.fn()
+		overwriteClineMessages = jest.fn()
+		overwriteApiConversationHistory = jest.fn()
+		getTaskNumber = jest.fn().mockReturnValue(0)
+		setTaskNumber = jest.fn()
+		setParentTask = jest.fn()
+		setRootTask = jest.fn()
+
+		// Mock constructor
+		constructor(
+			provider: any,
+			apiConfiguration: any,
+			customInstructions: any,
+			diffEnabled: any,
+			fuzzyMatchThreshold: any,
+			task: any,
+			taskId?: string,
+		) {
+			this.taskId = taskId || "test-task-id-constructor"
+			// No need to assign methods here, they are initialized above
+		}
+
+		// Mock static create method and wrap it with jest.fn()
+		static create = jest.fn(async (options: any) => {
+			// Create an instance using the mocked constructor
+			const instance = new MockCline(
+				options.provider,
+				options.apiConfiguration,
+				options.customInstructions,
+				options.enableDiff,
+				options.fuzzyMatchThreshold,
+				options.task,
+				options.taskId, // Pass taskId from options
+			)
+			// Ensure taskId is set correctly from create options
+			instance.taskId = options?.taskId || "test-task-id-create"
+
+			// Call the onCreated callback if provided
+			if (options?.onCreated) {
+				await options.onCreated(instance)
+			}
+			return instance
+		})
+	}
+
+	// The factory must return an object mapping the export name to the mock
+	return { Cline: MockCline }
+})
 
 // Mock extract-text
 jest.mock("../../../integrations/misc/extract-text", () => ({
@@ -834,15 +873,16 @@ describe("ClineProvider", () => {
 			experiments: experimentDefault,
 		} as any)
 
-		// Reset Cline mock
+		// Get the mocked Cline class
 		const { Cline } = require("../../Cline")
-		;(Cline as jest.Mock).mockClear()
+		// No need to clear the mock class itself, Jest handles test isolation.
 
 		// Initialize Cline with a task
 		await provider.initClineWithTask("Test task")
 
-		// Verify Cline was initialized with mode-specific instructions
-		expect(Cline).toHaveBeenCalledWith({
+		// Verify Cline.create was called with mode-specific instructions
+		expect(Cline.create).toHaveBeenCalledWith({
+			// Check the static create method
 			provider,
 			apiConfiguration: mockApiConfig,
 			customInstructions: modeCustomInstructions,
@@ -856,6 +896,9 @@ describe("ClineProvider", () => {
 			parentTask: undefined,
 			taskNumber: 1,
 			onCreated: expect.any(Function),
+			taskId: undefined, // Passed as undefined when options are not provided
+			startTask: true, // Default value when options are not provided
+			images: undefined, // Passed as undefined when options are not provided
 		})
 	})
 

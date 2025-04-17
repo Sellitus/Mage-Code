@@ -4,8 +4,8 @@ import * as path from "path"
 import { Browser, Page, ScreenshotOptions, TimeoutError, launch, connect } from "puppeteer-core"
 // @ts-ignore
 import PCR from "puppeteer-chromium-resolver"
-import pWaitFor from "p-wait-for"
-import delay from "delay"
+// import pWaitFor from "p-wait-for" // Changed to dynamic import
+// import delay from "delay" // Changed to dynamic import
 import axios from "axios"
 import { fileExistsAtPath } from "../../utils/fs"
 import { BrowserActionResult } from "../../shared/ExtensionMessage"
@@ -252,6 +252,7 @@ export class BrowserSession {
 		}
 
 		// Wait for console inactivity, with a timeout
+		const pWaitFor = (await import("p-wait-for")).default // Dynamic import
 		await pWaitFor(() => Date.now() - lastLogTs >= 500, {
 			timeout: 3_000,
 			interval: 100,
@@ -443,6 +444,7 @@ export class BrowserSession {
 			}
 
 			lastHTMLSize = currentHTMLSize
+			const delay = (await import("delay")).default // Dynamic import
 			await delay(checkDurationMsecs)
 		}
 	}
@@ -469,6 +471,7 @@ export class BrowserSession {
 		this.currentMousePosition = coordinate
 
 		// Small delay to check if action triggered any network activity
+		const delay = (await import("delay")).default // Dynamic import
 		await delay(100)
 
 		if (hasNetworkActivity) {
@@ -514,6 +517,7 @@ export class BrowserSession {
 			})
 		}, scrollAmount)
 
+		const delay = (await import("delay")).default // Dynamic import
 		await delay(300)
 	}
 
@@ -534,6 +538,7 @@ export class BrowserSession {
 			await this.handleMouseInteraction(page, coordinate, async (x, y) => {
 				await page.mouse.move(x, y)
 				// Small delay to allow any hover effects to appear
+				const delay = (await import("delay")).default // Dynamic import
 				await delay(300)
 			})
 		})

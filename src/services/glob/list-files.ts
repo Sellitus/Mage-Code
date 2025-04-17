@@ -1,4 +1,4 @@
-import { globby, Options } from "globby"
+import type { Options } from "globby" with { "resolution-mode": "import" }
 import os from "os"
 import * as path from "path"
 import { arePathsEqual } from "../../utils/path"
@@ -46,6 +46,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		onlyFiles: false, // true by default, false means it will list directories on their own too
 	}
 	// * globs all files in one dir, ** globs files in nested directories
+	const { globby } = await import("globby")
 	const files = recursive ? await globbyLevelByLevel(limit, options) : (await globby("*", options)).slice(0, limit)
 	return [files, files.length >= limit]
 }
@@ -69,6 +70,7 @@ async function globbyLevelByLevel(limit: number, options?: Options) {
 	const globbingProcess = async () => {
 		while (queue.length > 0 && results.size < limit) {
 			const pattern = queue.shift()!
+			const { globby } = await import("globby")
 			const filesAtLevel = await globby(pattern, options)
 
 			for (const file of filesAtLevel) {

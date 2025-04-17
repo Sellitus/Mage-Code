@@ -87,7 +87,7 @@ ${modesSection}
 
 ${getRulesSection(cwd, supportsComputerUse, effectiveDiffStrategy, experiments)}
 
-${getSystemInfoSection(cwd, mode, customModeConfigs)}
+${await getSystemInfoSection(cwd, mode, customModeConfigs)}
 
 ${getObjectiveSection()}
 

@@ -2,6 +2,7 @@ import { IRetriever, RetrievedItem, RetrievalOptions } from "../types"
 import { ILocalCodeIntelligence, VectorSearchResult } from "../../intelligence"
 import { CodeElement } from "../../intelligence/types"
 import * as vscode from "vscode"
+import { logger } from "../../utils/logging" // Import the logger
 
 /**
  * Retrieves code elements using vector similarity search
@@ -34,7 +35,7 @@ export class VectorRetriever implements IRetriever {
 			// Convert to RetrievedItems
 			return results.map((result) => this.convertToRetrievedItem(result))
 		} catch (error) {
-			console.error("Vector retrieval error:", error)
+			logger.error("Vector retrieval error", error)
 			return []
 		}
 	}

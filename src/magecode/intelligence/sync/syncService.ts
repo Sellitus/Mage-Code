@@ -1,27 +1,28 @@
 import * as vscode from "vscode"
 import * as fs from "fs/promises"
 import * as path from "path"
-import PQueue from "p-queue"
+// import PQueue from "p-queue" // Changed to dynamic import
 import Piscina from "piscina"
 import debounce from "lodash.debounce"
 import ignore from "ignore"
-import { globby } from "globby" // Using globby for initial scan
+// import { globby } from "globby" // Changed to dynamic import
 
 import { DatabaseManager } from "../storage/databaseManager"
 import { VectorIndex } from "../vector/vectorIndex"
 import { EmbeddingService } from "../embedding/embeddingService"
 import { MultiModelOrchestrator } from "../../orchestration" // Added import
 import { ResourceGovernor, ResourceGovernorConfig } from "../../utils/resourceGovernor" // Corrected path
-import { logger } from "../../../utils/logging" // Corrected relative path
-import { sleep } from "../../../utils/sleep" // Corrected relative path, assuming sleep utility exists
+import { logger } from "../../utils/logging" // Corrected relative path relative to magecode/utils
+import { sleep } from "../../../utils/sleep" // Correct path relative to src/utils
+import { CodeElement } from "../../interfaces" // Import CodeElement type
 
 // Interface for results coming back from the worker
 interface SyncWorkerResult {
 	filePath: string
-	elements: any[] // Replace 'any' with actual CodeElement type if available
-	relations: any[] // Replace 'any' with actual ElementRelation type if available
-	embeddings: { elementId: string; vector: number[] }[]
-	errors: Error[]
+	elements: CodeElement[] // Use imported CodeElement type
+	relations: any[] // TODO: Define ElementRelation type if needed
+	embeddings: { elementId: string; vector: number[] }[] // Worker returns elementId
+	errors: { message: string; stack?: string }[] // Use serializable error format
 }
 
 export type SyncTask = { type: "add" | "update" | "delete"; path: string }
@@ -34,21 +35,35 @@ export interface SyncServiceOptions {
 	governorConfig?: ResourceGovernorConfig
 }
 
+/**
+ * Manages the synchronization of workspace files with the MageCode intelligence stores (database, vector index).
+ * It performs an initial scan, watches for file changes, debounces events, uses a worker pool
+ * for processing (parsing, embedding), and updates the stores accordingly.
+ * Implements vscode.Disposable to clean up watchers and worker pools.
+ */
 export class SyncService implements vscode.Disposable {
-	private dbManager: DatabaseManager
-	private vectorIndex: VectorIndex
-	private options: SyncServiceOptions
-	private embeddingService: EmbeddingService
-	private mmo: MultiModelOrchestrator // Added member
-	private governor: ResourceGovernor
-	private workerPool: Piscina
-	private queue: PQueue
+	private readonly dbManager: DatabaseManager
+	private readonly vectorIndex: VectorIndex
+	private readonly options: SyncServiceOptions
+	private readonly embeddingService: EmbeddingService
+	private readonly mmo: MultiModelOrchestrator // Added member
+	private readonly governor: ResourceGovernor
+	private readonly workerPool: Piscina
+	private queue: any // Type adjusted for dynamic import
 	private watcher: vscode.FileSystemWatcher | undefined
 	private ig: ignore.Ignore // For handling .gitignore and custom ignores
 	private disposed = false
 	private pendingTasks: Map<string, SyncTask> = new Map()
 	private processPendingTasksDebounced: () => void
 
+	/**
+	 * Creates an instance of SyncService.
+	 * @param dbManager - Instance of DatabaseManager.
+	 * @param vectorIndex - Instance of VectorIndex.
+	 * @param embeddingService - Instance of EmbeddingService.
+	 * @param mmo - Instance of MultiModelOrchestrator (used for cache clearing).
+	 * @param options - Configuration options for the sync service.
+	 */
 	constructor(
 		dbManager: DatabaseManager,
 		vectorIndex: VectorIndex,
@@ -76,8 +91,8 @@ export class SyncService implements vscode.Disposable {
 		})
 		logger.info(`[SyncService] Worker pool initialized (Min: ${minConcurrency}, Max: ${baselineConcurrency})`)
 
-		// Initialize PQueue - concurrency controlled by governor check before dispatch
-		this.queue = new PQueue({ concurrency: 1 }) // Process one task check at a time
+		// PQueue will be initialized dynamically in initialize()
+		// this.queue = new PQueue({ concurrency: 1 }) // Process one task check at a time
 
 		// Initialize ignore instance
 		this.ig = ignore()
@@ -93,10 +108,19 @@ export class SyncService implements vscode.Disposable {
 	}
 
 	/**
-	 * Initializes the service: loads ignore rules, performs initial scan, sets up watcher.
+	 * Initializes the SyncService. This includes:
+	 * - Loading ignore rules (.gitignore and custom).
+	 * - Performing an initial scan of the workspace to identify files for processing.
+	 * - Setting up the file system watcher to monitor subsequent changes.
+	 * @returns A promise that resolves when initialization is complete.
 	 */
 	async initialize(): Promise<void> {
 		logger.info("[SyncService] Initializing...")
+
+		// Initialize PQueue dynamically
+		const { default: PQueue } = await import("p-queue")
+		this.queue = new PQueue({ concurrency: 1 })
+
 		await this.loadIgnoreRules()
 
 		// Initial Scan
@@ -130,6 +154,7 @@ export class SyncService implements vscode.Disposable {
 	 */
 	private async initialScan(): Promise<void> {
 		logger.info("[SyncService] Starting initial workspace scan...")
+		const { globby } = await import("globby") // Dynamic import
 		let count = 0
 		for (const folder of this.options.workspaceFolders) {
 			const files = await globby(this.options.filePatterns, {
@@ -247,7 +272,7 @@ export class SyncService implements vscode.Disposable {
 			// TODO: Add relevancy cache clearing here when implemented
 			logger.debug(`[SyncService] Cleared caches for file change: ${task.path}`)
 		} catch (error) {
-			logger.error(`[SyncService] Error clearing caches for ${task.path}:`, error)
+			logger.error(`[SyncService] Error clearing caches for ${task.path}`, error) // Removed colon
 		}
 
 		if (task.type === "delete") {
@@ -255,11 +280,15 @@ export class SyncService implements vscode.Disposable {
 			try {
 				this.dbManager.deleteCodeElementsByFilePath(task.path) // Use the correct synchronous method
 				await this.vectorIndex.removeEmbeddingsByFile(task.path) // Use existing method
+				logger.info(`[SyncService] Successfully deleted data for: ${task.path}`) // Add success log
 			} catch (error) {
-				logger.error(`[SyncService] Error deleting data for ${task.path}:`, error)
+				logger.error(`[SyncService] Error deleting data for ${task.path}`, error) // Removed colon
 			}
 			return
 		}
+
+		// Log start of processing for add/update
+		logger.info(`[SyncService] Starting processing for (${task.type}): ${task.path}`)
 
 		// Wait if system is under load
 		while (!this.governor.canDispatchTask()) {
@@ -280,19 +309,41 @@ export class SyncService implements vscode.Disposable {
 			}
 
 			// Update Database and Vector Index (on main thread)
-			// TODO: Implement update logic using result.elements, result.relations
-			// await this.dbManager.updateData(result.filePath, result.elements, result.relations);
-			// TODO: Implement update logic using result.embeddings
-			// await this.vectorIndex.updateVectors(result.filePath, result.embeddings);
+			try {
+				logger.debug(`[SyncService] Updating database for: ${result.filePath}`)
+				// Assuming storeCodeElements handles upsert based on element ID
+				this.dbManager.storeCodeElements(result.elements)
+				// TODO: Handle relations if necessary: await this.dbManager.storeElementRelations(result.relations);
 
-			logger.info(`[SyncService] Successfully processed and updated data for: ${result.filePath}`)
+				if (result.embeddings.length > 0) {
+					logger.debug(`[SyncService] Updating vector index for: ${result.filePath}`)
+					// Map worker embedding format to vectorIndex format
+					const embeddingsToAdd = result.embeddings.map((emb) => ({
+						id: emb.elementId, // Map elementId to id
+						vector: emb.vector,
+						filePath: result.filePath, // Add filePath from the result context
+					}))
+					await this.vectorIndex.addEmbeddings(embeddingsToAdd)
+				} else {
+					logger.debug(`[SyncService] No embeddings returned from worker for: ${result.filePath}`)
+				}
+
+				logger.info(`[SyncService] Successfully updated data for: ${result.filePath}`)
+			} catch (updateError) {
+				logger.error(`[SyncService] Error updating DB/VectorIndex for ${result.filePath}`, updateError)
+				// Decide if this error should halt further processing or just be logged
+			}
 		} catch (error) {
-			logger.error(`[SyncService] Error processing task for ${task.path} in worker pool:`, error)
+			logger.error(`[SyncService] Error processing task for ${task.path} in worker pool`, error)
 		}
 	}
 
 	/**
-	 * Disposes resources: stops watcher, governor, pool, clears queue.
+	 * Disposes of resources used by the SyncService. This includes:
+	 * - Stopping the file system watcher.
+	 * - Stopping the resource governor's monitoring interval.
+	 * - Clearing the task queue and pending tasks.
+	 * - Destroying the worker pool.
 	 */
 	dispose() {
 		if (this.disposed) return

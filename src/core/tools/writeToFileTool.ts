@@ -12,7 +12,7 @@ import { addLineNumbers, stripLineNumbers } from "../../integrations/misc/extrac
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
 import { everyLineHasLineNumbers } from "../../integrations/misc/extract-text"
-import delay from "delay"
+// Removed static import for delay (ESM)
 import { detectCodeOmission } from "../../integrations/editor/detect-omission"
 
 export async function writeToFileTool(
@@ -128,7 +128,8 @@ export async function writeToFileTool(
 				everyLineHasLineNumbers(newContent) ? stripLineNumbers(newContent) : newContent,
 				true,
 			)
-			await delay(300) // wait for diff view to update
+			// Use dynamic import for delay
+			await (await import("delay")).default(300) // wait for diff view to update
 			cline.diffViewProvider.scrollToFirstDiff()
 
 			// Check for code omissions before proceeding

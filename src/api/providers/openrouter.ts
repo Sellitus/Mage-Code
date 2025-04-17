@@ -2,7 +2,7 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import { BetaThinkingConfigParam } from "@anthropic-ai/sdk/resources/beta"
 import axios, { AxiosRequestConfig } from "axios"
 import OpenAI from "openai"
-import delay from "delay"
+const delay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 import { ApiHandlerOptions, ModelInfo, openRouterDefaultModelId, openRouterDefaultModelInfo } from "../../shared/api"
 import { parseApiPrice } from "../../utils/cost"

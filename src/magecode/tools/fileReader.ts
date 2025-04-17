@@ -4,15 +4,19 @@ import * as vscode from "vscode"
 import * as fs from "fs/promises"
 import * as path from "path"
 import { Tool } from "../interfaces/tool"
+import { logger } from "../utils/logging" // Import the logger
 
 /**
  * A tool for reading the content of files within the VS Code workspace.
  * Includes security checks to prevent accessing files outside the workspace.
  */
 export class FileReader implements Tool {
+	/** The unique name of the tool. */
 	public readonly name = "fileReader"
+	/** A description of what the tool does. */
 	public readonly description =
 		"Reads the content of a specified file within the workspace. Requires a relative path."
+	/** The JSON schema defining the expected input arguments for the tool. */
 	public readonly inputSchema = {
 		type: "object" as const,
 		properties: {
@@ -25,9 +29,11 @@ export class FileReader implements Tool {
 	}
 
 	/**
-	 * Executes the file reading operation.
-	 * @param args - An object containing the relative 'path' to the file.
-	 * @returns A promise resolving to the file content as a string, or an error message string.
+	 * Executes the file reading operation after performing security checks.
+	 * It ensures the provided path is relative and resolves within the current workspace root.
+	 * @param args - An object containing the relative `path` to the file.
+	 * @returns A promise resolving to the file content as a UTF-8 string if successful,
+	 * or a string starting with "Error:" if validation fails or reading encounters an issue.
 	 */
 	public async execute(args: { path: string }): Promise<string> {
 		const relativePath = args.path
@@ -65,7 +71,7 @@ export class FileReader implements Tool {
 
 			if (!normalizedPath.startsWith(workspaceRootPath)) {
 				// Path traversal attempt detected!
-				console.error(
+				logger.error(
 					`Security Violation: Attempted file access outside workspace root. Workspace: ${workspaceRootPath}, Attempted Path: ${relativePath}, Resolved Normalized: ${normalizedPath}`,
 				)
 				return `Error: Path is outside the workspace boundaries. Access denied. Path provided: ${relativePath}`
@@ -73,10 +79,10 @@ export class FileReader implements Tool {
 			// Optional: Check if the final resolved path is identical after normalization,
 			// which can catch some edge cases like trailing slashes or dots.
 			// if (normalizedPath !== absolutePath) {
-			//    console.warn(`Path normalization changed the path: ${absolutePath} -> ${normalizedPath}`);
+			//    logger.warn(`Path normalization changed the path: ${absolutePath} -> ${normalizedPath}`);
 			// }
 		} catch (error: any) {
-			console.error(`Error constructing path: ${error.message}`, error)
+			logger.error(`Error constructing path: ${error.message}`, error)
 			return `Error: Could not construct a valid file path. Path provided: ${relativePath}. Error: ${error.message}`
 		}
 
@@ -91,7 +97,7 @@ export class FileReader implements Tool {
 			} else if (error.code === "EACCES") {
 				return `Error: Permission denied for file at path: ${relativePath}`
 			} else {
-				console.error(`Error reading file ${absolutePath}: ${error.message}`, error)
+				logger.error(`Error reading file ${absolutePath}: ${error.message}`, error)
 				return `Error: Failed to read file at path: ${relativePath}. Error: ${error.message}`
 			}
 		}

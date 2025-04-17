@@ -10,7 +10,7 @@ import {
 	ReadResourceResultSchema,
 } from "@modelcontextprotocol/sdk/types.js"
 import chokidar, { FSWatcher } from "chokidar"
-import delay from "delay"
+// import delay from "delay" // Changed to dynamic import
 import deepEqual from "fast-deep-equal"
 import * as fs from "fs/promises"
 import * as path from "path"
@@ -854,6 +854,7 @@ export class McpHub {
 			connection.server.status = "connecting"
 			connection.server.error = ""
 			await this.notifyWebviewOfServerChanges()
+			const delay = (await import("delay")).default // Dynamic import
 			await delay(500) // artificial delay to show user that server is restarting
 			try {
 				await this.deleteConnection(serverName, connection.server.source)

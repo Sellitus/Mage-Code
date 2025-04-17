@@ -1,4 +1,5 @@
 import { ModelTier } from "../interfaces"
+import { logger } from "../../utils/logging" // Import the logger
 
 /**
  * Service responsible for formatting prompts based on the target model tier.
@@ -13,7 +14,7 @@ export class PromptService {
 	 * @returns The formatted prompt string.
 	 */
 	formatPrompt(prompt: string, tier: ModelTier): string {
-		console.log(`[PromptService] Formatting prompt for tier: ${tier}`)
+		logger.info(`[PromptService] Formatting prompt for tier: ${tier}`)
 		// TODO: Implement tier-specific formatting logic if needed in the future.
 		// For now, just return the original prompt.
 		return prompt

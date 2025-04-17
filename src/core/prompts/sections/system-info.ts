@@ -1,21 +1,33 @@
-import defaultShell from "default-shell"
+// Removed static imports for default-shell and os-name
 import os from "os"
-import osName from "os-name"
-import { Mode, ModeConfig, getModeBySlug, defaultModeSlug, isToolAllowedForMode } from "../../../shared/modes"
+import { Mode, ModeConfig, getModeBySlug, defaultModeSlug } from "../../../shared/modes" // Removed unused isToolAllowedForMode
 import { getShell } from "../../../utils/shell"
 
-export function getSystemInfoSection(cwd: string, currentMode: Mode, customModes?: ModeConfig[]): string {
+export async function getSystemInfoSection(
+	cwd: string,
+	currentMode: Mode,
+	customModes?: ModeConfig[],
+): Promise<string> {
+	// Dynamically import ESM modules
+	const osName = (await import("os-name")).default
+	// Note: default-shell might also need dynamic import if it's ESM, but getShell() might already handle this.
+	// Let's assume getShell() is okay for now, but keep an eye on it.
+
 	const findModeBySlug = (slug: string, modes?: ModeConfig[]) => modes?.find((m) => m.slug === slug)
 
 	const currentModeName = findModeBySlug(currentMode, customModes)?.name || currentMode
 	const codeModeName = findModeBySlug(defaultModeSlug, customModes)?.name || "Code"
 
+	// Use the dynamically imported value
+	const operatingSystem = osName()
+	const defaultShellValue = getShell() // Assuming this remains synchronous for now
+
 	let details = `====
 
 SYSTEM INFORMATION
 
-Operating System: ${osName()}
-Default Shell: ${getShell()}
+Operating System: ${operatingSystem}
+Default Shell: ${defaultShellValue}
 Home Directory: ${os.homedir().toPosix()}
 Current Workspace Directory: ${cwd.toPosix()}
 

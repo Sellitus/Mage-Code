@@ -6,18 +6,27 @@ import { CloudModelTier } from "./tiers/cloudModelTier"
 import { LocalModelTier } from "./tiers/localModelTier"
 import { ModelRouter } from "./router"
 import { PromptService } from "./prompt/promptService"
+import { logger } from "../utils/logging" // Import the logger
+import { ApiError } from "../utils/errors" // Import ApiError
 
 /**
  * Orchestrator for managing multiple model tiers (cloud, local, etc.),
  * handling routing, caching, and fallback logic.
  */
 export class MultiModelOrchestrator implements ILLMOrchestrator {
-	private cloudTier: CloudModelTier
-	private localTier: LocalModelTier
-	private modelRouter: ModelRouter
-	private promptService: PromptService
-	private cache: LRUCache<string, LLMResponse>
+	private readonly cloudTier: CloudModelTier
+	private readonly localTier: LocalModelTier
+	private readonly modelRouter: ModelRouter
+	private readonly promptService: PromptService
+	private readonly cache: LRUCache<string, LLMResponse>
 
+	/**
+	 * Creates an instance of MultiModelOrchestrator.
+	 * @param cloudTier - The cloud model tier instance.
+	 * @param localTier - The local model tier instance.
+	 * @param modelRouter - The model router instance.
+	 * @param promptService - The prompt service instance.
+	 */
 	constructor(
 		cloudTier: CloudModelTier,
 		localTier: LocalModelTier,
@@ -39,7 +48,7 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 			max: maxItems,
 			ttl: ttlMilliseconds,
 		})
-		console.log(`[Orchestrator] Initialized cache with maxItems: ${maxItems}, ttl: ${ttlSeconds}s`)
+		logger.info(`[Orchestrator] Initialized cache with maxItems: ${maxItems}, ttl: ${ttlSeconds}s`)
 	}
 
 	/**
@@ -89,6 +98,7 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 	 * @param prompt The input prompt.
 	 * @param options Request options including caching and fallback flags.
 	 * @returns Promise resolving to the LLM response.
+	 * @throws {ApiError} If the request fails after attempting fallback (if applicable).
 	 */
 	async makeApiRequest(prompt: string, options: RequestOptions = {}): Promise<LLMResponse> {
 		const cacheKey = this.getCacheKey(prompt, options)
@@ -97,13 +107,13 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 		if (!options.skipCache) {
 			const cachedResponse = this.cache.get(cacheKey)
 			if (cachedResponse) {
-				console.log(`[Orchestrator] Cache hit for key: ${cacheKey.substring(0, 50)}...`)
+				logger.info(`[Orchestrator] Cache hit for key: ${cacheKey.substring(0, 50)}...`)
 				// Optionally add a flag or adjust latency info for cached responses
 				return { ...cachedResponse, latency: 0 } // Indicate cache hit with 0 latency
 			}
-			console.log(`[Orchestrator] Cache miss for key: ${cacheKey.substring(0, 50)}...`)
+			logger.info(`[Orchestrator] Cache miss for key: ${cacheKey.substring(0, 50)}...`)
 		} else {
-			console.log(`[Orchestrator] Skipping cache check for key: ${cacheKey.substring(0, 50)}...`)
+			logger.info(`[Orchestrator] Skipping cache check for key: ${cacheKey.substring(0, 50)}...`)
 		}
 
 		// 2. Route request
@@ -112,29 +122,29 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 		let chosenTierEnum = await this.modelRouter.routeRequest(options.taskType, prompt, routerOptions)
 		let chosenTier: IModelTier = chosenTierEnum === ModelTier.LOCAL ? this.localTier : this.cloudTier
 
-		console.log(`[Orchestrator] Routed to tier: ${chosenTierEnum}`)
+		logger.info(`[Orchestrator] Routed to tier: ${chosenTierEnum}`)
 
 		// 3. Format prompt
 		const formattedPrompt = this.promptService.formatPrompt(prompt, chosenTierEnum)
 
 		// 4. Make request to chosen tier
 		try {
-			console.log(`[Orchestrator] Attempting request with tier: ${chosenTierEnum}`)
+			logger.info(`[Orchestrator] Attempting request with tier: ${chosenTierEnum}`)
 			const response = await chosenTier.makeRequest(formattedPrompt, modelOptions)
 			const llmResponse = this.convertResponse(response)
 
 			// 5. Store in cache if successful and enabled
 			if (options.cacheResponse !== false) {
-				console.log(`[Orchestrator] Caching response for key: ${cacheKey.substring(0, 50)}...`)
+				logger.info(`[Orchestrator] Caching response for key: ${cacheKey.substring(0, 50)}...`)
 				this.cache.set(cacheKey, llmResponse)
 			}
 			return llmResponse
 		} catch (error: any) {
-			console.warn(`[Orchestrator] Initial request failed for tier ${chosenTierEnum}:`, error.message || error)
+			logger.warn(`[Orchestrator] Initial request failed for tier ${chosenTierEnum}`, error)
 
 			// 6. Fallback logic (only if initial tier was LOCAL and fallback is allowed)
 			if (chosenTierEnum === ModelTier.LOCAL && options.allowFallback !== false) {
-				console.log("[Orchestrator] Local tier failed, attempting fallback to Cloud tier.")
+				logger.info("[Orchestrator] Local tier failed, attempting fallback to Cloud tier.")
 				chosenTierEnum = ModelTier.CLOUD // Explicitly switch to cloud
 				chosenTier = this.cloudTier
 				// Re-format prompt for cloud if necessary (though current service is pass-through)
@@ -146,15 +156,12 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 
 					// Cache the successful fallback response if enabled
 					if (options.cacheResponse !== false) {
-						console.log(`[Orchestrator] Caching fallback response for key: ${cacheKey.substring(0, 50)}...`)
+						logger.info(`[Orchestrator] Caching fallback response for key: ${cacheKey.substring(0, 50)}...`)
 						this.cache.set(cacheKey, fallbackLlmResponse)
 					}
 					return fallbackLlmResponse
 				} catch (fallbackError: any) {
-					console.error(
-						"[Orchestrator] Cloud fallback request failed:",
-						fallbackError.message || fallbackError,
-					)
+					logger.error("[Orchestrator] Cloud fallback request failed", fallbackError)
 					throw new Error(
 						`Initial request failed (${ModelTier.LOCAL}) and Cloud fallback failed: ${
 							fallbackError.message || String(fallbackError)
@@ -164,17 +171,27 @@ export class MultiModelOrchestrator implements ILLMOrchestrator {
 			}
 
 			// If no fallback occurred or was allowed, throw the original error
-			throw new Error(`Model request failed for tier ${chosenTierEnum}: ${error.message || String(error)}`)
+			// Wrap the original error in ApiError if it's not already one
+			if (error instanceof ApiError) {
+				throw error
+			} else {
+				throw new ApiError(
+					`Model request failed for tier ${chosenTierEnum}: ${error.message || String(error)}`,
+					{
+						cause: error,
+					},
+				)
+			}
 		}
 	}
 
 	/**
 	 * Clears the entire LLM response cache.
-	 * Called by SyncService on file changes as a simple invalidation strategy.
+	 * Typically called when underlying context (like file content) changes significantly.
 	 */
 	public clearCache(): void {
 		this.cache.clear()
-		console.log("[Orchestrator] LLM response cache cleared.")
+		logger.info("[Orchestrator] LLM response cache cleared.")
 	}
 }
 

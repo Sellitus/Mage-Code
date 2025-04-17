@@ -1,3 +1,5 @@
+jest.mock("vscode") // Mock the entire vscode module
+
 // src/magecode/tools/__tests__/fileReader.test.ts
 
 import * as vscode from "vscode"
@@ -22,6 +24,12 @@ jest.mock(
 		},
 		window: {
 			showErrorMessage: jest.fn(), // Mock if needed, though FileReader doesn't use it directly
+			// Add the missing mock here for createOutputChannel
+			createOutputChannel: jest.fn().mockReturnValue({
+				appendLine: jest.fn(),
+				show: jest.fn(),
+				dispose: jest.fn(),
+			}),
 		},
 		Uri: {
 			file: (p: string) => ({ fsPath: p }), // Mock Uri.file if needed elsewhere

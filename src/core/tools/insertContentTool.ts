@@ -8,7 +8,7 @@ import path from "path"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath } from "../../utils/fs"
 import { insertGroups } from "../diff/insert-groups"
-import delay from "delay"
+// Removed static import for delay (ESM)
 import fs from "fs/promises"
 
 export async function insertContentTool(
@@ -100,7 +100,8 @@ export async function insertContentTool(
 			await cline.diffViewProvider.open(relPath)
 			await cline.diffViewProvider.update(fileContent, false)
 			cline.diffViewProvider.scrollToFirstDiff()
-			await delay(200)
+			// Use dynamic import for delay
+			await (await import("delay")).default(200)
 		}
 
 		const diff = formatResponse.createPrettyPatch(relPath, fileContent, updatedContent)

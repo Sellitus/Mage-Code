@@ -2,6 +2,7 @@ import { ApiHandler, SingleCompletionHandler } from "../../../../api"
 import { ModelInfo } from "../../../../shared/api"
 import { ApiStream } from "../../../../api/transform/stream"
 import { CloudModelTier } from "../cloudModelTier"
+import { ApiError } from "../../../utils/errors" // Import ApiError
 
 describe("CloudModelTier", () => {
 	let mockLlmService: ApiHandler & SingleCompletionHandler
@@ -60,9 +61,14 @@ describe("CloudModelTier", () => {
 		const error = new Error("LLM service error")
 		mockLlmService.completePrompt = jest.fn().mockRejectedValue(error)
 
+		// Check that it throws an ApiError with the correct message
 		await expect(cloudTier.makeRequest("Test prompt", {})).rejects.toThrow(
-			"Cloud model request failed: LLM service error",
+			new ApiError("Cloud model request failed", { cause: error }), // Expect specific error type and cause
 		)
+		// Alternatively, just check the message if the exact error type isn't critical here:
+		// await expect(cloudTier.makeRequest("Test prompt", {})).rejects.toThrow(
+		// 	"Cloud model request failed"
+		// );
 	})
 
 	it("should handle response with usage information", async () => {

@@ -6,7 +6,12 @@ import { AgentContext, TaskPlan, ProgressInfo } from "./context/agentContext"
 import { ProgressReporter } from "./utils/progress"
 import { ToolRegistry } from "./tools/toolRegistry"
 import { Tool } from "./interfaces/tool" // Tool interface defines inputSchema inline
+import { logger } from "./utils/logging" // Import the logger
 
+/**
+ * Implements the IAgent interface, orchestrating context retrieval, planning,
+ * tool execution, and LLM calls to fulfill user tasks within the MageCode mode.
+ */
 export class MageCodeAgent implements IAgent {
 	private contextRetriever: IContextRetriever
 	private llmOrchestrator: ILLMOrchestrator
@@ -14,9 +19,14 @@ export class MageCodeAgent implements IAgent {
 	private context: AgentContext
 	private isRunning: boolean = false
 
+	/**
+	 * Creates an instance of MageCodeAgent.
+	 * @param deps - An object containing the required dependencies (context retriever, LLM orchestrator, tool registry).
+	 */
 	constructor(deps: MageCodeDependencies) {
 		// Ensure the contextRetriever implements IContextRetriever
 		if (!this.isContextRetriever(deps.contextRetriever)) {
+			// TODO: Use a more specific error type (e.g., ConfigurationError)
 			throw new Error("contextRetriever must implement IContextRetriever")
 		}
 		this.contextRetriever = deps.contextRetriever
@@ -29,8 +39,16 @@ export class MageCodeAgent implements IAgent {
 		return obj && typeof obj.getContext === "function"
 	}
 
+	/**
+	 * Runs a given task by retrieving context, planning steps, and executing the plan.
+	 * Reports progress via the associated ProgressReporter.
+	 * @param task - The task input details.
+	 * @returns A promise resolving to the task result (including status and output).
+	 * @throws Error if the agent is already running another task.
+	 */
 	async runTask(task: TaskInput): Promise<TaskResult> {
 		if (this.isRunning) {
+			// TODO: Use a specific error type (e.g., AgentBusyError)
 			throw new Error("Agent is already running a task")
 		}
 
@@ -70,7 +88,7 @@ export class MageCodeAgent implements IAgent {
 				}
 			})
 		} catch (err) {
-			console.error(`Task execution error: ${err}`)
+			logger.error(`Task execution error for task ${task.id}`, err)
 			return {
 				id: task.id,
 				query: task.query,
@@ -82,8 +100,13 @@ export class MageCodeAgent implements IAgent {
 		}
 	}
 
+	/**
+	 * Signals the currently running task to stop execution.
+	 * Does nothing if no task is currently running.
+	 */
 	async stop(): Promise<void> {
 		if (!this.isRunning) {
+			logger.info("[Agent] Stop requested but no task is running.")
 			return
 		}
 
@@ -93,15 +116,20 @@ export class MageCodeAgent implements IAgent {
 
 	private async planApproach(task: TaskInput): Promise<void> {
 		const planningPrompt = this.constructPlanningPrompt(task)
+		logger.info(`[Agent] Starting planning for task: ${task.id}`)
+		logger.debug(`[Agent] Planning prompt:`, planningPrompt) // Debug log for detailed prompt
 
 		const planResponse = await this.llmOrchestrator.makeApiRequest(planningPrompt, {
 			taskType: "planning",
 			maxTokens: 1000,
 			temperature: 0.2,
 		})
+		logger.debug(`[Agent] Raw plan response:`, planResponse.content) // Debug log for raw response
 
 		const plan = this.parsePlan(planResponse.content)
 		this.context.setPlan(plan)
+		logger.info(`[Agent] Plan generated and set for task: ${task.id}`)
+		logger.debug(`[Agent] Parsed plan:`, plan) // Debug log for parsed plan
 
 		// Report plan to user
 		this.context.reportProgress(ProgressReporter.plan(plan))
@@ -168,10 +196,12 @@ Example format:
 		for (let i = 0; i < plan.steps.length; i++) {
 			// Check if we should stop
 			if (this.context.shouldStop()) {
+				logger.info(`[Agent] Stop signal received during step ${i + 1}. Aborting task.`)
 				throw new Error("Task execution stopped by user")
 			}
 
 			const step = plan.steps[i]
+			logger.info(`[Agent] Executing Step ${i + 1}/${plan.steps.length}: ${step.description}`)
 
 			// Report current step
 			this.context.reportProgress(ProgressReporter.step(i + 1, plan.steps.length, step.description))
@@ -181,42 +211,70 @@ Example format:
 				for (const toolUse of step.tools) {
 					const tool = this.toolRegistry.getTool(toolUse.tool)
 					if (!tool) {
+						logger.error(`[Agent] Tool not found during step ${i + 1}: ${toolUse.tool}`)
 						throw new Error(`Tool not found: ${toolUse.tool}`)
 					}
-					// Validate arguments against the tool's JSON schema using Ajv
-					if (tool.inputSchema) {
-						const ajv = new Ajv() // Consider making this a class member for efficiency
-						const validate = ajv.compile(tool.inputSchema)
-						const isValid = validate(toolUse.args)
+					logger.info(`[Agent] Executing tool: ${tool.name} for step ${i + 1}`)
+					logger.debug(`[Agent] Tool arguments:`, toolUse.args)
 
-						if (!isValid) {
-							const errorMessages = (validate.errors ?? [])
-								.map((e: ErrorObject) => `${e.instancePath || "root"} ${e.message}`)
-								.join("; ")
-							throw new Error(`Invalid arguments for tool ${toolUse.tool}: ${errorMessages}`)
+					let toolResult: any
+					try {
+						// Validate arguments against the tool's JSON schema using Ajv
+						if (tool.inputSchema) {
+							const ajv = new Ajv() // Consider making this a class member for efficiency
+							const validate = ajv.compile(tool.inputSchema)
+							const isValid = validate(toolUse.args)
+
+							if (!isValid) {
+								const errorMessages = (validate.errors ?? [])
+									.map((e: ErrorObject) => `${e.instancePath || "root"} ${e.message}`)
+									.join("; ")
+								logger.error(
+									`[Agent] Invalid arguments for tool ${toolUse.tool}: ${errorMessages}`,
+									toolUse.args,
+								)
+								throw new Error(`Invalid arguments for tool ${toolUse.tool}: ${errorMessages}`)
+							}
+							// Args are valid, proceed with execution
+							toolResult = await tool.execute(toolUse.args)
+						} else {
+							// Proceed without validation if no schema is defined
+							logger.warn(`Tool ${toolUse.tool} has no inputSchema defined. Skipping validation.`)
+							toolResult = await tool.execute(toolUse.args)
 						}
-						// Args are valid, proceed with execution
-						const toolResult = await tool.execute(toolUse.args)
+						logger.info(`[Agent] Tool ${tool.name} executed successfully for step ${i + 1}.`)
+						logger.debug(`[Agent] Tool result:`, toolResult)
 						this.context.addToolResultForStep(i, toolUse.tool, toolUse.args, toolResult) // Use new context method
-					} else {
-						// Proceed without validation if no schema is defined
-						console.warn(`Tool ${toolUse.tool} has no inputSchema defined. Skipping validation.`)
-						const toolResult = await tool.execute(toolUse.args)
-						this.context.addToolResultForStep(i, toolUse.tool, toolUse.args, toolResult) // Use new context method
+					} catch (toolError) {
+						logger.error(`[Agent] Error executing tool ${tool.name} for step ${i + 1}`, toolError)
+						// Decide whether to throw or try to continue
+						throw new Error(
+							`Error executing tool ${tool.name}: ${
+								toolError instanceof Error ? toolError.message : String(toolError)
+							}`,
+						)
 					}
 				}
+			} else {
+				logger.info(`[Agent] No tools to execute for step ${i + 1}.`)
 			}
 
 			// Generate step output using LLM
-			const stepResponse = await this.llmOrchestrator.makeApiRequest(this.constructStepPrompt(step, i), {
+			const stepPrompt = this.constructStepPrompt(step, i)
+			logger.info(`[Agent] Generating output for step ${i + 1} using LLM.`)
+			logger.debug(`[Agent] Step LLM prompt:`, stepPrompt) // Debug log for detailed prompt
+
+			const stepResponse = await this.llmOrchestrator.makeApiRequest(stepPrompt, {
 				taskType: "execution",
 				maxTokens: 2000,
 				temperature: 0.5,
 				systemPrompt: `You are executing step ${i + 1} of ${plan.steps.length}: ${step.description}`,
 			})
+			logger.debug(`[Agent] Step LLM raw response:`, stepResponse.content) // Debug log for raw response
 
 			// Store step result
 			this.context.addStepResult(i, stepResponse.content)
+			logger.info(`[Agent] Step ${i + 1} completed.`)
 
 			// For the final step, use its output as the overall result
 			if (i === plan.steps.length - 1) {

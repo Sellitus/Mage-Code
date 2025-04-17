@@ -1,24 +1,36 @@
 import * as vscode from "vscode"
 import * as fs from "fs/promises"
 import * as path from "path"
+import { logger } from "../../utils/logging" // Import the logger
+import { VectorIndexError, ConfigurationError } from "../../utils/errors" // Import custom errors
 // import { IndexFlatL2 } from 'faiss-node'; // Placeholder - will uncomment/adjust later
 // import { Voy } from 'voy-search'; // Placeholder - will uncomment/adjust later
 // import debounce from 'lodash.debounce'; // Placeholder - will add if needed
 
-// Define interfaces or types if needed (e.g., for mapping)
-type VectorMapping = Map<number, string>
+type VectorMapping = Map<number, string> // Maps internal numeric ID to original element ID
 
+/**
+ * Manages the vector index (using FAISS or Voy) for similarity search.
+ * Handles index loading/saving, mapping between internal/external IDs,
+ * adding embeddings, searching, and removing embeddings by file.
+ * Implements vscode.Disposable to ensure proper cleanup and saving on shutdown.
+ */
 export class VectorIndex implements vscode.Disposable {
-	private index: any // Will hold FAISS or Voy instance
-	private mapping: VectorMapping = new Map()
-	private fileToVectorIds: Map<string, Set<number>> = new Map()
+	private index: any // Will hold FAISS or Voy instance (consider a more specific type/interface if possible)
+	private mapping: VectorMapping = new Map() // Maps internal numeric ID -> original element ID string
+	private fileToVectorIds: Map<string, Set<number>> = new Map() // Maps file path -> Set of internal numeric IDs
 	private workspacePath: string | undefined
 	private vectorDirPath: string | undefined
 	private mappingPath: string | undefined
 	private indexSavePath: string | undefined
 	private initialized: boolean = false
 	private debouncedSaveMapping: () => void = () => {} // Placeholder
+	private debounceTimeout: NodeJS.Timeout | null = null // Store timeout ID for debounced save cancellation
 
+	/**
+	 * Creates an instance of VectorIndex. Determines workspace paths but does not initialize the index.
+	 * @throws {ConfigurationError} If no workspace folder is found.
+	 */
 	constructor() {
 		// Determine workspace path immediately
 		const workspaceFolders = vscode.workspace.workspaceFolders
@@ -28,86 +40,114 @@ export class VectorIndex implements vscode.Disposable {
 			this.mappingPath = path.join(this.vectorDirPath, "mapping.json")
 			// Index path depends on platform, set in initialize
 		} else {
-			console.error("MageCode: No workspace folder found. VectorIndex cannot initialize.")
-			// Handle error appropriately - maybe throw or set an error state
+			const msg = "MageCode: No workspace folder found. VectorIndex cannot initialize."
+			logger.error(msg)
+			// Throw config error as this prevents initialization
+			throw new ConfigurationError(msg)
 		}
 
 		// Initialize debounced function (example using a simple timeout)
 		// Replace with lodash.debounce if added as dependency
-		let debounceTimeout: NodeJS.Timeout | null = null
 		this.debouncedSaveMapping = () => {
-			if (debounceTimeout) clearTimeout(debounceTimeout)
-			debounceTimeout = setTimeout(() => {
-				this.saveMapping().catch((err) => console.error("Error saving mapping:", err))
+			if (this.debounceTimeout) clearTimeout(this.debounceTimeout)
+			this.debounceTimeout = setTimeout(() => {
+				this.saveMapping().catch((err) => logger.error("Error saving mapping during debounce", err))
 			}, 1000) // Save after 1 second of inactivity
 		}
 	}
 
+	/**
+	 * Initializes the VectorIndex. This includes:
+	 * - Ensuring the vector storage directory exists.
+	 * - Loading the ID mapping from disk.
+	 * - Initializing the appropriate underlying vector index library (FAISS or Voy) based on the platform.
+	 * - Loading the index data from disk if it exists.
+	 * - Registering the instance for disposal with the extension context.
+	 * @param context - The VS Code extension context.
+	 * @throws {ConfigurationError} If workspace paths are missing.
+	 * @throws {VectorIndexError} If directory creation, mapping load, or index initialization fails.
+	 */
 	async initialize(context: vscode.ExtensionContext): Promise<void> {
 		if (!this.vectorDirPath || !this.mappingPath || !this.workspacePath) {
-			throw new Error("VectorIndex cannot initialize without a workspace path.")
+			// This should technically be caught by the constructor check, but belt-and-suspenders
+			throw new ConfigurationError("VectorIndex cannot initialize without a workspace path.")
 		}
 		if (this.initialized) {
-			console.warn("VectorIndex already initialized.")
+			logger.warn("VectorIndex already initialized.")
 			return
 		}
 
-		console.log("Initializing VectorIndex...")
+		logger.info("Initializing VectorIndex...")
 
 		try {
 			// 1. Create directory
-			await fs.mkdir(this.vectorDirPath, { recursive: true })
-			console.log(`Vector directory ensured at: ${this.vectorDirPath}`)
+			try {
+				await fs.mkdir(this.vectorDirPath, { recursive: true })
+				logger.info(`Vector directory ensured at: ${this.vectorDirPath}`)
+			} catch (mkdirError: any) {
+				throw new VectorIndexError(`Failed to create vector directory: ${this.vectorDirPath}`, mkdirError)
+			}
 
 			// 2. Load mapping
-			await this.loadMapping()
+			await this.loadMapping() // loadMapping handles its own errors internally for now
 
 			// 3. Initialize index based on platform
 			const platform = process.platform
-			if (platform === "win32" || platform === "darwin") {
-				this.indexSavePath = path.join(this.vectorDirPath, "index.faiss")
-				await this.initializeFaiss()
-			} else {
-				this.indexSavePath = path.join(this.vectorDirPath, "index.voy")
-				await this.initializeVoy()
+			try {
+				if (platform === "win32" || platform === "darwin") {
+					this.indexSavePath = path.join(this.vectorDirPath, "index.faiss")
+					await this.initializeFaiss()
+				} else {
+					this.indexSavePath = path.join(this.vectorDirPath, "index.voy")
+					await this.initializeVoy()
+				}
+			} catch (indexInitError: any) {
+				throw new VectorIndexError(`Failed to initialize underlying vector index (${platform})`, indexInitError)
 			}
 
 			this.initialized = true
 			context.subscriptions.push(this) // Register for disposal
-			console.log("VectorIndex initialized successfully.")
+			logger.info("VectorIndex initialized successfully.")
 		} catch (error) {
-			console.error("Failed to initialize VectorIndex:", error)
+			const msg = "Failed to initialize VectorIndex"
+			// Log the original error if it's not already a VectorIndexError
+			const cause = error instanceof VectorIndexError ? error.cause : error
+			logger.error(msg, cause)
 			vscode.window.showErrorMessage(
 				`MageCode: Failed to initialize Vector Index. ${error instanceof Error ? error.message : error}`,
 			)
-			// Decide if we should throw or allow graceful degradation
-			throw error // Re-throw for now
+			// Wrap in custom error if it's not already one
+			if (error instanceof VectorIndexError || error instanceof ConfigurationError) {
+				throw error
+			} else {
+				throw new VectorIndexError(msg, error)
+			}
 		}
 	}
 
 	private async initializeFaiss(): Promise<void> {
 		// Placeholder for FAISS initialization logic
-		console.log(`Initializing FAISS index. Path: ${this.indexSavePath}`)
+		logger.info(`Initializing FAISS index. Path: ${this.indexSavePath}`)
 		// const { IndexFlatL2 } = await import('faiss-node'); // Dynamic import if needed
 		// try {
 		//     this.index = IndexFlatL2.read(this.indexSavePath);
-		//     console.log(`Loaded existing FAISS index from ${this.indexSavePath}`);
+		//     logger.info(`Loaded existing FAISS index from ${this.indexSavePath}`);
 		// } catch (error) {
-		//     console.log(`No existing FAISS index found or error loading, creating new one. Error: ${error}`);
+		//     logger.info(`No existing FAISS index found or error loading, creating new one. Error: ${error}`);
 		//     const dimensions = 384; // Example dimension - should come from config or embedding model
 		//     this.index = new IndexFlatL2(dimensions);
 		// }
 		// Mock implementation for now
 		this.index = {
 			add: async (vectors: number[][], ids: number[]) => {
-				console.log(`FAISS Mock: Adding ${vectors.length} vectors.`)
+				logger.debug(`FAISS Mock: Adding ${vectors.length} vectors.`)
 			},
 			search: async (vector: number[], k: number) => {
-				console.log(`FAISS Mock: Searching for ${k} nearest neighbors.`)
+				logger.debug(`FAISS Mock: Searching for ${k} nearest neighbors.`)
 				return []
 			},
 			write: async (path: string) => {
-				console.log(`FAISS Mock: Writing index to ${path}`)
+				logger.debug(`FAISS Mock: Writing index to ${path}`)
 			},
 			ntotal: () => this.mapping.size, // Simulate total vectors
 		}
@@ -116,27 +156,27 @@ export class VectorIndex implements vscode.Disposable {
 
 	private async initializeVoy(): Promise<void> {
 		// Placeholder for Voy initialization logic
-		console.log(`Initializing Voy index. Path: ${this.indexSavePath}`)
+		logger.info(`Initializing Voy index. Path: ${this.indexSavePath}`)
 		// const { Voy } = await import('voy-search'); // Dynamic import if needed
 		// try {
 		//     const buffer = await fs.readFile(this.indexSavePath);
 		//     this.index = Voy.deserialize(buffer);
-		//     console.log(`Loaded existing Voy index from ${this.indexSavePath}`);
+		//     logger.info(`Loaded existing Voy index from ${this.indexSavePath}`);
 		// } catch (error) {
-		//     console.log(`No existing Voy index found or error loading, creating new one. Error: ${error}`);
+		//     logger.info(`No existing Voy index found or error loading, creating new one. Error: ${error}`);
 		//     this.index = new Voy(); // Default config
 		// }
 		// Mock implementation for now
 		this.index = {
 			add: async (vectors: number[][], ids: number[]) => {
-				console.log(`Voy Mock: Adding ${vectors.length} vectors.`)
+				logger.debug(`Voy Mock: Adding ${vectors.length} vectors.`)
 			},
 			search: async (vector: number[], k: number) => {
-				console.log(`Voy Mock: Searching for ${k} nearest neighbors.`)
+				logger.debug(`Voy Mock: Searching for ${k} nearest neighbors.`)
 				return []
 			},
 			serialize: async () => {
-				console.log(`Voy Mock: Serializing index.`)
+				logger.debug(`Voy Mock: Serializing index.`)
 				return Buffer.from("")
 			},
 			count: () => this.mapping.size, // Simulate total vectors
@@ -155,7 +195,7 @@ export class VectorIndex implements vscode.Disposable {
 				this.fileToVectorIds = new Map(
 					Object.entries(parsed.fileToVectorIds).map(([file, ids]) => [file, new Set(ids as number[])]),
 				)
-				console.log(
+				logger.info(
 					`Loaded mapping for ${this.mapping.size} vectors and fileToVectorIds for ${this.fileToVectorIds.size} files from ${this.mappingPath}`,
 				)
 			} else if (
@@ -168,23 +208,27 @@ export class VectorIndex implements vscode.Disposable {
 						typeof pair[1] === "string",
 				)
 			) {
+				// Handle old format
 				this.mapping = new Map(parsed as [number, string][])
-				this.fileToVectorIds = new Map()
-				console.log(`Loaded mapping for ${this.mapping.size} vectors from ${this.mappingPath}`)
+				this.fileToVectorIds = new Map() // Initialize empty reverse map for old format
+				logger.info(`Loaded old format mapping for ${this.mapping.size} vectors from ${this.mappingPath}`)
 			} else {
-				console.warn(`Invalid mapping format found in ${this.mappingPath}. Initializing empty mapping.`)
+				logger.warn(`Invalid mapping format found in ${this.mappingPath}. Initializing empty mapping.`)
 				this.mapping = new Map()
 				this.fileToVectorIds = new Map()
 			}
 		} catch (error: any) {
 			if (error.code === "ENOENT") {
-				console.log(`Mapping file not found at ${this.mappingPath}. Initializing empty mapping.`)
+				logger.info(`Mapping file not found at ${this.mappingPath}. Initializing empty mapping.`)
 				this.mapping = new Map()
 				this.fileToVectorIds = new Map()
 			} else {
-				console.error(`Error loading mapping from ${this.mappingPath}:`, error)
+				const msg = `Error loading mapping from ${this.mappingPath}`
+				logger.error(msg, error)
+				// Treat mapping load failure as potentially recoverable, initialize empty maps
 				this.mapping = new Map()
 				this.fileToVectorIds = new Map()
+				// Optionally throw new VectorIndexError(msg, error) if mapping is critical
 			}
 		}
 	}
@@ -192,7 +236,7 @@ export class VectorIndex implements vscode.Disposable {
 	private async saveMapping(): Promise<void> {
 		if (!this.mappingPath || !this.initialized) return // Don't save if not initialized
 		if (process.env.NODE_ENV !== "test") {
-			console.log(`Saving mapping for ${this.mapping.size} vectors to ${this.mappingPath}...`)
+			logger.info(`Saving mapping for ${this.mapping.size} vectors to ${this.mappingPath}...`)
 		}
 		try {
 			const mappingArray = Array.from(this.mapping.entries())
@@ -203,19 +247,22 @@ export class VectorIndex implements vscode.Disposable {
 			const mappingJson = JSON.stringify({ mapping: mappingArray, fileToVectorIds: fileToVectorIdsObj }, null, 2)
 			await fs.writeFile(this.mappingPath, mappingJson, "utf-8")
 			if (process.env.NODE_ENV !== "test") {
-				console.log("Mapping saved successfully.")
+				logger.info("Mapping saved successfully.")
 			}
-		} catch (error) {
+		} catch (error: any) {
+			// Catch specific error type if possible
 			if (process.env.NODE_ENV !== "test") {
-				console.error(`Error saving mapping to ${this.mappingPath}:`, error)
+				const msg = `Error saving mapping to ${this.mappingPath}`
+				logger.error(msg, error)
 			}
 			// Consider notifying the user or implementing retry logic
+			// Don't throw here, as it might happen during shutdown/debounce
 		}
 	}
 
 	private async saveIndex(): Promise<void> {
 		if (!this.index || !this.indexSavePath || !this.initialized) return
-		console.log(`Saving vector index to ${this.indexSavePath}...`)
+		logger.info(`Saving vector index to ${this.indexSavePath}...`)
 		try {
 			const platform = process.platform
 			if (platform === "win32" || platform === "darwin") {
@@ -223,7 +270,7 @@ export class VectorIndex implements vscode.Disposable {
 				if (typeof this.index.write === "function") {
 					await this.index.write(this.indexSavePath)
 				} else {
-					console.warn("FAISS index object does not have a 'write' method.")
+					logger.warn("FAISS index object does not have a 'write' method.")
 				}
 			} else {
 				// Voy save
@@ -231,24 +278,34 @@ export class VectorIndex implements vscode.Disposable {
 					const buffer = await this.index.serialize()
 					await fs.writeFile(this.indexSavePath, buffer)
 				} else {
-					console.warn("Voy index object does not have a 'serialize' method.")
+					logger.warn("Voy index object does not have a 'serialize' method.")
 				}
 			}
-			console.log("Vector index saved successfully.")
-		} catch (error) {
-			console.error(`Error saving vector index to ${this.indexSavePath}:`, error)
+			logger.info("Vector index saved successfully.")
+		} catch (error: any) {
+			// Catch specific error type if possible
+			const msg = `Error saving vector index to ${this.indexSavePath}`
+			logger.error(msg, error)
+			// Don't throw here, as it might happen during shutdown
 		}
 	}
 
+	/**
+	 * Adds multiple embeddings to the vector index and updates the mappings.
+	 * Assigns new internal numeric IDs to the embeddings.
+	 * Triggers a debounced save of the mapping file.
+	 * @param embeddings - An array of objects, each containing the original element ID (`id`), the embedding vector (`vector`), and optionally the source file path (`filePath`).
+	 * @throws {VectorIndexError} If the index is not initialized or if adding embeddings to the underlying index fails.
+	 */
 	async addEmbeddings(embeddings: { id: string; vector: number[]; filePath?: string }[]): Promise<void> {
 		if (!this.initialized || !this.index) {
-			throw new Error("VectorIndex is not initialized.")
+			throw new VectorIndexError("VectorIndex is not initialized.")
 		}
 		if (embeddings.length === 0) {
 			return
 		}
 
-		console.log(`Adding ${embeddings.length} embeddings...`)
+		logger.info(`Adding ${embeddings.length} embeddings...`)
 
 		const vectors: number[][] = []
 		const numericIds: number[] = []
@@ -284,102 +341,136 @@ export class VectorIndex implements vscode.Disposable {
 				ids.forEach((id) => set.add(id))
 			}
 
-			console.log(
+			logger.info(
 				`Added ${embeddings.length} embeddings. Total vectors: ${this.mapping.size}. Updated fileToVectorIds for ${fileToIds.size} files.`,
 			)
 
 			// Trigger debounced save for the mapping
 			this.debouncedSaveMapping()
-		} catch (error) {
-			console.error("Error adding embeddings to vector index:", error)
-			throw error // Re-throw
+		} catch (error: any) {
+			// Catch specific error type if possible
+			const msg = "Error adding embeddings to vector index"
+			logger.error(msg, error)
+			throw new VectorIndexError(msg, error) // Wrap and re-throw
 		}
 	}
 
+	/**
+	 * Performs a k-nearest neighbors search in the vector index.
+	 * @param vector - The query vector.
+	 * @param k - The number of nearest neighbors to retrieve.
+	 * @returns A promise resolving to an array of search results, each containing the original element ID (`id`) and a similarity score (`score`).
+	 * @throws {VectorIndexError} If the index is not initialized or if the search operation fails.
+	 */
 	async search(vector: number[], k: number): Promise<{ id: string; score: number }[]> {
 		if (!this.initialized || !this.index) {
-			throw new Error("VectorIndex is not initialized.")
+			throw new VectorIndexError("VectorIndex is not initialized.")
 		}
 		if (this.mapping.size === 0) {
-			console.log("Search called on empty index.")
+			logger.info("Search called on empty index.")
 			return []
 		}
 
-		console.log(`Searching for ${k} nearest neighbors...`)
+		logger.info(`Searching for ${k} nearest neighbors...`)
 
 		try {
 			// Perform search (adjust k if index size is smaller)
 			const actualK = Math.min(k, this.mapping.size)
-			const results: { id: number; score: number }[] | { distance: number; index: number }[] =
-				await this.index.search(vector, actualK)
+			// Assuming the underlying library returns { id: number; score: number } or { distance: number; index: number }
+			const results: any[] = await this.index.search(vector, actualK)
 
-			console.log("Raw search results:", results)
+			logger.debug("Raw search results:", results) // Use debug for potentially large/verbose output
 
 			// Map results back to original IDs
 			const mappedResults: { id: string; score: number }[] = []
 			for (const result of results) {
 				// Adapt based on actual library output structure
-				const numericId = "id" in result ? result.id : "index" in result ? result.index : -1 // Adapt based on FAISS/Voy output
-				const score = "score" in result ? result.score : "distance" in result ? result.distance : -1 // Adapt based on FAISS/Voy output
+				const numericId = result.id ?? result.index ?? -1 // Use nullish coalescing
+				const score = result.score ?? result.distance ?? -1 // Use nullish coalescing
 
 				if (numericId !== -1) {
 					const elementId = this.mapping.get(numericId)
 					if (elementId) {
 						mappedResults.push({ id: elementId, score: score })
 					} else {
-						console.warn(`Search returned numeric ID ${numericId} not found in mapping.`)
+						logger.warn(`Search returned numeric ID ${numericId} not found in mapping.`)
 					}
 				}
 			}
 
-			console.log(`Mapped search results:`, mappedResults)
+			logger.debug(`Mapped search results:`, mappedResults) // Use debug for potentially large/verbose output
 			return mappedResults
-		} catch (error) {
-			console.error("Error searching vector index:", error)
-			throw error // Re-throw
+		} catch (error: any) {
+			// Catch specific error type if possible
+			const msg = "Error searching vector index"
+			logger.error(msg, error)
+			throw new VectorIndexError(msg, error) // Wrap and re-throw
 		}
 	}
 
+	/**
+	 * Removes all embeddings associated with a specific file path from the index and mappings.
+	 * Triggers a debounced save of the mapping file.
+	 * Note: Actual removal from the underlying index might be skipped if the library doesn't support it (logs a warning).
+	 * @param filePath - The absolute path of the file whose embeddings should be removed.
+	 * @throws {VectorIndexError} If the index is not initialized or if removing embeddings fails.
+	 */
 	async removeEmbeddingsByFile(filePath: string): Promise<void> {
 		if (!this.initialized || !this.index) {
-			throw new Error("VectorIndex is not initialized.")
+			throw new VectorIndexError("VectorIndex is not initialized.")
 		}
 		const ids = this.fileToVectorIds.get(filePath)
 		if (!ids || ids.size === 0) {
-			console.log(`No vectors found for file: ${filePath}`)
+			logger.info(`No vectors found for file: ${filePath}`)
 			return
 		}
-		// Remove from index (assume index has a remove method, otherwise this is a placeholder)
-		if (typeof this.index.remove === "function") {
-			await this.index.remove(Array.from(ids))
-		} else {
-			console.warn("Underlying index does not support removal. Skipping index removal.")
+		try {
+			// Remove from index (assume index has a remove method, otherwise this is a placeholder)
+			if (typeof this.index.remove === "function") {
+				await this.index.remove(Array.from(ids))
+			} else {
+				logger.warn("Underlying index does not support removal. Skipping index removal.")
+			}
+			// Remove from mapping and reverse mapping
+			for (const id of ids) {
+				this.mapping.delete(id)
+			}
+			this.fileToVectorIds.delete(filePath)
+			logger.info(`Removed ${ids.size} vectors for file: ${filePath}`)
+			this.debouncedSaveMapping()
+		} catch (error: any) {
+			// Catch specific error type if possible
+			const msg = `Error removing embeddings for file ${filePath}`
+			logger.error(msg, error)
+			throw new VectorIndexError(msg, error) // Wrap and re-throw
 		}
-		// Remove from mapping and reverse mapping
-		for (const id of ids) {
-			this.mapping.delete(id)
-		}
-		this.fileToVectorIds.delete(filePath)
-		console.log(`Removed ${ids.size} vectors for file: ${filePath}`)
-		this.debouncedSaveMapping()
 	}
 
+	/**
+	 * Disposes of resources held by the VectorIndex.
+	 * Cancels any pending debounced saves, attempts to save the current mapping and index state,
+	 * and clears internal references.
+	 * Called automatically when the extension deactivates if added to `context.subscriptions`.
+	 */
 	dispose(): void {
-		console.log("Disposing VectorIndex...")
+		logger.info("Disposing VectorIndex...")
 		// Cancel any pending debounced saves
-		// If using lodash: this.debouncedSaveMapping.cancel();
-		// If using simple timeout: clearTimeout(debounceTimeout); // Need access to the timeout variable
+		if (this.debounceTimeout) {
+			clearTimeout(this.debounceTimeout)
+			this.debounceTimeout = null
+		}
 
 		// Ensure final save of mapping and index
 		// Run these synchronously if possible during dispose, or handle potential async issues
-		this.saveMapping().catch((err) => console.error("Error during dispose saveMapping:", err))
-		this.saveIndex().catch((err) => console.error("Error during dispose saveIndex:", err))
+		// Note: These might still fail if called during shutdown, hence the catch without re-throw
+		this.saveMapping().catch((err) => logger.error("Error during dispose saveMapping", err))
+		this.saveIndex().catch((err) => logger.error("Error during dispose saveIndex", err))
 
 		// Release index resources if necessary (depends on library)
 		this.index = null // Allow garbage collection
 		this.mapping.clear()
 		this.fileToVectorIds.clear()
 		this.initialized = false
-		console.log("VectorIndex disposed.")
+		logger.info("VectorIndex disposed.")
 	}
 }

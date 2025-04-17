@@ -4,7 +4,7 @@ import { Cline } from "../Cline"
 import { AskApproval } from "./types"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { formatResponse } from "../prompts/responses"
-import delay from "delay"
+// Removed static import for delay (ESM)
 
 export async function newTaskTool(
 	cline: Cline,
@@ -69,7 +69,7 @@ export async function newTaskTool(
 			await provider.handleModeSwitch(mode)
 
 			// Delay to allow mode change to take effect before next tool is executed.
-			await delay(500)
+			await (await import("delay")).default(500)
 
 			const newCline = await provider.initClineWithTask(message, undefined, cline)
 			cline.emit("taskSpawned", newCline.taskId)

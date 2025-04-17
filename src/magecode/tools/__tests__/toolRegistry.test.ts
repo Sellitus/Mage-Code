@@ -2,6 +2,7 @@
 
 import { ToolRegistry } from "../toolRegistry"
 import { Tool, ToolDefinition } from "../../interfaces/tool"
+import { logger } from "../../utils/logging" // Import logger to spy on it
 
 // Mock Tool implementation for testing
 class MockTool implements Tool {
@@ -32,9 +33,9 @@ describe("ToolRegistry", () => {
 		toolRegistry = new ToolRegistry()
 		mockTool1 = new MockTool("mockTool1", "Description for tool 1")
 		mockTool2 = new MockTool("mockTool2", "Description for tool 2")
-		// Suppress console.warn during tests for overwriting
-		jest.spyOn(console, "warn").mockImplementation(() => {})
-		jest.spyOn(console, "log").mockImplementation(() => {}) // Suppress registration logs
+		// Suppress logger output during tests
+		jest.spyOn(logger, "warn").mockImplementation(() => {})
+		jest.spyOn(logger, "info").mockImplementation(() => {}) // Suppress registration logs
 	})
 
 	afterEach(() => {
@@ -66,18 +67,19 @@ describe("ToolRegistry", () => {
 	})
 
 	it("should overwrite an existing tool when registering with the same name (and log warning)", () => {
-		const consoleWarnSpy = jest.spyOn(console, "warn")
+		const loggerWarnSpy = jest.spyOn(logger, "warn") // Spy on logger.warn
 		const newMockTool1 = new MockTool("mockTool1", "New description")
 
 		toolRegistry.registerTool(mockTool1) // Initial registration
 		toolRegistry.registerTool(newMockTool1) // Overwrite
 
-		expect(consoleWarnSpy).toHaveBeenCalledWith(
+		expect(loggerWarnSpy).toHaveBeenCalledWith(
+			// Check loggerWarnSpy
 			'ToolRegistry: Tool with name "mockTool1" already registered. Overwriting.',
 		)
 		expect(toolRegistry.getTool("mockTool1")).toBe(newMockTool1) // Should be the new instance
 		expect(toolRegistry.getTool("mockTool1")?.description).toBe("New description")
-		consoleWarnSpy.mockRestore()
+		// No need to restore spy here if using jest.restoreAllMocks() in afterEach
 	})
 
 	it("should return definitions of all registered tools", () => {

@@ -45,7 +45,7 @@ describe("VectorIndex", () => {
 
 	beforeAll(async () => {
 		// Dynamic import to avoid hoisting issues with jest.mock
-		VectorIndex = (await import("../vectorIndex")).VectorIndex
+		VectorIndex = (await import("../vectorIndex.js")).VectorIndex // Added .js extension
 	})
 
 	beforeEach(() => {

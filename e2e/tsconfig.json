@@ -1,7 +1,8 @@
 {
 	"compilerOptions": {
-		"module": "CommonJS",
-		"moduleResolution": "Node",
+		"module": "Node16", // Align with root tsconfig again
+		"moduleResolution": "Node16", // Align with root tsconfig again
+		"typeRoots": ["../node_modules/@types", "../src/@types"], // Add typeRoots to include project types
 		"esModuleInterop": true,
 		"target": "ES2022",
 		"lib": ["ES2022", "ESNext.Disposable", "DOM"],

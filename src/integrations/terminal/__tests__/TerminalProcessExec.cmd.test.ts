@@ -98,6 +98,7 @@ async function testCmdCommand(
 	// Create a new terminal process for testing
 	startTime = process.hrtime.bigint() // Start timing from terminal process creation
 	const terminalProcess = new TerminalProcess(mockTerminalInfo)
+	await terminalProcess.initialize() // Initialize the process
 
 	try {
 		// Set up the stream - either real command output or mock

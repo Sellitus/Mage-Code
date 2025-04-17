@@ -1,6 +1,7 @@
 import { CodeElement } from "./types"
 import { processAndStoreFile } from "./processAndStoreFile"
 import * as vscode from "vscode"
+import { logger } from "../utils/logging" // Import the logger
 
 export { processAndStoreFile }
 export * from "./types"
@@ -72,8 +73,9 @@ export class LocalCodeIntelligenceEngine implements ILocalCodeIntelligence, vsco
 			// Initialize database
 			// Load models
 			this.initialized = true
+			logger.info("LocalCodeIntelligenceEngine initialized.") // Added info log
 		} catch (error) {
-			console.error("Failed to initialize LocalCodeIntelligenceEngine:", error)
+			logger.error("Failed to initialize LocalCodeIntelligenceEngine", error)
 			throw error
 		}
 	}
@@ -82,14 +84,14 @@ export class LocalCodeIntelligenceEngine implements ILocalCodeIntelligence, vsco
 		if (!this.initialized) {
 			throw new Error("LocalCodeIntelligenceEngine not initialized")
 		}
-
-		// TODO: Implement embedding generation
-		// This is a placeholder that returns a random vector
-		const vector = new Float32Array(384) // Standard embedding size
-		for (let i = 0; i < vector.length; i++) {
-			vector[i] = Math.random()
-		}
-		return vector
+		// This implementation is likely a placeholder or base class.
+		// Actual embedding generation should happen in EmbeddingService.
+		logger.warn("LocalCodeIntelligenceEngine.generateEmbedding called - this might be a placeholder.")
+		throw new Error("generateEmbedding not implemented in LocalCodeIntelligenceEngine base class.")
+		// // Placeholder implementation removed:
+		// const vector = new Float32Array(384);
+		// for (let i = 0; i < vector.length; i++) { vector[i] = Math.random(); }
+		// return vector;
 	}
 
 	async searchVectors(
@@ -101,10 +103,12 @@ export class LocalCodeIntelligenceEngine implements ILocalCodeIntelligence, vsco
 		if (!this.initialized) {
 			throw new Error("LocalCodeIntelligenceEngine not initialized")
 		}
-
-		// TODO: Implement vector search
-		// This is a placeholder that returns empty results
-		return []
+		// This implementation is likely a placeholder or base class.
+		// Actual vector search should happen in VectorIndex.
+		logger.warn("LocalCodeIntelligenceEngine.searchVectors called - this might be a placeholder.")
+		throw new Error("searchVectors not implemented in LocalCodeIntelligenceEngine base class.")
+		// // Placeholder implementation removed:
+		// return [];
 	}
 
 	async searchGraph(
@@ -116,15 +120,18 @@ export class LocalCodeIntelligenceEngine implements ILocalCodeIntelligence, vsco
 		if (!this.initialized) {
 			throw new Error("LocalCodeIntelligenceEngine not initialized")
 		}
-
-		// TODO: Implement graph search
-		// This is a placeholder that returns empty results
-		return []
+		// This implementation is likely a placeholder or base class.
+		// Actual graph search should happen via DatabaseManager or a dedicated graph component.
+		logger.warn("LocalCodeIntelligenceEngine.searchGraph called - this might be a placeholder.")
+		throw new Error("searchGraph not implemented in LocalCodeIntelligenceEngine base class.")
+		// // Placeholder implementation removed:
+		// return [];
 	}
 
 	dispose(): void {
 		this.disposables.forEach((d) => d.dispose())
 		this.disposables = []
 		this.initialized = false
+		logger.info("LocalCodeIntelligenceEngine disposed.") // Added info log
 	}
 }

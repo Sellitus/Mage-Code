@@ -2,6 +2,7 @@ import { IRetriever, RetrievedItem, RetrievalOptions } from "../types"
 import { ILocalCodeIntelligence, GraphSearchResult } from "../../intelligence"
 import { CodeElement } from "../../intelligence/types"
 import * as vscode from "vscode"
+import { logger } from "../../utils/logging" // Import the logger
 
 /**
  * Retrieves code elements using graph traversal
@@ -41,7 +42,7 @@ export class GraphRetriever implements IRetriever {
 			// Convert to RetrievedItems
 			return elements.map((result) => this.convertToRetrievedItem(result))
 		} catch (error) {
-			console.error("Graph retrieval error:", error)
+			logger.error("Graph retrieval error", error)
 			return []
 		}
 	}

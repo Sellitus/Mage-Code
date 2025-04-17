@@ -1,3 +1,5 @@
+jest.mock("vscode") // Mock the entire vscode module
+
 import { DatabaseManager } from "../databaseManager"
 import type { CodeElement } from "../../../interfaces"
 import * as vscode from "vscode"
@@ -5,6 +7,7 @@ import * as fs from "fs"
 import * as path from "path"
 // Import the type only, the implementation will be mocked
 import type BetterSqlite3 from "better-sqlite3"
+import { DatabaseError } from "../../../utils/errors" // Import custom error
 
 // Mock vscode and fs modules
 // Define a mutable variable for workspace folders to allow modification in tests
@@ -18,6 +21,7 @@ let mockWorkspaceFolders: vscode.WorkspaceFolder[] | undefined = [
 	},
 ]
 
+// This specific mock overrides the global one for this suite
 jest.mock("vscode", () => ({
 	Disposable: class Disposable {
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -32,6 +36,12 @@ jest.mock("vscode", () => ({
 	},
 	window: {
 		showErrorMessage: jest.fn(),
+		// Add the missing mock here for createOutputChannel
+		createOutputChannel: jest.fn().mockReturnValue({
+			appendLine: jest.fn(),
+			show: jest.fn(),
+			dispose: jest.fn(),
+		}),
 	},
 	// Add other top-level vscode properties if needed
 }))
@@ -98,8 +108,9 @@ describe("DatabaseManager", () => {
 
 	beforeEach(() => {
 		// Reset mocks before each test
-		// Reset vscode mock parts
-		;(vscode.window.showErrorMessage as jest.Mock).mockClear()
+		// Reset vscode mock parts (accessing the mocked module)
+		const mockedVscode = require("vscode")
+		mockedVscode.window.showErrorMessage.mockClear()
 		// Reset the workspace folders to the default mock for each test
 		mockWorkspaceFolders = [
 			{
@@ -132,9 +143,6 @@ describe("DatabaseManager", () => {
 		})
 		DatabaseMock.mockClear() // Clear calls to the constructor itself
 
-		// Clear other mocks
-		;(vscode.window.showErrorMessage as jest.Mock).mockClear()
-
 		// Create a new instance for each test, which will get the mocked DB
 		dbManager = new DatabaseManager()
 	})
@@ -158,7 +166,8 @@ describe("DatabaseManager", () => {
 			const DatabaseMock = require("better-sqlite3")
 			expect(DatabaseMock).toHaveBeenCalledWith(
 				path.join("/mock/workspace", ".magecode", "intelligence", "intelligence.db"),
-				{ verbose: console.log },
+				// The verbose option was removed, so don't expect it here anymore
+				// { verbose: console.log },
 			)
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect((dbManager as any).db).toBeDefined()
@@ -192,8 +201,16 @@ describe("DatabaseManager", () => {
 			mockMkdirSync.mockImplementation(() => {
 				throw mkdirError
 			})
+			// Expect DatabaseError with the correct message and cause
 			expect(() => dbManager.initialize()).toThrow(
-				"MageCode: Failed to create storage directory. Permission denied",
+				new DatabaseError(
+					`MageCode: Failed to create storage directory at ${path.join(
+						"/mock/workspace",
+						".magecode",
+						"intelligence",
+					)}`,
+					mkdirError,
+				),
 			)
 		})
 
@@ -205,7 +222,18 @@ describe("DatabaseManager", () => {
 			DatabaseMock.mockImplementationOnce(() => {
 				throw dbError
 			})
-			expect(() => dbManager.initialize()).toThrow("MageCode: Failed to open database. Disk full")
+			// Expect DatabaseError with the correct message and cause
+			expect(() => dbManager.initialize()).toThrow(
+				new DatabaseError(
+					`MageCode: Failed to open or create database at ${path.join(
+						"/mock/workspace",
+						".magecode",
+						"intelligence",
+						"intelligence.db",
+					)}`,
+					dbError,
+				),
+			)
 		})
 	})
 
@@ -549,7 +577,6 @@ describe("DatabaseManager", () => {
 	describe("dispose", () => {
 		it("should close the database connection if open", () => {
 			dbManager.initialize() // Open the connection
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const dbInstance = (dbManager as any).db // This is now the mock instance
 			expect(dbInstance).toBeDefined()

@@ -39,7 +39,8 @@ describe("TerminalProcess", () => {
 	let mockExecution: any
 	let mockStream: AsyncIterableIterator<string>
 
-	beforeEach(() => {
+	// Make beforeEach async to allow await for initialize
+	beforeEach(async () => {
 		// Create properly typed mock terminal
 		mockTerminal = {
 			shellIntegration: {
@@ -66,6 +67,8 @@ describe("TerminalProcess", () => {
 
 		// Create a process for testing
 		terminalProcess = new TerminalProcess(mockTerminalInfo)
+		// Initialize the process
+		await terminalProcess.initialize()
 
 		TerminalRegistry["terminals"].push(mockTerminalInfo)
 
@@ -107,6 +110,7 @@ describe("TerminalProcess", () => {
 			expect(terminalProcess.isHot).toBe(false)
 		})
 
+		// Make test async
 		it("handles terminals without shell integration", async () => {
 			// Create a terminal without shell integration
 			const noShellTerminal = {
@@ -127,6 +131,8 @@ describe("TerminalProcess", () => {
 
 			// Create new process with the no-shell terminal
 			const noShellProcess = new TerminalProcess(noShellTerminalInfo)
+			// Initialize the process
+			await noShellProcess.initialize()
 
 			// Set up event listeners to verify events are emitted
 			const eventPromises = Promise.all([
@@ -257,8 +263,11 @@ describe("TerminalProcess", () => {
 	})
 
 	describe("mergePromise", () => {
+		// Make test async
 		it("merges promise methods with terminal process", async () => {
 			const process = new TerminalProcess(mockTerminalInfo)
+			// Initialize the process
+			await process.initialize()
 			const promise = Promise.resolve()
 
 			const merged = mergePromise(process, promise)

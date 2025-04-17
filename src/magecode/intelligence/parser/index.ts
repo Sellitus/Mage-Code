@@ -2,6 +2,8 @@ import * as fs from "fs"
 import * as path from "path"
 import Parser, { Language, Tree } from "web-tree-sitter"
 import { CodeElement, ElementRelation, ParsedFile, ParserError } from "../../interfaces" // Adjust path if needed
+import { logger } from "../../utils/logging" // Import the logger
+import { ParsingError, ConfigurationError } from "../../utils/errors" // Import custom errors
 
 // Assuming the WASM files are copied to 'dist/grammars/' by esbuild
 // The path needs to be relative to the extension's runtime location (dist/)
@@ -26,7 +28,10 @@ export class MageParser {
 
 	constructor() {
 		if (!MageParser.isInitialized) {
-			throw new Error("MageParser must be initialized using MageParser.initialize() before instantiation.")
+			// Initialization is critical, treat as configuration error
+			throw new ConfigurationError(
+				"MageParser must be initialized using MageParser.initialize() before instantiation.",
+			)
 		}
 	}
 
@@ -40,10 +45,11 @@ export class MageParser {
 		try {
 			await Parser.init()
 			this.isInitialized = true
-			console.log("Tree-sitter parser initialized successfully.")
-		} catch (error) {
-			console.error("Failed to initialize Tree-sitter parser:", error)
-			throw error // Re-throw to indicate critical failure
+			logger.info("Tree-sitter parser initialized successfully.")
+		} catch (error: any) {
+			const msg = "Failed to initialize Tree-sitter parser"
+			logger.error(msg, error)
+			throw new ConfigurationError(msg, error) // Initialization failure is critical
 		}
 	}
 
@@ -70,24 +76,29 @@ export class MageParser {
 
 		const langConfig = Object.values(languageMap).find((config) => config.languageName === language)
 		if (!langConfig) {
-			console.warn(`Unsupported language requested: ${language}`)
+			logger.warn(`Unsupported language requested: ${language}`)
 			return null
 		}
 
 		const wasmPath = path.join(GRAMMARS_PATH, langConfig.wasmFile)
 
 		try {
-			console.log(`Loading Tree-sitter grammar for ${language} from ${wasmPath}`)
+			logger.info(`Loading Tree-sitter grammar for ${language} from ${wasmPath}`)
 			if (!fs.existsSync(wasmPath)) {
-				throw new Error(`WASM file not found at ${wasmPath}. Check esbuild config.`)
+				// Missing WASM file is a configuration/build issue
+				throw new ConfigurationError(`WASM file not found at ${wasmPath}. Check build process.`)
 			}
 			const loadedLanguage = await Parser.Language.load(wasmPath)
 			MageParser.languageCache.set(language, loadedLanguage)
-			console.log(`Successfully loaded grammar for ${language}`)
+			logger.info(`Successfully loaded grammar for ${language}`)
 			return loadedLanguage
-		} catch (error) {
-			console.error(`Failed to load Tree-sitter grammar for ${language} from ${wasmPath}:`, error)
+		} catch (error: any) {
+			// Catch specific error type if possible
+			const msg = `Failed to load Tree-sitter grammar for ${language} from ${wasmPath}`
+			logger.error(msg, error)
+			// Return null for graceful degradation, but log the error
 			return null
+			// Optionally: throw new ParsingError(msg, { cause: error, language });
 		}
 	}
 
@@ -103,7 +114,7 @@ export class MageParser {
 
 		const loadedLanguage = await this.loadLanguage(language)
 		if (!loadedLanguage) {
-			return null
+			return null // Failure already logged by loadLanguage
 		}
 
 		const parser = new Parser()
@@ -114,85 +125,80 @@ export class MageParser {
 
 	/**
 	 * Parses a file and returns its AST and any errors.
+	 * Throws ParsingError if parsing fails catastrophically.
+	 * Returns ParsedFile object which might contain non-fatal errors.
 	 * @param filePath Absolute path to the file to parse.
-	 * @returns A ParsedFile object.
+	 * @returns A Promise resolving to a ParsedFile object.
 	 */
 	public async parseFile(filePath: string): Promise<ParsedFile> {
 		const language = this.detectLanguage(filePath)
 
+		// Handle unsupported language
 		if (!language) {
+			logger.warn(`Unsupported file type for parsing: ${filePath}`)
 			return {
 				path: filePath,
-				language: "unknown",
+				language: "unknown", // Explicitly set language as unknown
 				ast: null,
 				errors: [{ message: `Unsupported file type: ${path.extname(filePath)}` }],
 			}
 		}
 
+		// Handle file reading error
 		let content: string
 		try {
 			content = await fs.promises.readFile(filePath, "utf8")
 		} catch (readError: any) {
-			console.error(`Error reading file ${filePath}:`, readError)
+			const msg = `Failed to read file: ${readError.message}`
+			logger.error(`Error reading file ${filePath}`, readError)
+			// Return a ParsedFile with error, don't throw from here directly
 			return {
 				path: filePath,
-				language: language,
+				language: language, // language is guaranteed string here
 				ast: null,
-				errors: [{ message: `Failed to read file: ${readError.message}` }],
+				errors: [{ message: msg, location: undefined }], // Use the ParserError structure
 			}
 		}
 
+		// Handle parser loading error
 		const parser = await this.getParserForLanguage(language)
 		if (!parser) {
+			// Failure already logged by getParserForLanguage/loadLanguage
+			// Return error state.
 			return {
 				path: filePath,
-				language: language,
+				language: language, // language is guaranteed string here
 				ast: null,
 				errors: [{ message: `Failed to load parser for language: ${language}` }],
 			}
 		}
 
+		// Handle parsing error
 		try {
 			const ast = parser.parse(content)
-			// Basic validation: Check if root node exists and has children (for non-empty files)
 			const errors: ParserError[] = []
 			if (ast.rootNode.hasError) {
-				// TODO: Traverse tree to find specific error nodes if needed
+				// TODO: Traverse tree to find specific error nodes if needed for better reporting
+				logger.warn(`Parsing completed with errors in file: ${filePath}`)
 				errors.push({ message: "Parsing completed with errors." })
 			}
 
+			// Successful parse (potentially with non-fatal errors)
 			return {
 				path: filePath,
-				language: language,
+				language: language, // language is guaranteed string here
 				ast: ast,
-				errors: errors, // TODO: Enhance error reporting by traversing the tree for error nodes
+				errors: errors,
 			}
 		} catch (parseError: any) {
-			return this.handleParsingError(filePath, language, content, parseError)
-		}
-	}
-
-	/**
-	 * Handles errors during the parsing process.
-	 * @param filePath Path of the file being parsed.
-	 * @param language Detected language.
-	 * @param content File content.
-	 * @param error The error object thrown by the parser.
-	 * @returns A ParsedFile object indicating failure.
-	 */
-	private handleParsingError(filePath: string, language: string, content: string, error: any): ParsedFile {
-		console.warn(`Tree-sitter parsing error in ${filePath} (${language}): ${error.message}`)
-		// Basic error reporting for now. Future enhancement: attempt partial parse or recovery.
-		const parserError: ParserError = {
-			message: error.message || "Unknown parsing error",
-			// Attempt to extract location if available (structure might vary)
-			location: error.location ? { line: error.location.row, column: error.location.column } : undefined,
-		}
-		return {
-			path: filePath,
-			language: language,
-			ast: null, // Indicate catastrophic failure for now
-			errors: [parserError],
+			// Catastrophic parsing failure, throw custom error
+			const msg = `Tree-sitter failed to parse ${filePath}`
+			logger.error(msg, parseError)
+			throw new ParsingError(msg, {
+				cause: parseError,
+				filePath: filePath,
+				language: language, // language is guaranteed string here
+			})
 		}
 	}
 
@@ -203,21 +209,25 @@ export class MageParser {
 	 * @returns An object containing arrays of CodeElement and ElementRelation objects.
 	 */
 	public extractCodeElements(parsedFile: ParsedFile): { elements: CodeElement[]; relations: ElementRelation[] } {
-		if (!parsedFile.ast || parsedFile.errors.length > 0) {
-			// Cannot reliably extract elements if parsing failed or had errors
+		if (!parsedFile.ast || parsedFile.errors.some((e) => e.message !== "Parsing completed with errors.")) {
+			// Cannot reliably extract elements if parsing failed catastrophically or had significant errors
+			// Allow extraction if only the generic "Parsing completed with errors" message exists.
+			if (parsedFile.errors.length > 0) {
+				logger.warn(`Skipping element extraction for ${parsedFile.path} due to parsing errors.`)
+			}
 			return { elements: [], relations: [] }
 		}
 
 		const elements: CodeElement[] = []
 		const relations: ElementRelation[] = []
 		const filePath = parsedFile.path
-		const source = parsedFile.ast.rootNode.text
+		const source = parsedFile.ast.rootNode.text // Keep for reference if needed
 
 		// Helper to generate unique IDs
 		const makeId = (name: string, startLine: number) => `${filePath}#${name}@${startLine}`
 
 		// Recursive AST traversal
-		function traverse(node: any, parentId?: string): void {
+		function traverse(node: Parser.SyntaxNode, parentId?: string): void {
 			let type = ""
 			let name = ""
 			let metadata: Record<string, any> = {}
@@ -227,12 +237,16 @@ export class MageParser {
 				case "function_declaration":
 				case "function":
 				case "method_definition":
-				case "function_definition":
-					type = node.type.includes("method") ? "method" : "function"
-					name = node.childForFieldName?.("name")?.text || node.text
-					// Extract function calls
+				case "function_definition": // Python
+					type = node.type.includes("method") || node.type.includes("definition") ? "method" : "function"
+					// Adjust name extraction for different languages/nodes
+					name =
+						node.childForFieldName?.("name")?.text ||
+						node.firstNamedChild?.text ||
+						`anon@${node.startPosition.row}`
+					// Extract function calls (example, might need refinement)
 					const callExpressions: string[] = []
-					node.descendantsOfType("call_expression").forEach((call: any) => {
+					node.descendantsOfType("call_expression").forEach((call: Parser.SyntaxNode) => {
 						const calleeName = call.childForFieldName?.("function")?.text
 						if (calleeName) {
 							callExpressions.push(calleeName)
@@ -243,50 +257,50 @@ export class MageParser {
 					}
 					break
 				case "class_declaration":
-				case "class_definition":
+				case "class_definition": // Python
 					type = "class"
-					name = node.childForFieldName?.("name")?.text || node.text
-					// Extract class inheritance
-					const superClass = node.childForFieldName?.("superclass")?.text
-					if (superClass) {
+					name = node.childForFieldName?.("name")?.text || `anonClass@${node.startPosition.row}`
+					// Extract class inheritance (example)
+					const superClassNode = node.childForFieldName?.("superclass") || node.child(2) // Python superclass position might differ
+					const superClass = superClassNode?.text
+					if (superClass && name !== `anonClass@${node.startPosition.row}`) {
 						const sourceId = makeId(name, node.startPosition.row)
-						const targetId = makeId(superClass, 0)
+						// Target ID might need resolving if it's an import
+						const targetId = makeId(superClass, 0) // Placeholder target ID
 						relations.push({
 							source_id: sourceId,
-							target_id: targetId,
+							target_id: targetId, // This needs proper resolution based on imports/scope
 							relation_type: "inherits",
 						})
 					}
 					break
-				case "variable_declaration":
-				case "lexical_declaration":
-				case "assignment":
+				case "variable_declaration": // JS/TS
+				case "lexical_declaration": // JS/TS
+				case "assignment": // Python
+					// This is complex, need to find the actual variable name(s)
 					type = "variable"
-					name = node.childForFieldName?.("name")?.text || node.text
+					// Example: find identifier within declarator or left side of assignment
+					const declarator = node.descendantsOfType("identifier")[0] // Simplistic example
+					name = declarator?.text || `var@${node.startPosition.row}`
 					break
 				case "import_statement": {
+					// JS/TS
 					type = "import"
 					name = node.text // Use the full import statement text as name for now
-					const sourceId = makeId("module", node.startPosition.row)
+					const sourceId = makeId("module", node.startPosition.row) // ID for the current file
 					const importPath = node.childForFieldName?.("source")?.text?.replace(/['"`]/g, "")
 					if (importPath) {
-						const targetId = makeId(importPath, 0)
+						// Target ID needs resolution based on workspace structure
+						const targetId = makeId(importPath, 0) // Placeholder target ID
 						relations.push({
 							source_id: sourceId,
-							target_id: targetId,
+							target_id: targetId, // Needs proper resolution
 							relation_type: "imports",
 						})
 					}
-					// - Create 'imports' relations
-					// Example (pseudo-code):
-					// const sourceId = makeId('module', 0); // ID for the current file/module
-					// const targetPath = resolveImportPath(node.childForFieldName('source')?.text);
-					// if (targetPath) {
-					//   const targetId = makeId('module', 0, targetPath); // ID for the target file/module
-					//   relations.push({ source_id: sourceId, target_id: targetId, relation_type: 'imports' });
-					// }
 					break
 				}
+				// Add cases for other languages/constructs as needed
 				default:
 					break
 			}
@@ -298,28 +312,33 @@ export class MageParser {
 					filePath,
 					type,
 					name,
-					content: node.text,
-					startLine: node.startPosition.row,
-					endLine: node.endPosition.row,
-					startPosition: node.startPosition,
-					endPosition: node.endPosition,
+					content: node.text, // Consider capturing only relevant parts or omitting for brevity
+					startLine: node.startPosition.row, // Keep startLine for direct access
+					endLine: node.endPosition.row, // Keep endLine for direct access
+					startPosition: { line: node.startPosition.row, column: node.startPosition.column }, // Map row to line
+					endPosition: { line: node.endPosition.row, column: node.endPosition.column }, // Map row to line
 					parentId,
-					metadata,
+					metadata: Object.keys(metadata).length > 0 ? metadata : undefined, // Only add metadata if present
 				}
 				elements.push(element)
 
-				// Set this as parent for children
+				// Set this as parent for children within this element
 				parentId = id
 			}
 
 			// Traverse children
 			for (let i = 0; i < node.namedChildCount; i++) {
 				const child = node.namedChild(i)
-				traverse(child, parentId)
+				if (child) {
+					// Ensure child is not null
+					traverse(child, parentId)
+				}
 			}
 		}
 
-		traverse(parsedFile.ast.rootNode)
+		if (parsedFile.ast.rootNode) {
+			traverse(parsedFile.ast.rootNode)
+		}
 
 		return { elements, relations }
 	}

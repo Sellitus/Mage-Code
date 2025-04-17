@@ -1,6 +1,8 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import { ApiHandler, SingleCompletionHandler } from "../../../api"
 import { ModelRequestOptions, ModelResponse, IModelTier } from "../interfaces"
+import { logger } from "../../utils/logging" // Import logger
+import { ApiError } from "../../utils/errors" // Import custom error
 
 /**
  * Adapter for converting between ModelRequestOptions and provider-specific options
@@ -54,16 +56,22 @@ export class CloudModelTier implements IModelTier {
 			const providerOptions = this.adapter.toProviderOptions(options)
 
 			// Make request using existing LLM service
-			const response = await this.llmService.completePrompt(prompt)
+			logger.debug("[CloudModelTier] Making request via llmService...")
+			const response = await this.llmService.completePrompt(prompt) // Assuming completePrompt handles its own errors/retries
+			logger.debug("[CloudModelTier] Received response from llmService.")
 
 			// Calculate latency
 			const latency = Date.now() - startTime
+			logger.info(`[CloudModelTier] Cloud inference latency: ${latency}ms`)
 
 			// Convert response to common format
 			return this.adapter.fromProviderResponse(response, latency)
-		} catch (error) {
-			// Forward error with additional context
-			throw new Error(`Cloud model request failed: ${error instanceof Error ? error.message : String(error)}`)
+		} catch (error: any) {
+			const msg = "Cloud model request failed"
+			logger.error(`[CloudModelTier] ${msg}`, error)
+			// Attempt to extract status code if the underlying error has it
+			const statusCode = typeof error?.statusCode === "number" ? error.statusCode : undefined
+			throw new ApiError(msg, { cause: error, statusCode: statusCode })
 		}
 	}
 }

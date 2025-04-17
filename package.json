@@ -385,6 +385,48 @@
 						"default": 3600,
 						"description": "Time-to-live (in seconds) for items in MageCode's in-memory caches.",
 						"scope": "window"
+					},
+					"magecode.localProcessing": {
+						"type": "object",
+						"description": "Settings specific to local model processing within MageCode.",
+						"properties": {
+							"modelPath": {
+								"type": [
+									"string",
+									"null"
+								],
+								"default": null,
+								"description": "Absolute path to the local ONNX model file (e.g., .onnx). Leave null to use the default bundled model (if available).",
+								"scope": "window"
+							},
+							"tokenizerPath": {
+								"type": [
+									"string",
+									"null"
+								],
+								"default": null,
+								"description": "Absolute path to the corresponding tokenizer file (e.g., .model for SentencePiece). Leave null to use the default bundled tokenizer (if available).",
+								"scope": "window"
+							},
+							"numThreads": {
+								"type": "number",
+								"default": 4,
+								"description": "Number of threads for ONNX Runtime session (intraOp and interOp). Affects performance and CPU usage.",
+								"scope": "window"
+							},
+							"maxContextLength": {
+								"type": "number",
+								"default": 2048,
+								"description": "Maximum input sequence length (in tokens) supported by the local model.",
+								"scope": "window"
+							}
+						},
+						"default": {
+							"modelPath": null,
+							"tokenizerPath": null,
+							"numThreads": 4,
+							"maxContextLength": 2048
+						}
 					}
 				}
 			}

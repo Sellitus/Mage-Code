@@ -42,6 +42,8 @@ module.exports = {
 		// Map ESM modules to prevent SyntaxError during tests
 		"^p-queue$": "<rootDir>/src/__mocks__/dummyMock.js", // Use a generic dummy mock
 		"^piscina$": "<rootDir>/src/__mocks__/dummyMock.js", // Use a generic dummy mock
+		// Map relative .js imports required by Node16 moduleResolution back to .ts for Jest
+		"^(\\.{1,2}/.*)\\.js$": "$1",
 	},
 	transformIgnorePatterns: [
 		"node_modules/(?!(@modelcontextprotocol|delay|p-wait-for|globby|serialize-error|strip-ansi|default-shell|os-name|strip-bom|p-queue|piscina)/)",

@@ -18,6 +18,7 @@ import { ApiConfiguration } from "../shared/api"
 import { ApiHandler } from "../api"
 import { ApiStream, ApiStreamChunk } from "../api/transform/stream"
 import { ModelInfo } from "../shared/api"
+import { logger } from "./utils/logging" // Import the logger
 
 /**
  * Dependencies required by MageCode components
@@ -141,9 +142,9 @@ export async function createMageCodeDependencies(context: vscode.ExtensionContex
 	// Initialize local tier
 	try {
 		await localTier.initialize(context.extensionPath)
-		console.log("LocalModelTier initialized successfully.")
+		logger.info("LocalModelTier initialized successfully.")
 	} catch (error) {
-		console.warn("Failed to initialize LocalModelTier:", error)
+		logger.warn("Failed to initialize LocalModelTier", error)
 		vscode.window.showWarningMessage(
 			"MageCode: Local model initialization failed. Falling back to cloud-only mode.",
 		)

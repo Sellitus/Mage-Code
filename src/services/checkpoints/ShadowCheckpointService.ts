@@ -5,8 +5,6 @@ import crypto from "crypto"
 import EventEmitter from "events"
 
 import simpleGit, { SimpleGit } from "simple-git"
-import { globby } from "globby"
-import pWaitFor from "p-wait-for"
 
 import { fileExistsAtPath } from "../../utils/fs"
 import { CheckpointStorage } from "../../shared/checkpoints"
@@ -151,6 +149,7 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 	// nested repos.
 	private async renameNestedGitRepos(disable: boolean) {
 		// Find all .git directories that are not at the root level.
+		const { globby } = await import("globby")
 		const gitPaths = await globby("**/.git" + (disable ? "" : GIT_DISABLED_SUFFIX), {
 			cwd: this.workspaceDir,
 			onlyDirectories: true,
@@ -426,6 +425,7 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 				const defaultBranch = branches.all.includes("main") ? "main" : "master"
 				await git.checkout([defaultBranch, "--force"])
 
+				const { default: pWaitFor } = await import("p-wait-for")
 				await pWaitFor(
 					async () => {
 						const newBranch = await git.revparse(["--abbrev-ref", "HEAD"])

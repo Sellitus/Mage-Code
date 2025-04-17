@@ -1,5 +1,4 @@
 import * as vscode from "vscode"
-import pWaitFor from "p-wait-for"
 import { ExitCodeDetails, mergePromise, TerminalProcess, TerminalProcessResultPromise } from "./TerminalProcess"
 import { truncateOutput, applyRunLengthEncoding } from "../misc/extract-text"
 // Import TerminalRegistry here to avoid circular dependencies
@@ -176,36 +175,50 @@ export class Terminal {
 		// Set process on terminal
 		this.process = process
 
-		// Create a promise for command completion
-		const promise = new Promise<void>((resolve, reject) => {
-			// Set up event handlers
-			process.once("continue", () => resolve())
-			process.once("error", (error) => {
-				console.error(`[Terminal ${this.id}] error:`, error)
-				reject(error)
-			})
+		// Use an async IIFE to handle the async logic and return the merged promise
+		const asyncExecution = async () => {
+			try {
+				// Initialize the process (loads dynamic imports like strip-ansi)
+				await process.initialize()
 
-			// Wait for shell integration before executing the command
-			pWaitFor(() => this.terminal.shellIntegration !== undefined, { timeout: Terminal.shellIntegrationTimeout })
-				.then(() => {
-					// Clean up temporary directory if shell integration is available, zsh did its job:
-					TerminalRegistry.zshCleanupTmpDir(this.id)
+				// Dynamically import p-wait-for
+				const { default: pWaitFor } = await import("p-wait-for")
 
-					// Run the command in the terminal
-					process.run(command)
+				// Wait for shell integration
+				await pWaitFor(() => this.terminal.shellIntegration !== undefined, {
+					timeout: Terminal.shellIntegrationTimeout,
 				})
-				.catch(() => {
-					console.log(`[Terminal ${this.id}] Shell integration not available. Command execution aborted.`)
-					// Clean up temporary directory if shell integration is not available
-					TerminalRegistry.zshCleanupTmpDir(this.id)
-					process.emit(
-						"no_shell_integration",
-						`Shell integration initialization sequence '\\x1b]633;A' was not received within ${Terminal.shellIntegrationTimeout / 1000}s. Shell integration has been disabled for this terminal instance. Increase the timeout in the settings if necessary.`,
-					)
-				})
+
+				// Shell integration successful, clean up temp dir if needed
+				TerminalRegistry.zshCleanupTmpDir(this.id)
+
+				// Run the command
+				process.run(command)
+			} catch (error) {
+				// Handle pWaitFor timeout (shell integration failure)
+				console.log(`[Terminal ${this.id}] Shell integration not available. Command execution aborted.`)
+				// Clean up temporary directory if shell integration is not available
+				TerminalRegistry.zshCleanupTmpDir(this.id)
+				process.emit(
+					"no_shell_integration",
+					`Shell integration initialization sequence '\\x1b]633;A' was not received within ${Terminal.shellIntegrationTimeout / 1000}s. Shell integration has been disabled for this terminal instance. Increase the timeout in the settings if necessary.`,
+				)
+				// Reject the promise associated with the process to signal failure
+				process.emit("error", new Error("Shell integration failed"))
+			}
+		}
+
+		// Create a promise that resolves when the process signals 'continue' or rejects on 'error'
+		const completionPromise = new Promise<void>((resolve, reject) => {
+			process.once("continue", resolve)
+			process.once("error", reject) // Reject if the process itself emits an error or if shell integration fails
 		})
 
-		return mergePromise(process, promise)
+		// Start the async execution
+		asyncExecution()
+
+		// Return the merged promise immediately
+		return mergePromise(process, completionPromise)
 	}
 
 	/**

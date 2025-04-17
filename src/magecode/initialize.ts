@@ -12,31 +12,37 @@ import { ModelRouter } from "./orchestration/router" // Added import
 import { PromptService } from "./orchestration/prompt/promptService" // Added import
 import { buildApiHandler, SingleCompletionHandler } from "../api"
 import { ApiConfiguration } from "../shared/api"
+import { logger } from "./utils/logging" // Import the logger
+import { SyncService, SyncServiceOptions } from "./intelligence/sync/syncService" // Import SyncService
+import { ResourceGovernor, ResourceGovernorConfig } from "./utils/resourceGovernor" // Import ResourceGovernor
 
 export async function initializeMageCode(context: vscode.ExtensionContext) {
 	// Register mode change listener for dynamic switching
 	registerModeChangeListener(context)
+
+	// Register logger disposal
+	context.subscriptions.push(logger)
 
 	// Initialize DatabaseManager
 	const databaseManager = new DatabaseManager()
 	try {
 		databaseManager.initialize() // Initialize is synchronous
 		context.subscriptions.push(databaseManager)
-		console.log("DatabaseManager initialized successfully.")
+		logger.info("DatabaseManager initialized successfully.")
 	} catch (error) {
-		console.error("Failed to initialize DatabaseManager:", error)
+		logger.error("Failed to initialize DatabaseManager", error)
 		vscode.window.showErrorMessage("MageCode: Failed to initialize database. Some features might be unavailable.")
 	}
 
 	// Initialize VectorIndex
-	const { VectorIndex } = await import("./intelligence/vector/vectorIndex")
+	const { VectorIndex } = await import("./intelligence/vector/vectorIndex.js") // Add .js extension
 	const vectorIndex = new VectorIndex()
 	try {
 		await vectorIndex.initialize(context)
 		context.subscriptions.push(vectorIndex)
-		console.log("VectorIndex initialized successfully.")
+		logger.info("VectorIndex initialized successfully.")
 	} catch (error) {
-		console.error("Failed to initialize VectorIndex:", error)
+		logger.error("Failed to initialize VectorIndex", error)
 		vscode.window.showErrorMessage(
 			"MageCode: Failed to initialize vector index. Semantic search may be unavailable.",
 		)
@@ -46,15 +52,16 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 	const embeddingService = EmbeddingService.getInstance()
 	try {
 		await embeddingService.initialize()
-		console.log("EmbeddingService initialized successfully.")
+		logger.info("EmbeddingService initialized successfully.")
 	} catch (error) {
-		console.error("Failed to initialize EmbeddingService:", error)
+		logger.error("Failed to initialize EmbeddingService", error)
 		vscode.window.showErrorMessage(
 			"MageCode: Failed to initialize embedding service. Embedding features may be unavailable.",
 		)
 	}
 
-	// Initialize LLM Services
+	// Initialize LLM Services (needs orchestrator for SyncService)
+	let orchestrator: MultiModelOrchestrator | undefined
 	try {
 		// Create ApiHandler (llm service)
 		const config: ApiConfiguration = {
@@ -75,9 +82,10 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 		const localTier = new LocalModelTier()
 		try {
 			await localTier.initialize(context.extensionPath)
-			console.log("LocalModelTier initialized successfully.")
+			context.subscriptions.push(localTier) // Add localTier to subscriptions
+			logger.info("LocalModelTier initialized successfully.")
 		} catch (error) {
-			console.warn("Failed to initialize LocalModelTier:", error)
+			logger.warn("Failed to initialize LocalModelTier", error)
 			vscode.window.showWarningMessage(
 				"MageCode: Local model initialization failed. Falling back to cloud-only mode.",
 			)
@@ -88,46 +96,90 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 		const promptService = new PromptService()
 
 		// Initialize Orchestrator with tiers, router, and prompt service
-		const orchestrator = new MultiModelOrchestrator(cloudTier, localTier, modelRouter, promptService)
+		orchestrator = new MultiModelOrchestrator(cloudTier, localTier, modelRouter, promptService)
+		// Note: Orchestrator itself doesn't seem disposable, but we add a placeholder subscription
 		context.subscriptions.push({
 			dispose: () => {
+				logger.info("Disposing LLM Orchestrator related resources (if any).")
 				// Add cleanup if needed
 			},
 		})
-		console.log("LLM Orchestrator initialized successfully.")
+		logger.info("LLM Orchestrator initialized successfully.")
 	} catch (error) {
-		console.error("Failed to initialize LLM services:", error)
+		logger.error("Failed to initialize LLM services", error)
 		vscode.window.showErrorMessage(
 			"MageCode: Failed to initialize LLM services. Language model features may be unavailable.",
 		)
+		// If LLM services fail, orchestrator might be undefined. Handle this for SyncService.
 	}
 
-	// Register MageCode-specific commands and tools
-	registerMageCodeCommands(context)
-	registerMageCodeTools(context)
+	// Initialize Resource Governor
+	// TODO: Make governor config configurable via settings?
+	// Using defaults defined within ResourceGovernor for now, but passing interval.
+	const governorConfig: ResourceGovernorConfig = {
+		checkIntervalMs: 5000, // Example interval
+		// highLoadMarkRatio: 1.0, // Default in ResourceGovernor
+		// maxMemoryMb: 1024,      // Default in ResourceGovernor
+	}
+	const resourceGovernor = new ResourceGovernor(governorConfig)
+	context.subscriptions.push(resourceGovernor) // Add governor to subscriptions for its internal interval cleanup
+	logger.info("ResourceGovernor initialized.")
 
-	console.log("MageCode mode initialized successfully")
+	// Initialize SyncService (requires dependencies initialized above)
+	if (databaseManager && vectorIndex && embeddingService && orchestrator && vscode.workspace.workspaceFolders) {
+		const syncOptions: SyncServiceOptions = {
+			workspaceFolders: vscode.workspace.workspaceFolders,
+			// TODO: Make file patterns configurable?
+			filePatterns: ["**/*.{ts,js,py,md,json,java,go,rb,php,cs,cpp,c,h,hpp,html,css,scss,less}"], // Example patterns
+			ignorePatterns: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/out/**", "**/build/**"], // Example ignores
+			debounceMs: 1000, // Example debounce time
+			governorConfig: governorConfig, // Pass governor config
+		}
+		const syncService = new SyncService(
+			databaseManager,
+			vectorIndex,
+			embeddingService,
+			orchestrator, // Pass the initialized orchestrator
+			syncOptions,
+		)
+		try {
+			await syncService.initialize()
+			context.subscriptions.push(syncService) // Add SyncService itself for disposal
+			logger.info("SyncService initialized successfully.")
+		} catch (error) {
+			logger.error("Failed to initialize SyncService", error)
+			vscode.window.showErrorMessage("MageCode: Failed to initialize file synchronization service.")
+		}
+	} else {
+		logger.error(
+			"Skipping SyncService initialization due to missing dependencies (DB, VectorIndex, Embeddings, Orchestrator, or Workspace).",
+		)
+		vscode.window.showWarningMessage(
+			"MageCode: File synchronization service could not start due to missing components.",
+		)
+	}
+
+	// Register MageCode-specific commands
+	registerMageCodeCommands(context)
+	// Tool registration is handled by the factory/dependency injection setup
+	// registerMageCodeTools(context) // Remove this call
+
+	logger.info("MageCode mode initialized successfully")
 }
 
 // Placeholder functions for future implementation
 export function registerMageCodeCommands(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand("magecode.showSettings", () => {
+			logger.info("Executing command: magecode.showSettings")
 			// Create and show a new webview panel
 			new MageCodeSettingsView(context.extensionUri)
 		}),
 	)
-	console.log("MageCode commands registered.")
+	logger.info("MageCode commands registered.")
 }
 
-export function registerMageCodeTools(context: vscode.ExtensionContext) {
-	// Instantiate the Tool Registry
-	const toolRegistry = new ToolRegistry() // TODO: Make this instance accessible (e.g., return, export, singleton)
-
-	// Instantiate and register tools
-	const fileReader = new FileReader()
-	toolRegistry.registerTool(fileReader)
-
-	console.log("MageCode tools registered.")
-	// Future tools will be registered here
-}
+// Remove this function as tool registration should happen where dependencies are created
+// export function registerMageCodeTools(context: vscode.ExtensionContext) {
+// ... (function content removed) ...
+// }

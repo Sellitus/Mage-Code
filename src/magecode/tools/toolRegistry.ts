@@ -1,49 +1,53 @@
 // src/magecode/tools/toolRegistry.ts
 
 import { Tool, ToolDefinition } from "../interfaces/tool"
+import { logger } from "../utils/logging" // Import the logger
 
 /**
- * Manages the registration and retrieval of tools available to the agent.
+ * Manages the registration and retrieval of tools available to the MageCode agent.
+ * Allows tools conforming to the `Tool` interface to be registered and accessed by name.
  */
 export class ToolRegistry {
 	private readonly tools: Map<string, Tool> = new Map()
 
 	/**
-	 * Registers a new tool.
-	 * Throws an error if a tool with the same name is already registered.
-	 * @param tool - The tool instance to register.
+	 * Registers a new tool with the registry.
+	 * If a tool with the same name already exists, it logs a warning and overwrites the existing tool.
+	 * @param tool - The `Tool` instance to register.
 	 */
 	public registerTool(tool: Tool): void {
 		if (this.hasTool(tool.name)) {
 			// Consider whether to throw, warn, or allow overwriting based on project needs
-			console.warn(`ToolRegistry: Tool with name "${tool.name}" already registered. Overwriting.`)
+			logger.warn(`ToolRegistry: Tool with name "${tool.name}" already registered. Overwriting.`)
 			// throw new Error(`ToolRegistry: Tool with name "${tool.name}" already registered.`);
 		}
 		this.tools.set(tool.name, tool)
-		console.log(`ToolRegistry: Registered tool "${tool.name}"`)
+		logger.info(`ToolRegistry: Registered tool "${tool.name}"`)
 	}
 
 	/**
-	 * Retrieves a tool by its unique name.
+	 * Retrieves a registered tool instance by its unique name.
 	 * @param name - The name of the tool to retrieve.
-	 * @returns The tool instance, or undefined if not found.
+	 * @returns The `Tool` instance if found, otherwise `undefined`.
 	 */
 	public getTool(name: string): Tool | undefined {
 		return this.tools.get(name)
 	}
 
 	/**
-	 * Checks if a tool with the given name is registered.
-	 * @param name - The name of the tool to check.
-	 * @returns True if the tool is registered, false otherwise.
+	/**
+	 * Checks if a tool with the specified name has been registered.
+	 * @param name - The name of the tool to check for.
+	 * @returns `true` if a tool with the given name is registered, `false` otherwise.
 	 */
 	public hasTool(name: string): boolean {
 		return this.tools.has(name)
 	}
 
 	/**
-	 * Gets the definitions of all registered tools.
-	 * @returns An array of ToolDefinition objects.
+	 * Gets the definitions (name, description, input schema) of all registered tools.
+	 * This is typically used to provide the LLM with a list of available tools.
+	 * @returns An array of `ToolDefinition` objects.
 	 */
 	public getAllTools(): ToolDefinition[] {
 		const definitions: ToolDefinition[] = []

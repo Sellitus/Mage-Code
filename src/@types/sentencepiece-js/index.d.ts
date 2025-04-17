@@ -1,41 +1,14 @@
-/**
- * Type definitions for sentencepiece-js
- */
-
 declare module "sentencepiece-js" {
-	/**
-	 * SentencePiece tokenizer processor
-	 */
+	// Declare the SentencePieceProcessor class based on usage
 	export class SentencePieceProcessor {
-		/**
-		 * Creates a new instance of SentencePieceProcessor
-		 */
 		constructor()
-
-		/**
-		 * Loads a sentencepiece model from the given file path
-		 * @param modelPath Path to the model file
-		 */
-		load(modelPath: string): Promise<void>
-
-		/**
-		 * Encodes text into an array of token IDs
-		 * @param text Text to encode
-		 * @returns Array of token IDs
-		 */
-		encodeIds(text: string): number[]
-
-		/**
-		 * Decodes an array of token IDs back into text
-		 * @param ids Array of token IDs to decode
-		 * @returns Decoded text
-		 */
-		decode(ids: number[]): string
-
-		/**
-		 * Gets the vocabulary size of the model
-		 * @returns Number of tokens in vocabulary
-		 */
-		getVocabSize(): number
+		load(path: string): Promise<void> // Assuming load returns a Promise<void>
+		encodeIds(input: string): number[] // Based on usage in localModelTier.ts
+		decode(ids: number[]): string // Based on usage in localModelTier.ts
+		// Add other methods/properties if known or needed
 	}
+
+	// If there are other exports, declare them here.
+	// For example, if there's also a top-level load function:
+	// export function load(path: string): Promise<SentencePieceProcessor>;
 }

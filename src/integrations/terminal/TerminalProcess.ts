@@ -84,7 +84,7 @@
 */
 
 import { EventEmitter } from "events"
-import stripAnsi from "strip-ansi"
+// Removed static import for strip-ansi (ESM)
 import * as vscode from "vscode"
 import { inspect } from "util"
 
@@ -123,6 +123,8 @@ export class TerminalProcess extends EventEmitter<TerminalProcessEvents> {
 	private lastRetrievedIndex: number = 0
 	isHot: boolean = false
 	command: string = ""
+	private _stripAnsi: ((str: string) => string) | null = null
+
 	constructor(terminal: Terminal) {
 		super()
 
@@ -145,6 +147,11 @@ export class TerminalProcess extends EventEmitter<TerminalProcessEvents> {
 				this.continue()
 			}
 		})
+	}
+
+	// Add an async initializer to load dynamic imports
+	async initialize() {
+		this._stripAnsi = (await import("strip-ansi")).default
 	}
 
 	static interpretExitCode(exitCode: number | undefined): ExitCodeDetails {
@@ -611,7 +618,14 @@ export class TerminalProcess extends EventEmitter<TerminalProcessEvents> {
 	// should be carefully considered to ensure they only remove control codes and don't
 	// alter the actual content or behavior of the output stream.
 	private removeEscapeSequences(str: string): string {
-		return stripAnsi(str.replace(/\x1b\]633;[^\x07]+\x07/gs, "").replace(/\x1b\]133;[^\x07]+\x07/gs, ""))
+		if (!this._stripAnsi) {
+			// This should ideally not happen if initialize() is called correctly.
+			console.error("stripAnsi function not loaded. Call initialize() on TerminalProcess.")
+			// Fallback: return the original string without stripping ANSI codes.
+			return str.replace(/\x1b\]633;[^\x07]+\x07/gs, "").replace(/\x1b\]133;[^\x07]+\x07/gs, "")
+		}
+		// Use the dynamically loaded stripAnsi function
+		return this._stripAnsi(str.replace(/\x1b\]633;[^\x07]+\x07/gs, "").replace(/\x1b\]133;[^\x07]+\x07/gs, ""))
 	}
 
 	/**

@@ -2,8 +2,6 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import { ApiHandler } from ".."
 import { ModelInfo } from "../../shared/api"
 import { ApiStream } from "../transform/stream"
-import { Tiktoken } from "js-tiktoken/lite"
-import o200kBase from "js-tiktoken/ranks/o200k_base"
 
 // Reuse the fudge factor used in the original code
 const TOKEN_FUDGE_FACTOR = 1.5
@@ -12,8 +10,11 @@ const TOKEN_FUDGE_FACTOR = 1.5
  * Base class for API providers that implements common functionality
  */
 export abstract class BaseProvider implements ApiHandler {
-	// Cache the Tiktoken encoder instance since it's stateless
-	private encoder: Tiktoken | null = null
+	// Cache the Tiktoken encoder instance and the dynamically imported class/rank
+	private encoder: any | null = null
+	private TiktokenClass: any | null = null
+	private o200kBaseRank: any | null = null // Use 'any' as rank type isn't explicitly exported
+
 	abstract createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream
 	abstract getModel(): { id: string; info: ModelInfo }
 
@@ -32,9 +33,17 @@ export abstract class BaseProvider implements ApiHandler {
 
 		let totalTokens = 0
 
-		// Lazily create and cache the encoder if it doesn't exist
+		// Lazily import and create the encoder if it doesn't exist
 		if (!this.encoder) {
-			this.encoder = new Tiktoken(o200kBase)
+			if (!this.TiktokenClass || !this.o200kBaseRank) {
+				// Dynamically import Tiktoken and the rank data
+				const { Tiktoken } = await import("js-tiktoken/lite")
+				const { default: o200kBase } = await import("js-tiktoken/ranks/o200k_base")
+				this.TiktokenClass = Tiktoken
+				this.o200kBaseRank = o200kBase
+			}
+			// Now create the encoder instance
+			this.encoder = new this.TiktokenClass(this.o200kBaseRank)
 		}
 
 		// Process each content block using the cached encoder
@@ -43,7 +52,7 @@ export abstract class BaseProvider implements ApiHandler {
 				// Use tiktoken for text token counting
 				const text = block.text || ""
 				if (text.length > 0) {
-					const tokens = this.encoder.encode(text)
+					const tokens = this.encoder.encode(text) // Encoder is guaranteed to exist here
 					totalTokens += tokens.length
 				}
 			} else if (block.type === "image") {

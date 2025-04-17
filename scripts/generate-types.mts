@@ -3,7 +3,7 @@ import fs from "fs/promises"
 import { zodToTs, createTypeAlias, printNode } from "zod-to-ts"
 import { $ } from "execa"
 
-import schemas from "../src/schemas"
+import schemas from "../src/schemas/index.js" // Add index.js extension
 const { typeDefinitions } = schemas
 
 async function main() {

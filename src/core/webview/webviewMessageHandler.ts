@@ -1,6 +1,6 @@
 import * as path from "path"
 import fs from "fs/promises"
-import pWaitFor from "p-wait-for"
+// Removed static import for p-wait-for (ESM)
 import * as vscode from "vscode"
 
 import { ClineProvider } from "./ClineProvider"
@@ -471,7 +471,10 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				await provider.cancelTask()
 
 				try {
-					await pWaitFor(() => provider.getCurrentCline()?.isInitialized === true, { timeout: 3_000 })
+					// Use dynamic import for p-wait-for
+					await (
+						await import("p-wait-for")
+					).default(() => provider.getCurrentCline()?.isInitialized === true, { timeout: 3_000 })
 				} catch (error) {
 					vscode.window.showErrorMessage(t("common:errors.checkpoint_timeout"))
 				}

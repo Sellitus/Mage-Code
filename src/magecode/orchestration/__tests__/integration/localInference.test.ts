@@ -6,6 +6,7 @@ import { CloudModelTier } from "../../tiers/cloudModelTier"
 import { LocalModelTier } from "../../tiers/localModelTier"
 import * as ort from "onnxruntime-node"
 import * as settings from "../../../config/settings" // Added settings import
+import * as fs from "fs" // Import fs to mock it
 // Mock ONNX Runtime
 jest.mock("onnxruntime-node", () => {
 	const actualModule = jest.requireActual("onnxruntime-node")
@@ -39,6 +40,8 @@ jest.mock("sentencepiece-js", () => ({
 
 // Mock the settings module to prevent VS Code API calls
 jest.mock("../../../config/settings")
+// Mock fs module
+jest.mock("fs")
 const mockedGetModelPreference = jest.spyOn(settings, "getModelPreference")
 
 describe("Local Model Inference Integration", () => {
@@ -50,6 +53,8 @@ describe("Local Model Inference Integration", () => {
 	beforeEach(async () => {
 		// Clear all mocks before each test
 		jest.clearAllMocks()
+		// Mock fs.existsSync to return true for these integration tests
+		;(fs.existsSync as jest.Mock).mockReturnValue(true)
 		// Set default mock preference for tests
 		mockedGetModelPreference.mockReturnValue("auto")
 

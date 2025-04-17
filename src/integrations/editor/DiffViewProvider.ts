@@ -1,13 +1,15 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
+// Import types specifically since static import is removed
+import type { LinesOptions, Change } from "diff"
 import { createDirectoriesForFile } from "../../utils/fs"
 import { arePathsEqual } from "../../utils/path"
 import { formatResponse } from "../../core/prompts/responses"
 import { DecorationController } from "./DecorationController"
-import * as diff from "diff"
+// Removed static import for diff (ESM)
 import { diagnosticsToProblemsString, getNewDiagnostics } from "../diagnostics"
-import stripBom from "strip-bom"
+// Removed static import for strip-bom (ESM)
 
 export const DIFF_VIEW_URI_SCHEME = "cline-diff"
 
@@ -24,8 +26,17 @@ export class DiffViewProvider {
 	private activeLineController?: DecorationController
 	private streamedLines: string[] = []
 	private preDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = []
+	// Use imported types
+	private _diffLines: ((oldStr: string, newStr: string, options?: LinesOptions) => Change[]) | null = null
 
 	constructor(private cwd: string) {}
+
+	// Add an async initializer to load dynamic imports
+	async initialize() {
+		// Dynamically import diff and store diffLines
+		const diff = await import("diff")
+		this._diffLines = diff.diffLines
+	}
 
 	async open(relPath: string): Promise<void> {
 		this.relPath = relPath
@@ -105,7 +116,8 @@ export class DiffViewProvider {
 		const edit = new vscode.WorkspaceEdit()
 		const rangeToReplace = new vscode.Range(0, 0, endLine + 1, 0)
 		const contentToReplace = accumulatedLines.slice(0, endLine + 1).join("\n") + "\n"
-		edit.replace(document.uri, rangeToReplace, this.stripAllBOMs(contentToReplace))
+		// Use await since stripAllBOMs is now async
+		edit.replace(document.uri, rangeToReplace, await this.stripAllBOMs(contentToReplace))
 		await vscode.workspace.applyEdit(edit)
 		// Update decorations
 		this.activeLineController.setActiveLine(endLine)
@@ -132,7 +144,8 @@ export class DiffViewProvider {
 			finalEdit.replace(
 				document.uri,
 				new vscode.Range(0, 0, document.lineCount, 0),
-				this.stripAllBOMs(accumulatedContent),
+				// Use await since stripAllBOMs is now async
+				await this.stripAllBOMs(accumulatedContent),
 			)
 			await vscode.workspace.applyEdit(finalEdit)
 			// Clear all decorations at the end (after applying final edit)
@@ -324,7 +337,13 @@ export class DiffViewProvider {
 			return
 		}
 		const currentContent = this.activeDiffEditor.document.getText()
-		const diffs = diff.diffLines(this.originalContent || "", currentContent)
+		if (!this._diffLines) {
+			// This should ideally not happen if initialize() is called correctly.
+			console.error("diffLines function not loaded. Call initialize() on DiffViewProvider.")
+			return // Cannot scroll without diff function
+		}
+		// Use the dynamically loaded diffLines function
+		const diffs = this._diffLines(this.originalContent || "", currentContent)
 		let lineCount = 0
 		for (const part of diffs) {
 			if (part.added || part.removed) {
@@ -341,7 +360,10 @@ export class DiffViewProvider {
 		}
 	}
 
-	private stripAllBOMs(input: string): string {
+	// Make async to handle dynamic import
+	private async stripAllBOMs(input: string): Promise<string> {
+		// Dynamically import strip-bom
+		const stripBom = (await import("strip-bom")).default
 		let result = input
 		let previous
 		do {

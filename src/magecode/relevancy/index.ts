@@ -1,16 +1,19 @@
 import { RetrievedItem, ScoredItem, RetrievalOptions, ScoringOptions, IRetriever } from "./types"
 import { HybridScorer } from "./scoring/hybridScorer"
 import * as vscode from "vscode"
+import { logger } from "../utils/logging" // Import the logger
 
 /**
- * Main facade for the relevancy system that coordinates retrievers and scoring
+ * Main facade for the relevancy system. Coordinates various retrievers (vector, graph, etc.)
+ * and scoring mechanisms to find and rank code elements relevant to a given query and context.
+ * Implements `vscode.Disposable` for potential future cleanup needs.
  */
 export class RelevancyEngine implements vscode.Disposable {
 	/**
-	 * Create a new RelevancyEngine
-	 * @param vectorRetriever Retriever for vector-based search
-	 * @param graphRetriever Retriever for graph-based search
-	 * @param hybridScorer Scorer for combining and ranking results
+	 * Creates an instance of RelevancyEngine.
+	 * @param vectorRetriever - Retriever for vector-based similarity search.
+	 * @param graphRetriever - Retriever for graph-based traversal search.
+	 * @param hybridScorer - Scorer responsible for combining and ranking results from different retrievers.
 	 */
 	constructor(
 		private readonly vectorRetriever: IRetriever,
@@ -19,12 +22,18 @@ export class RelevancyEngine implements vscode.Disposable {
 	) {}
 
 	/**
-	 * Find relevant code items for a query
-	 * @param query Search query
-	 * @param options Retrieval options
-	 * @returns Ranked list of relevant code items
+	 * Finds and ranks relevant code items based on a query and retrieval options.
+	 * It retrieves items from configured sources (vector, graph) in parallel,
+	 * combines the results, and then scores them using the hybrid scorer.
+	 *
+	 * @param query - The search query string.
+	 * @param options - Options controlling the retrieval process (e.g., limits, context).
+	 * @returns A promise resolving to an array of scored and ranked relevant items.
+	 * @throws {Error} If a critical error occurs during retrieval or scoring (retriever errors are handled gracefully).
 	 */
 	async findRelevantCode(query: string, options: RetrievalOptions): Promise<ScoredItem[]> {
+		logger.info(`[RelevancyEngine] Finding relevant code for query: "${query.substring(0, 50)}..."`)
+		logger.debug("[RelevancyEngine] Retrieval options:", options)
 		try {
 			// Retrieve from all sources in parallel
 			const [vectorResults, graphResults] = await Promise.all([
@@ -32,11 +41,15 @@ export class RelevancyEngine implements vscode.Disposable {
 				this.safeRetrieve(this.graphRetriever, query, options),
 			])
 
+			logger.debug(
+				`[RelevancyEngine] Retrieved ${vectorResults.length} vector results, ${graphResults.length} graph results.`,
+			)
 			// Combine all results
 			const allResults = [...vectorResults, ...graphResults]
 
 			// Early return if no results found
 			if (allResults.length === 0) {
+				logger.info("[RelevancyEngine] No relevant items found by any retriever.")
 				return []
 			}
 
@@ -44,10 +57,15 @@ export class RelevancyEngine implements vscode.Disposable {
 			const scoringOptions: ScoringOptions = this.createScoringOptions(options)
 
 			// Score and rank the combined results
-			return this.hybridScorer.scoreItems(allResults, query, scoringOptions)
+			const scoredItems = this.hybridScorer.scoreItems(allResults, query, scoringOptions)
+			logger.info(`[RelevancyEngine] Scored ${scoredItems.length} items.`)
+			logger.debug("[RelevancyEngine] Top scored items:", scoredItems.slice(0, 5)) // Log top 5 for debugging
+			return scoredItems
 		} catch (error) {
-			console.error("Error in RelevancyEngine.findRelevantCode:", error)
-			throw new Error("Failed to find relevant code: " + (error as Error).message)
+			// Catch errors not handled by safeRetrieve (e.g., scoring errors)
+			logger.error("[RelevancyEngine] Critical error during findRelevantCode", error)
+			// Re-throw wrapped error? Or return empty? For now, re-throw.
+			throw new Error(`Failed to find relevant code: ${error instanceof Error ? error.message : String(error)}`)
 		}
 	}
 
@@ -65,7 +83,7 @@ export class RelevancyEngine implements vscode.Disposable {
 		try {
 			return await retriever.retrieve(query, options)
 		} catch (error) {
-			console.warn(`Retriever failed:`, error)
+			logger.warn(`Retriever failed`, error)
 			return [] // Return empty array instead of failing completely
 		}
 	}
@@ -89,9 +107,14 @@ export class RelevancyEngine implements vscode.Disposable {
 	}
 
 	/**
-	 * Clean up any resources
+	 * Disposes of any resources held by the engine or its components if necessary.
+	 * Currently, retrievers and scorers are assumed not to hold disposable resources directly,
+	 * but this provides the standard mechanism.
 	 */
 	dispose(): void {
-		// Clean up any resources if needed
+		logger.info("[RelevancyEngine] Disposing...")
+		// If retrievers or scorers become disposable, add their disposal here.
+		// e.g., if (this.vectorRetriever instanceof vscode.Disposable) this.vectorRetriever.dispose();
+		logger.info("[RelevancyEngine] Disposed.")
 	}
 }

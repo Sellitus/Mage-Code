@@ -3,6 +3,8 @@ import * as path from "path"
 import * as fs from "fs"
 import Database, { type Database as Db } from "better-sqlite3" // Use type import for clarity
 import { CodeElement, ElementRelation } from "../../interfaces"
+import { logger } from "../../utils/logging" // Import the logger
+import { DatabaseError, ConfigurationError } from "../../utils/errors" // Import custom errors
 
 interface DatabaseRow {
 	id: string
@@ -17,20 +19,32 @@ interface DatabaseRow {
 	metadata: string | null
 }
 
+/**
+ * Manages the SQLite database connection and operations for storing code intelligence data.
+ * Handles initialization, migrations, and CRUD operations for code elements and relations.
+ * Implements vscode.Disposable to ensure the database connection is closed properly.
+ */
 export class DatabaseManager implements vscode.Disposable {
 	private db: Db | undefined
 	private dbPath: string = ""
 
 	/**
-	 * Initializes the database connection, creates necessary directories, and runs migrations.
-	 * Throws an error if the workspace cannot be determined or the database cannot be opened.
+	 * Initializes the DatabaseManager. This involves:
+	 * - Determining the database path within the workspace's `.magecode` directory.
+	 * - Ensuring the storage directory exists.
+	 * - Opening the SQLite database connection.
+	 * - Running necessary schema migrations.
+	 * @throws {ConfigurationError} If no workspace folder is open.
+	 * @throws {DatabaseError} If the storage directory cannot be created or the database connection fails.
 	 */
 	public initialize(): void {
-		console.log("Initializing DatabaseManager...")
+		logger.info("Initializing DatabaseManager...")
 
 		const workspaceFolders = vscode.workspace.workspaceFolders
 		if (!workspaceFolders || workspaceFolders.length === 0) {
-			throw new Error("MageCode: Cannot initialize database without an open workspace.")
+			const msg = "MageCode: Cannot initialize database without an open workspace."
+			logger.error(msg)
+			throw new ConfigurationError(msg) // Use ConfigurationError
 		}
 		const rootPath = workspaceFolders[0].uri.fsPath
 
@@ -40,23 +54,26 @@ export class DatabaseManager implements vscode.Disposable {
 		try {
 			// Ensure the full path exists
 			fs.mkdirSync(storageDir, { recursive: true })
-			console.log(`Ensured directory exists: ${storageDir}`)
+			logger.info(`Ensured directory exists: ${storageDir}`)
 		} catch (error: any) {
-			console.error(`MageCode: Failed to create storage directory at ${storageDir}`, error)
-			throw new Error(`MageCode: Failed to create storage directory. ${error.message}`)
+			const msg = `MageCode: Failed to create storage directory at ${storageDir}`
+			logger.error(msg, error)
+			throw new DatabaseError(msg, error) // Use DatabaseError
 		}
 
 		this.dbPath = path.join(storageDir, "intelligence.db")
-		console.log(`Database path set to: ${this.dbPath}`)
+		logger.info(`Database path set to: ${this.dbPath}`)
 
 		try {
-			this.db = new Database(this.dbPath, { verbose: console.log }) // Add verbose logging for debugging
-			console.log("Database connection opened successfully.")
+			// Remove verbose console logging, rely on logger.debug if needed elsewhere
+			this.db = new Database(this.dbPath /* { verbose: logger.debug } */)
+			logger.info("Database connection opened successfully.")
 			this.runMigrations()
 		} catch (error: any) {
-			console.error(`MageCode: Failed to open or create database at ${this.dbPath}`, error)
+			const msg = `MageCode: Failed to open or create database at ${this.dbPath}`
+			logger.error(msg, error)
 			this.db = undefined // Ensure db is undefined on failure
-			throw new Error(`MageCode: Failed to open database. ${error.message}`)
+			throw new DatabaseError(msg, error) // Use DatabaseError
 		}
 	}
 
@@ -65,10 +82,10 @@ export class DatabaseManager implements vscode.Disposable {
 	 */
 	private runMigrations(): void {
 		if (!this.db) {
-			console.error("Migration skipped: Database connection is not available.")
+			logger.error("Migration skipped: Database connection is not available.")
 			return
 		}
-		console.log("Running database migrations...")
+		logger.info("Running database migrations...")
 
 		try {
 			// Schema for code elements
@@ -97,7 +114,7 @@ export class DatabaseManager implements vscode.Disposable {
 				);
 			`
 			this.db.exec(createTableSql)
-			console.log("Tables 'code_elements' and 'element_relations' ensured.")
+			logger.info("Tables 'code_elements' and 'element_relations' ensured.")
 
 			// Indices for faster lookups
 			const createIndexSql = `
@@ -116,7 +133,7 @@ export class DatabaseManager implements vscode.Disposable {
 					ON element_relations (relation_type);
 			`
 			this.db.exec(createIndexSql)
-			console.log("Indices for 'code_elements' and 'element_relations' ensured.")
+			logger.info("Indices for 'code_elements' and 'element_relations' ensured.")
 
 			// Add version tracking for future migrations
 			this.db.exec(`
@@ -126,12 +143,14 @@ export class DatabaseManager implements vscode.Disposable {
 				);
 				INSERT OR REPLACE INTO schema_version (version, applied_at) VALUES (1, ${Date.now()});
 			`)
+			logger.info("Schema version table ensured.")
 
-			console.log("Database migrations completed successfully.")
+			logger.info("Database migrations completed successfully.")
 		} catch (error: any) {
-			console.error("MageCode: Failed during database migration:", error)
+			const msg = "MageCode: Failed during database migration"
+			logger.error(msg, error)
 			// Depending on the error, might want to throw or handle differently
-			throw new Error(`MageCode: Database migration failed. ${error.message}`)
+			throw new DatabaseError(msg, error) // Use DatabaseError
 		}
 	}
 
@@ -142,21 +161,20 @@ export class DatabaseManager implements vscode.Disposable {
 	 * If you need true upsert based on a different key (e.g., file_path + name + type),
 	 * you might need a different strategy or adjust the schema/query.
 	 * For now, assuming we fetch existing IDs first or rely on PK replacement.
-	 *
-	 * @param elements An array of CodeElement objects to store.
+	 * @param elements - An array of CodeElement objects to store.
+	 * @throws {DatabaseError} If the database connection is not available.
 	 */
 	public storeCodeElements(elements: CodeElement[]): void {
 		if (!this.db) {
-			console.error("Cannot store elements: Database connection is not available.")
-			// Optionally throw an error or return a status
-			return
+			// Throw an error instead of just logging and returning
+			throw new DatabaseError("Cannot store elements: Database connection is not available.")
 		}
 		if (elements.length === 0) {
-			console.log("No elements provided to store.")
+			logger.info("No elements provided to store.")
 			return
 		}
 
-		console.log(`Storing ${elements.length} code elements...`)
+		logger.info(`Storing ${elements.length} code elements...`)
 
 		// Using INSERT OR REPLACE requires a unique constraint or PK.
 		// If elements have IDs, it will replace. If not, it inserts.
@@ -189,23 +207,26 @@ export class DatabaseManager implements vscode.Disposable {
 			})
 
 			insertMany(elements)
-			console.log(`Successfully stored ${elements.length} code elements.`)
+			logger.info(`Successfully stored ${elements.length} code elements.`)
 		} catch (error: any) {
-			console.error("MageCode: Failed to store code elements:", error)
-			// Optionally re-throw or handle
+			const msg = "MageCode: Failed to store code elements"
+			logger.error(msg, error)
+			// Optionally re-throw or handle, for now just log
+			// Consider throwing new DatabaseError(msg, error) if callers should handle this
 		}
 	}
 
 	/**
 	 * Retrieves a single code element by its primary key (ID).
 	 *
-	 * @param id The ID of the code element to retrieve.
-	 * @returns The CodeElement object if found, otherwise undefined.
+	 * @param id - The unique identifier of the code element.
+	 * @returns The `CodeElement` object if found, otherwise `undefined`.
+	 * @throws {DatabaseError} If the database connection is not available.
 	 */
 	public getCodeElementById(id: string): CodeElement | undefined {
 		if (!this.db) {
-			console.error("Cannot get element by ID: Database connection is not available.")
-			return undefined
+			// Throw an error instead of just logging and returning
+			throw new DatabaseError("Cannot get element by ID: Database connection is not available.")
 		}
 
 		try {
@@ -230,7 +251,10 @@ export class DatabaseManager implements vscode.Disposable {
 			}
 			return result
 		} catch (error: any) {
-			console.error(`MageCode: Failed to retrieve code element with ID ${id}:`, error)
+			const msg = `MageCode: Failed to retrieve code element with ID ${id}`
+			logger.error(msg, error)
+			// Optionally re-throw or handle, for now just log and return undefined
+			// Consider throwing new DatabaseError(msg, error)
 			return undefined
 		}
 	}
@@ -238,13 +262,14 @@ export class DatabaseManager implements vscode.Disposable {
 	/**
 	 * Retrieves all code elements associated with a specific file path.
 	 *
-	 * @param filePath The path of the file to retrieve elements for.
-	 * @returns An array of CodeElement objects found for the file path.
+	 * @param filePath - The absolute path of the file.
+	 * @returns An array of `CodeElement` objects associated with the file, ordered by start line. Returns an empty array if none are found or an error occurs during retrieval (errors are logged).
+	 * @throws {DatabaseError} If the database connection is not available.
 	 */
 	public getCodeElementsByFilePath(filePath: string): CodeElement[] {
 		if (!this.db) {
-			console.error("Cannot get elements by file path: Database connection is not available.")
-			return []
+			// Throw an error instead of just logging and returning
+			throw new DatabaseError("Cannot get elements by file path: Database connection is not available.")
 		}
 
 		try {
@@ -265,7 +290,10 @@ export class DatabaseManager implements vscode.Disposable {
 				metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
 			}))
 		} catch (error: any) {
-			console.error(`MageCode: Failed to retrieve code elements for file ${filePath}:`, error)
+			const msg = `MageCode: Failed to retrieve code elements for file ${filePath}`
+			logger.error(msg, error)
+			// Optionally re-throw or handle, for now just log and return empty array
+			// Consider throwing new DatabaseError(msg, error)
 			return []
 		}
 	}
@@ -274,36 +302,42 @@ export class DatabaseManager implements vscode.Disposable {
 	 * Deletes all code elements associated with a specific file path.
 	 * Useful when a file is deleted or needs a full refresh.
 	 *
-	 * @param filePath The path of the file whose elements should be deleted.
-	 * @returns The number of rows deleted.
+	 * @param filePath - The absolute path of the file whose elements should be deleted.
+	 * @returns The number of element rows deleted. Returns 0 if an error occurs (error is logged).
+	 * @throws {DatabaseError} If the database connection is not available.
 	 */
 	public deleteCodeElementsByFilePath(filePath: string): number {
 		if (!this.db) {
-			console.error("Cannot delete elements: Database connection is not available.")
-			return 0
+			// Throw an error instead of just logging and returning
+			throw new DatabaseError("Cannot delete elements: Database connection is not available.")
 		}
 
-		console.log(`Deleting code elements for file: ${filePath}`)
+		logger.info(`Deleting code elements for file: ${filePath}`)
 		try {
 			const stmt = this.db.prepare("DELETE FROM code_elements WHERE file_path = ?")
 			const info = stmt.run(filePath)
-			console.log(`Deleted ${info.changes} elements for file: ${filePath}`)
+			logger.info(`Deleted ${info.changes} elements for file: ${filePath}`)
 			return info.changes
 		} catch (error: any) {
-			console.error(`MageCode: Failed to delete code elements for file ${filePath}:`, error)
+			const msg = `MageCode: Failed to delete code elements for file ${filePath}`
+			logger.error(msg, error)
+			// Optionally re-throw or handle, for now just log and return 0
+			// Consider throwing new DatabaseError(msg, error)
 			return 0
 		}
 	}
 
 	/**
-	 * Closes the database connection when the extension is deactivated.
+	 * Closes the database connection if it is open.
+	 * This method is called automatically when the extension is deactivated
+	 * if the DatabaseManager instance is added to the `context.subscriptions`.
 	 */
 	public dispose(): void {
 		if (this.db && this.db.open) {
-			console.log("Closing database connection...")
+			logger.info("Closing database connection...")
 			this.db.close()
 			this.db = undefined
-			console.log("Database connection closed.")
+			logger.info("Database connection closed.")
 		}
 	}
 }
