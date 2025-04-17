@@ -1,133 +1,78 @@
-# MageCode Refinement Plan (Story 20)
+MageCode Implementation Plan (Post-Verification)
+This plan outlines the steps to address the gaps identified during the verification of Stories 1-7.
 
-**Goal:** Enhance the robustness, maintainability, and debuggability of the MageCode feature through comprehensive logging, improved error handling, code cleanup, configuration review, documentation updates, and thorough testing.
+Phase 1: Fix HybridScorer Logic & Tests (Highest Priority)
+Correct HybridScorer.scoreItems Implementation:
+File: src/magecode/relevancy/scoring/hybridScorer.ts
+Action: Remove the hardcoded test logic within the scoreItems method.
+Implement:
+Calculate an initial score for each RetrievedItem based on its item.score and item.source, applying weights from options.weights (or DEFAULT_WEIGHTS).
+Apply boost factors (proximity, recency) based on options.boost by calling the respective scorer methods (this.scorers.get(...)). Adjust the initial weighted score based on the boost.
+Call this.removeDuplicates() on the list of items after initial scoring and boosting.
+Sort the final, unique ScoredItem list based on finalScore in descending order.
+Update hybridScorer.test.ts:
+File: src/magecode/relevancy/scoring/**tests**/hybridScorer.test.ts
+Action: Review and update existing tests to align with the corrected logic. Ensure they test:
+Correct application of default and custom weights.
+Correct application of proximity and recency boosts.
+Correct handling and score combination for duplicate items.
+Correct final sorting based on score.
+Add: New test cases for edge scenarios if needed.
+Phase 2: Implement Missing Unit Tests (Can be parallelized)
+(Create .test.ts files in the corresponding **tests** or tests/unit/... directories)
 
-**Context:**
-
-- The `src/magecode/` directory contains a substantial implementation covering local intelligence, orchestration, relevancy, agent logic, and tools.
-- Current logging relies heavily on `console.*` calls.
-- Several `TODO` comments exist, indicating known areas for improvement.
-- A preliminary search suggests `try...catch` blocks might be sparse, highlighting the need for a focused error handling review.
-
-**Proposed Plan:**
-
-**Phase 1: Foundational Improvements (Logging & Error Handling)**
-
-1.  **Implement Dedicated Logger (`src/magecode/utils/logging.ts`):**
-
-    - Create a `Logger` utility using `vscode.window.createOutputChannel("MageCode")`.
-    - Provide standard logging methods: `debug()`, `info()`, `warn()`, `error()`.
-    - Consider adding context (e.g., component name) to log messages automatically.
-    - Establish a singleton instance or a clear way to access the logger throughout the `src/magecode/` module (addressing the `TODO` in `initialize.ts` regarding instance accessibility might be relevant here).
-    - **Action:** Replace all existing `console.*` calls within `src/magecode/` (excluding test mocks) with the new `Logger` methods, using appropriate levels.
-    - **Action:** Add specific, informative logs as outlined in the story:
-        - Initialization steps and timings (`initialize.ts`, `factory.ts`, component constructors).
-        - `SyncService`: File processing start/end/errors, queue status.
-        - Cache hits/misses (`EmbeddingService`, `MMO`).
-        - `MMO`: Routing decisions, tier requests/fallbacks.
-        - `Agent`: Planning steps, step execution start/end, tool usage.
-        - `ToolRegistry` & Tools: Execution start/end, arguments, results/errors.
-        - Significant errors encountered across all components.
-
-2.  **Enhance Error Handling:**
-    - **Action:** Define custom error classes (e.g., `MageCodeError`, `ParsingError`, `EmbeddingError`, `ToolExecutionError`, `DatabaseError`, `VectorIndexError`, `ApiError`) in `src/magecode/utils/errors.ts` (create if needed).
-    - **Action:** Systematically review critical code paths for potential failures:
-        - File I/O (`fs` operations in `SyncService`, `VectorIndex`, `DatabaseManager`, `FileReaderTool`).
-        - Database operations (`DatabaseManager`).
-        - Vector index operations (`VectorIndex`).
-        - Parsing (`MageParser`).
-        - Embedding generation (`EmbeddingService`, potentially external model calls).
-        - Model inference calls (`LocalModelTier`, `CloudModelTier`).
-        - Tool execution (`Agent`, `ToolRegistry`).
-        - API interactions (if any).
-    - **Action:** Implement `try...catch` blocks around these operations.
-    - **Action:** In `catch` blocks:
-        - Log the error with context using the new `Logger.error()`.
-        - Throw or wrap the error using the custom error types.
-        - Decide on graceful handling: propagate the error, return a specific error state/result, or show a user-facing message (`vscode.window.showErrorMessage`/`showWarningMessage`) where appropriate. Avoid letting errors crash the extension host.
-    - **Action:** Review external dependencies and consider adding timeouts (e.g., using `Promise.race` with a timeout promise) for operations like model inference or potentially slow file operations.
-
-**Phase 2: Code Quality & Configuration**
-
-3.  **Code Review & Refactoring:**
-
-    - **Action:** Address all `TODO` comments identified in the search.
-    - **Action:** Perform a general code review focusing on:
-        - Clarity, readability, and consistent naming conventions.
-        - Simplifying overly complex functions or classes.
-        - Removing dead code (unused imports, variables, functions, commented-out blocks).
-    - **Action:** Verify correct `Disposable` management. Ensure resources like DB connections (`DatabaseManager`), file watchers (`SyncService`), and potentially ONNX sessions (`LocalModelTier`) are registered in `context.subscriptions` (usually in `initialize.ts` or `factory.ts`) or have their own `dispose` methods called correctly.
-
-4.  **Configuration Review:**
-    - **Action:** Search the codebase for hardcoded values (timeouts, cache sizes/TTLs, processing limits, retry counts, model names/endpoints if any).
-    - **Action:** Evaluate if these should be configurable via VS Code settings, particularly those related to performance or resource usage (e.g., cache sizes, processing limits). Target `roo-code.magecode.localProcessing` or create new sub-sections as needed.
-    - **Action:** If new settings are added:
-        - Update `package.json` (`contributes.configuration`).
-        - Update `src/magecode/config/settings.ts` to read and potentially watch these settings.
-        - Update `src/magecode/settings/settingsViewProvider.ts` if UI changes are needed (referencing Story 17).
-        - Replace hardcoded values with calls to the configuration service.
-
-**Phase 3: Documentation & Verification**
-
-5.  **Documentation:**
-
-    - **Action:** Add/update TSDoc comments for all public classes, methods, and interfaces within `src/magecode/`. Explain the purpose, parameters, and return values.
-    - **Action:** Create `src/magecode/README.md`. Include:
-        - A brief explanation of MageCode's purpose within Roo-Code.
-        - A high-level overview of the main components (LCIE, Relevancy, MMO, Agent, Tools) and their responsibilities.
-        - A simple Mermaid diagram illustrating component interactions (see example below).
-
-    ```mermaid
-    graph TD
-        subgraph User Interaction
-            UI(VS Code UI / Commands)
-        end
-
-        subgraph Roo-Code Core
-            Ext(extension.ts) --> CP(ClineProvider.ts)
-        end
-
-        subgraph MageCode (src/magecode)
-            Init(initialize.ts) --> Factory(factory.ts)
-
-            Factory --> Agent(Agent)
-            Factory --> MMO(MMO)
-            Factory --> LCIE(LCIE)
-            Factory --> Relevancy(RelevancyEngine)
-            Factory --> ToolReg(ToolRegistry)
-            Factory --> Logger(Logger)
-
-            Agent --> MMO; Agent --> Relevancy; Agent --> ToolReg; Agent --> Logger
-
-            MMO --> LocalTier(LocalModelTier); MMO --> CloudTier(CloudModelTier); MMO --> Logger
-
-            Relevancy --> VectorRet(VectorRetriever); Relevancy --> GraphRet(GraphRetriever); Relevancy --> Logger
-            VectorRet --> LCIE; GraphRet --> LCIE
-
-            LCIE --> SyncSvc(SyncService); LCIE --> EmbedSvc(EmbeddingService); LCIE --> Parser(MageParser); LCIE --> VectorIdx(VectorIndex); LCIE --> DBMgr(DatabaseManager); LCIE --> Logger
-
-            SyncSvc --> Parser; SyncSvc --> EmbedSvc; SyncSvc --> VectorIdx; SyncSvc --> DBMgr; SyncSvc --> Logger
-
-            ToolReg -- Registers --> Tools(FileReaderTool, etc); ToolReg --> Logger
-            Tools --> Logger
-
-            subgraph Utils (src/magecode/utils)
-                Logger(Logger); Errors(Custom Errors)
-            end
-        end
-
-        UI --> Ext
-        CP --> Init
-    ```
-
-6.  **Final Integration Check:**
-    - **Action:** Use `git status` and `git diff` to meticulously verify that no files outside `src/magecode/` have been modified, _except_ for the allowed integration points (`extension.ts`, `src/core/providers/cline/ClineProvider.ts`).
-
-**Phase 4: Testing & Completion**
-
-7.  **Testing:**
-    - **Action:** Review existing unit and integration tests (`src/magecode/tests/`, `**/__tests__/`). Improve clarity and add tests for areas with low coverage.
-    - **Action:** Write specific tests for the new error handling paths (e.g., mock functions to throw errors and assert that they are caught, logged, and handled correctly).
-    - **Action:** Perform thorough manual testing of the end-to-end MageCode flow: invoke commands, trigger file changes (save, delete, rename), observe the "MageCode" output channel, check for expected behavior and error messages. Try edge cases and invalid inputs.
-    - **Action:** Run the complete automated test suite (`npm test` or equivalent).
-    - **Action:** Iterate: Fix any bugs or test failures. Repeat testing until all tests pass and manual testing indicates stability.
+settings.ts:
+File: src/magecode/tests/unit/config/settings.test.ts
+Coverage: isMageCodeEnabled, registerModeChangeListener. Mock vscode.workspace.getConfiguration and onDidChangeConfiguration.
+DatabaseManager:
+File: src/magecode/tests/unit/intelligence/storage/databaseManager.test.ts
+Coverage: initialize (mock FS, workspace), runMigrations (mock DB exec), CRUD methods (storeCodeElements, getCodeElementById, getCodeElementsByFilePath, deleteCodeElementsByFilePath) (mock DB prepare/run/get/all), dispose. Use mocks for better-sqlite3.
+MageParser:
+File: src/magecode/tests/unit/intelligence/parser/mageParser.test.ts
+Coverage: initialize (mock Parser.init), detectLanguage, loadLanguage (mock FS, Parser.Language.load), getParserForLanguage, parseFile (mock FS, dependencies, parser.parse), extractCodeElements (provide mock AST nodes, verify extracted elements/relations).
+EmbeddingService:
+File: src/magecode/tests/unit/intelligence/embedding/embeddingService.test.ts
+Coverage: getInstance, initialize (mock FS, ORT, Tokenizer), generateEmbeddings (mock session/tokenizer, test caching), clearCache, clearCacheForFile, helper functions (meanPool, l2Normalize).
+VectorIndex (Test against mocks first):
+File: src/magecode/tests/unit/intelligence/vector/vectorIndex.test.ts
+Coverage: Constructor, initialize (mock FS, mapping load, index init), mapping load/save (mock FS), addEmbeddings, search, removeEmbeddingsByFile (verify mapping logic against mocked index calls), dispose.
+GraphRetriever:
+File: src/magecode/relevancy/retrievers/**tests**/graphRetriever.test.ts
+Coverage: retrieve method. Mock the ILocalCodeIntelligence dependency and its searchGraph method. Verify input arguments and output transformation.
+SyncService:
+File: src/magecode/tests/unit/intelligence/sync/syncService.test.ts
+Coverage: Test individual methods (initialize, handleFileChange, dispatchTask, etc.) by mocking dependencies (DB, VectorIndex, Embeddings, WorkerPool, Governor, FS, Globby, VSCode API). This will require extensive mocking.
+RelevancyEngine:
+File: src/magecode/relevancy/**tests**/relevancyEngine.test.ts
+Coverage: findRelevantCode. Mock retrievers and scorer dependencies. Verify parallel retrieval, result combination, and call to the scorer.
+Phase 3: Integrate and Test VectorIndex
+Remove Mocks in VectorIndex:
+File: src/magecode/intelligence/vector/vectorIndex.ts
+Action: Replace mock logic in initializeFaiss, initializeVoy, and methods like add, search, remove, write, serialize with actual calls to faiss-node and voy-search. Ensure dynamic imports (await import(...)) are used correctly for these potentially heavy or platform-specific libraries. Add robust error handling around library loading and calls.
+Add VectorIndex Integration Tests:
+Directory: src/magecode/tests/integration/intelligence/vector/ (Create if needed)
+Action: Create tests that initialize VectorIndex with real data.
+Coverage:
+Test index creation, saving, and loading from disk (for both FAISS/Voy if possible, potentially skipping based on platform).
+Test adding a batch of embeddings.
+Test searching for nearest neighbors and verifying results.
+Test removing embeddings by file path.
+Test persistence of the mapping file alongside the index file.
+Phase 4: Implement Missing Integration Tests
+Parsing/Storage Coordination (SyncService):
+Directory: src/magecode/tests/integration/intelligence/sync/ (Create if needed)
+Action: Create tests that simulate a mini-workspace.
+Coverage:
+Initialize SyncService with real (or near-real) dependencies (Parser, DBManager, potentially mocked Embedding/VectorIndex if needed for focus).
+Run initialScan on the test workspace and verify the DatabaseManager contains the expected CodeElement data.
+Simulate file creation, modification, and deletion events and verify SyncService correctly updates the DatabaseManager (adds, updates, deletes elements). Test ignore patterns.
+Relevancy Engine Flow:
+Directory: src/magecode/tests/integration/relevancy/ (Create if needed)
+Action: Create tests that exercise the full RelevancyEngine.
+Coverage:
+Set up prerequisite data in a test DatabaseManager and VectorIndex.
+Initialize RelevancyEngine with real retrievers and the fixed HybridScorer.
+Call findRelevantCode with different queries and context options.
+Verify the final ranked list of ScoredItem objects matches expectations based on the test data and scoring logic.
+Visual Plan
+graph TD subgraph Phase 1: Fix Scorer A[Fix HybridScorer.scoreItems Logic] --> B(Update hybridScorer.test.ts); end subgraph Phase 2: Unit Tests direction LR C[settings] --> D[DBManager]; D --> E[MageParser]; E --> F[EmbeddingSvc]; F --> G[VectorIndex(mock)]; G --> H[GraphRetriever]; H --> I[SyncService]; I --> J[RelevancyEngine]; end subgraph Phase 3: Vector Index Integration K[Remove VectorIndex Mocks] --> L(Implement Real FAISS/Voy Calls); L --> M(Add VectorIndex Integration Tests); end subgraph Phase 4: Integration Tests N[Add SyncService Integration Tests] O[Add RelevancyEngine Integration Tests] end B --> C; J --> K; M --> N; N --> O; style A fill:#f9d,stroke:#333,stroke-width:2px style L fill:#f9d,stroke:#333,stroke-width:2px

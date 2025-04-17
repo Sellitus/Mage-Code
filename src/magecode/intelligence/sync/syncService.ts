@@ -14,7 +14,7 @@ import { MultiModelOrchestrator } from "../../orchestration" // Added import
 import { ResourceGovernor, ResourceGovernorConfig } from "../../utils/resourceGovernor" // Corrected path
 import { logger } from "../../utils/logging" // Corrected relative path relative to magecode/utils
 import { sleep } from "../../../utils/sleep" // Correct path relative to src/utils
-import { CodeElement } from "../../interfaces" // Import CodeElement type
+import { CodeElement } from "../types" // Import CodeElement type from intelligence types
 
 // Interface for results coming back from the worker
 interface SyncWorkerResult {

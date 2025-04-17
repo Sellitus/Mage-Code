@@ -2,7 +2,8 @@ import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs"
 import Database, { type Database as Db } from "better-sqlite3" // Use type import for clarity
-import { CodeElement, ElementRelation } from "../../interfaces"
+import { CodeElement, ElementType } from "../types" // Import CodeElement/ElementType from intelligence types
+import { ElementRelation } from "../../interfaces" // Import ElementRelation from interfaces
 import { logger } from "../../utils/logging" // Import the logger
 import { DatabaseError, ConfigurationError } from "../../utils/errors" // Import custom errors
 
@@ -198,7 +199,7 @@ export class DatabaseManager implements vscode.Disposable {
 						content: elem.content,
 						start_line: elem.startLine,
 						end_line: elem.endLine,
-						last_modified: elem.lastModified ? Math.floor(elem.lastModified) : Date.now(),
+						last_modified: Date.now(), // Use current time as lastModified doesn't exist on input type
 						parent_id: elem.parentId ?? null,
 						metadata: elem.metadata ? JSON.stringify(elem.metadata) : null,
 					}
@@ -224,6 +225,7 @@ export class DatabaseManager implements vscode.Disposable {
 	 * @throws {DatabaseError} If the database connection is not available.
 	 */
 	public getCodeElementById(id: string): CodeElement | undefined {
+		// Return type uses the imported CodeElement
 		if (!this.db) {
 			// Throw an error instead of just logging and returning
 			throw new DatabaseError("Cannot get element by ID: Database connection is not available.")
@@ -238,14 +240,14 @@ export class DatabaseManager implements vscode.Disposable {
 			const result: CodeElement = {
 				id: row.id,
 				filePath: row.file_path,
-				type: row.type,
+				type: row.type as ElementType, // Cast string to ElementType
 				name: row.name,
 				content: row.content,
 				startLine: row.start_line,
 				endLine: row.end_line,
-				lastModified: row.last_modified,
-				startPosition: { line: row.start_line, column: 0 },
-				endPosition: { line: row.end_line, column: 0 },
+				// lastModified: row.last_modified, // Property doesn't exist on target type
+				// startPosition: { line: row.start_line, column: 0 }, // Property doesn't exist on target type
+				// endPosition: { line: row.end_line, column: 0 }, // Property doesn't exist on target type
 				parentId: row.parent_id ?? undefined,
 				metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
 			}
@@ -267,6 +269,7 @@ export class DatabaseManager implements vscode.Disposable {
 	 * @throws {DatabaseError} If the database connection is not available.
 	 */
 	public getCodeElementsByFilePath(filePath: string): CodeElement[] {
+		// Return type uses the imported CodeElement
 		if (!this.db) {
 			// Throw an error instead of just logging and returning
 			throw new DatabaseError("Cannot get elements by file path: Database connection is not available.")
@@ -275,20 +278,23 @@ export class DatabaseManager implements vscode.Disposable {
 		try {
 			const stmt = this.db.prepare("SELECT * FROM code_elements WHERE file_path = ? ORDER BY start_line")
 			const rows = stmt.all(filePath) as DatabaseRow[]
-			return rows.map((row) => ({
-				id: row.id,
-				filePath: row.file_path,
-				type: row.type,
-				name: row.name,
-				content: row.content,
-				startLine: row.start_line,
-				endLine: row.end_line,
-				lastModified: row.last_modified,
-				startPosition: { line: row.start_line, column: 0 },
-				endPosition: { line: row.end_line, column: 0 },
-				parentId: row.parent_id ?? undefined,
-				metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
-			}))
+			return rows.map(
+				(row): CodeElement => ({
+					// Explicit return type for map callback
+					id: row.id,
+					filePath: row.file_path,
+					type: row.type as ElementType, // Cast string to ElementType
+					name: row.name,
+					content: row.content,
+					startLine: row.start_line,
+					endLine: row.end_line,
+					// lastModified: row.last_modified, // Property doesn't exist on target type
+					// startPosition: { line: row.start_line, column: 0 }, // Property doesn't exist on target type
+					// endPosition: { line: row.end_line, column: 0 }, // Property doesn't exist on target type
+					parentId: row.parent_id ?? undefined,
+					metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+				}),
+			)
 		} catch (error: any) {
 			const msg = `MageCode: Failed to retrieve code elements for file ${filePath}`
 			logger.error(msg, error)

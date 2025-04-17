@@ -1,7 +1,7 @@
 jest.mock("vscode") // Mock the entire vscode module
 
 import { DatabaseManager } from "../databaseManager"
-import type { CodeElement } from "../../../interfaces"
+import { CodeElement, ElementType } from "../../types" // Updated import
 import * as vscode from "vscode"
 import * as fs from "fs"
 import * as path from "path"
@@ -238,41 +238,42 @@ describe("DatabaseManager", () => {
 	})
 
 	describe("with initialized DB", () => {
+		// Updated test data to match intelligence/types.ts CodeElement
 		const element1: CodeElement = {
 			id: "1",
 			filePath: "/test/file1.ts",
-			type: "function",
+			type: "function", // Valid ElementType
 			name: "func1",
 			content: "() => {}",
 			startLine: 1,
 			endLine: 3,
-			lastModified: Date.now(),
-			startPosition: { line: 1, column: 0 },
-			endPosition: { line: 3, column: 0 },
+			// lastModified removed
+			// startPosition removed
+			// endPosition removed
 		}
 		const element2: CodeElement = {
 			id: "2",
 			filePath: "/test/file1.ts",
-			type: "variable",
+			type: "variable", // Valid ElementType
 			name: "var1",
 			content: " = 1",
 			startLine: 5,
 			endLine: 5,
-			lastModified: Date.now(),
-			startPosition: { line: 5, column: 0 },
-			endPosition: { line: 5, column: 0 },
+			// lastModified removed
+			// startPosition removed
+			// endPosition removed
 		}
 		const element3: CodeElement = {
 			id: "3",
 			filePath: "/test/file2.ts",
-			type: "class",
+			type: "class", // Valid ElementType
 			name: "MyClass",
 			content: "class {}",
 			startLine: 10,
 			endLine: 20,
-			lastModified: Date.now(),
-			startPosition: { line: 10, column: 0 },
-			endPosition: { line: 20, column: 0 },
+			// lastModified removed
+			// startPosition removed
+			// endPosition removed
 		}
 
 		// Remove nested beforeEach; initialize() will be called in each test
@@ -305,9 +306,9 @@ describe("DatabaseManager", () => {
 				// Mock prepare/run for the initial insert if needed, or assume it works
 				mockStatement.run.mockClear() // Clear previous calls if any
 				// Simulate initial insert for setup (doesn't actually insert in mock)
-				const initialElement = { ...element1, id: "1" }
+				const initialElement: CodeElement = { ...element1, id: "1" } // Explicit type
 				dbManager.storeCodeElements([initialElement])
-				const initialId = 1 // Assume an ID for testing replace
+				const initialId = "1" // Use string ID
 
 				// Clear mocks before the call under test
 				mockStatement.run.mockClear()
@@ -316,10 +317,11 @@ describe("DatabaseManager", () => {
 
 				// Create updated element with the same ID
 				const updatedElement1: CodeElement = {
+					// Explicit type
 					...element1,
-					id: initialId.toString(),
+					id: initialId, // Use string ID
 					content: "updated content",
-					lastModified: Date.now() + 1000, // Ensure different timestamp
+					// lastModified removed
 				}
 
 				dbManager.storeCodeElements([updatedElement1])
@@ -329,7 +331,7 @@ describe("DatabaseManager", () => {
 				expect(mockStatement.run).toHaveBeenCalledTimes(1)
 				expect(mockStatement.run).toHaveBeenCalledWith(
 					expect.objectContaining({
-						id: initialId.toString(),
+						id: initialId, // Use string ID
 						name: updatedElement1.name,
 						content: "updated content",
 					}),
@@ -339,6 +341,7 @@ describe("DatabaseManager", () => {
 			it("should insert a new element if ID is provided but does not exist", () => {
 				dbManager.initialize() // Initialize here
 				const elementWithNonExistentId: CodeElement = {
+					// Explicit type
 					...element1,
 					id: "999", // Non-existent ID
 				}
@@ -360,61 +363,60 @@ describe("DatabaseManager", () => {
 			})
 			it("should store and retrieve elements with parent_id and metadata", () => {
 				dbManager.initialize()
-				const parentElement = {
+				// Define elements using the correct CodeElement type
+				const parentElementData: CodeElement = {
 					id: "42",
-					file_path: "/test/file3.ts",
-					type: "class",
+					filePath: "/test/file3.ts",
+					type: "class", // Valid ElementType
 					name: "ParentClass",
 					content: "class ParentClass {}",
-					start_line: 0,
-					end_line: 10,
-					last_modified: Date.now(),
-					parent_id: null,
-					metadata: JSON.stringify({ visibility: "public" }),
+					startLine: 0,
+					endLine: 10,
+					metadata: { visibility: "public" },
 				}
-				const childElement = {
+				const childElementData: CodeElement = {
 					id: "43",
-					file_path: "/test/file3.ts",
-					type: "method",
+					filePath: "/test/file3.ts",
+					type: "method", // Valid ElementType
 					name: "childMethod",
 					content: "method() {}",
-					start_line: 2,
-					end_line: 4,
-					last_modified: Date.now(),
-					parent_id: "42",
-					metadata: JSON.stringify({ returnType: "void" }),
+					startLine: 2,
+					endLine: 4,
+					parentId: "42",
+					metadata: { returnType: "void" },
 				}
-				dbManager.storeCodeElements([
-					{
-						id: parentElement.id,
-						filePath: parentElement.file_path,
-						type: parentElement.type,
-						name: parentElement.name,
-						content: parentElement.content,
-						startLine: parentElement.start_line,
-						endLine: parentElement.end_line,
-						lastModified: parentElement.last_modified,
-						startPosition: { line: parentElement.start_line, column: 0 },
-						endPosition: { line: parentElement.end_line, column: 0 },
-						metadata: JSON.parse(parentElement.metadata),
-					},
-					{
-						id: childElement.id,
-						filePath: childElement.file_path,
-						type: childElement.type,
-						name: childElement.name,
-						content: childElement.content,
-						startLine: childElement.start_line,
-						endLine: childElement.end_line,
-						lastModified: childElement.last_modified,
-						startPosition: { line: childElement.start_line, column: 0 },
-						endPosition: { line: childElement.end_line, column: 0 },
-						parentId: childElement.parent_id,
-						metadata: JSON.parse(childElement.metadata),
-					},
-				])
-				expect(mockStatement.run).toHaveBeenCalledWith(expect.objectContaining(parentElement))
-				expect(mockStatement.run).toHaveBeenCalledWith(expect.objectContaining(childElement))
+
+				dbManager.storeCodeElements([parentElementData, childElementData])
+
+				// Check that run was called with data matching the DB schema
+				expect(mockStatement.run).toHaveBeenCalledWith(
+					expect.objectContaining({
+						id: "42",
+						file_path: "/test/file3.ts",
+						type: "class",
+						name: "ParentClass",
+						content: "class ParentClass {}",
+						start_line: 0,
+						end_line: 10,
+						parent_id: null, // parentId is null for parent
+						metadata: JSON.stringify({ visibility: "public" }),
+						// last_modified will be Date.now()
+					}),
+				)
+				expect(mockStatement.run).toHaveBeenCalledWith(
+					expect.objectContaining({
+						id: "43",
+						file_path: "/test/file3.ts",
+						type: "method",
+						name: "childMethod",
+						content: "method() {}",
+						start_line: 2,
+						end_line: 4,
+						parent_id: "42", // parentId is set for child
+						metadata: JSON.stringify({ returnType: "void" }),
+						// last_modified will be Date.now()
+					}),
+				)
 			})
 		})
 
@@ -442,18 +444,20 @@ describe("DatabaseManager", () => {
 				// Assert
 				expect(mockDbInstance.prepare).toHaveBeenCalledWith("SELECT * FROM code_elements WHERE id = ?")
 				expect(mockStatement.get).toHaveBeenCalledWith(targetId)
+				// Assert against the expected CodeElement structure (no lastModified, start/endPosition)
 				expect(retrieved).toEqual({
 					id: mockDbRow.id,
 					content: mockDbRow.content,
 					filePath: mockDbRow.file_path,
-					type: mockDbRow.type,
+					type: mockDbRow.type as ElementType, // Cast type from DB
 					name: mockDbRow.name,
 					startLine: mockDbRow.start_line,
 					endLine: mockDbRow.end_line,
-					lastModified: mockDbRow.last_modified,
-					startPosition: { line: mockDbRow.start_line, column: 0 },
-					endPosition: { line: mockDbRow.end_line, column: 0 },
+					// lastModified removed
+					// startPosition removed
+					// endPosition removed
 					metadata: JSON.parse(mockDbRow.metadata),
+					parentId: undefined, // Assuming parent_id was null in mockDbRow
 				})
 			})
 
@@ -509,19 +513,21 @@ describe("DatabaseManager", () => {
 					"SELECT * FROM code_elements WHERE file_path = ? ORDER BY start_line",
 				)
 				expect(mockStatement.all).toHaveBeenCalledWith(filePath)
+				// Assert against the expected CodeElement structure
 				expect(retrieved).toEqual(
 					mockDbRows.map((row) => ({
 						id: row.id,
 						content: row.content,
 						filePath: row.file_path,
-						type: row.type,
+						type: row.type as ElementType, // Cast type from DB
 						name: row.name,
 						startLine: row.start_line,
 						endLine: row.end_line,
-						lastModified: row.last_modified,
-						startPosition: { line: row.start_line, column: 0 },
-						endPosition: { line: row.end_line, column: 0 },
+						// lastModified removed
+						// startPosition removed
+						// endPosition removed
 						metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+						parentId: undefined, // Assuming parent_id was null in mockDbRows
 					})),
 				)
 			})

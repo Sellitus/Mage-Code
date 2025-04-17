@@ -4,6 +4,7 @@ import { registerModeChangeListener } from "./config/settings"
 import { FileReader } from "./tools/fileReader" // Added import
 import { ToolRegistry } from "./tools/toolRegistry" // Added import
 import { DatabaseManager } from "./intelligence/storage/databaseManager"
+import { VectorIndex } from "./intelligence/vector/vectorIndex"
 import { EmbeddingService } from "./intelligence/embedding/embeddingService"
 import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
 import { LocalModelTier } from "./orchestration/tiers/localModelTier"
@@ -35,7 +36,6 @@ export async function initializeMageCode(context: vscode.ExtensionContext) {
 	}
 
 	// Initialize VectorIndex
-	const { VectorIndex } = await import("./intelligence/vector/vectorIndex.js") // Add .js extension
 	const vectorIndex = new VectorIndex()
 	try {
 		await vectorIndex.initialize(context)

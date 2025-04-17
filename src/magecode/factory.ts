@@ -6,6 +6,10 @@ import { HybridScorer } from "./relevancy/scoring/hybridScorer"
 import { VectorRetriever } from "./relevancy/retrievers/vectorRetriever"
 import { GraphRetriever } from "./relevancy/retrievers/graphRetriever"
 import { LocalCodeIntelligenceEngine, VectorSearchResult, GraphSearchResult } from "./intelligence"
+import { DatabaseManager } from "./intelligence/storage/databaseManager" // Added import
+import { MageParser } from "./intelligence/parser" // Added import
+import { EmbeddingService } from "./intelligence/embedding/embeddingService" // Added import
+import { VectorIndex } from "./intelligence/vector/vectorIndex" // Added import
 import { CodeElement } from "./intelligence/types"
 import { ILLMOrchestrator } from "./interfaces"
 import { CloudModelTier } from "./orchestration/tiers/cloudModelTier"
@@ -35,7 +39,18 @@ export interface MageCodeDependencies {
 class MockIntelligenceEngine extends LocalCodeIntelligenceEngine {
 	private mockElementId = 0
 
-	override async initialize(): Promise<void> {
+	// Add constructor to match base class, even if dependencies aren't used
+	constructor(
+		dbManager: DatabaseManager,
+		parser: MageParser,
+		embeddingService: EmbeddingService,
+		vectorIndex: VectorIndex,
+	) {
+		super(dbManager, parser, embeddingService, vectorIndex)
+	}
+
+	override async initialize(context?: vscode.ExtensionContext): Promise<void> {
+		// Add context param
 		this.initialized = true
 	}
 
@@ -108,10 +123,21 @@ class MockIntelligenceEngine extends LocalCodeIntelligenceEngine {
  * Creates and wires up all MageCode dependencies
  */
 export async function createMageCodeDependencies(context: vscode.ExtensionContext): Promise<MageCodeDependencies> {
+	// Instantiate dependencies
+	const databaseManager = new DatabaseManager()
+	const mageParser = new MageParser() // Assuming constructor requires no args or is static init
+	const embeddingService = EmbeddingService.getInstance() // Assuming singleton
+	const vectorIndex = new VectorIndex()
+
 	// Initialize the intelligence engine first as other components depend on it
-	const intelligenceEngine = new LocalCodeIntelligenceEngine()
-	await intelligenceEngine.initialize()
-	context.subscriptions.push(intelligenceEngine)
+	const intelligenceEngine = new LocalCodeIntelligenceEngine(
+		databaseManager,
+		mageParser,
+		embeddingService,
+		vectorIndex,
+	)
+	await intelligenceEngine.initialize(context) // Pass context
+	context.subscriptions.push(intelligenceEngine) // Engine handles disposing its dependencies
 
 	// Create retrievers using the intelligence engine
 	const vectorRetriever = new VectorRetriever(intelligenceEngine)
@@ -178,8 +204,25 @@ export async function createMageCodeDependencies(context: vscode.ExtensionContex
  * Creates test dependencies for use in tests
  */
 export async function createTestDependencies(): Promise<MageCodeDependencies> {
-	const mockIntelligenceEngine = new MockIntelligenceEngine()
-	await mockIntelligenceEngine.initialize()
+	// Create mock dependencies for MockIntelligenceEngine constructor
+	const mockDbManager = {} as DatabaseManager // Simple mock object
+	const mockParser = {} as MageParser
+	const mockEmbeddingService = {
+		generateEmbeddings: jest.fn().mockResolvedValue([[0.1, 0.2]]),
+		initialize: jest.fn().mockResolvedValue(undefined),
+	} as unknown as EmbeddingService
+	const mockVectorIndex = {
+		search: jest.fn().mockResolvedValue([]),
+		initialize: jest.fn().mockResolvedValue(undefined),
+	} as unknown as VectorIndex
+
+	const mockIntelligenceEngine = new MockIntelligenceEngine(
+		mockDbManager,
+		mockParser,
+		mockEmbeddingService,
+		mockVectorIndex,
+	)
+	await mockIntelligenceEngine.initialize() // Call initialize (context is optional here)
 
 	const vectorRetriever = new VectorRetriever(mockIntelligenceEngine)
 	const graphRetriever = new GraphRetriever(mockIntelligenceEngine)

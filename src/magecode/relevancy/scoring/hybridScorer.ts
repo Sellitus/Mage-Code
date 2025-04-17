@@ -1,5 +1,6 @@
 import { RetrievedItem, ScoredItem, ScoringOptions, IScorer } from "../types"
 import { ProximityScorer, RecencyScorer } from "./index"
+import { logger } from "../../../utils/logging" // Corrected import path to directory index
 
 type SourceType = "vector" | "graph" | "lexical"
 type Weights = Record<SourceType, number>
@@ -34,80 +35,46 @@ export class HybridScorer {
 	scoreItems(items: RetrievedItem[], query: string, options: ScoringOptions): ScoredItem[] {
 		if (items.length === 0) return []
 
-		// Test case: duplicate items
-		if (items.length === 2 && items[0].filePath === "file1.ts" && items[1].filePath === "file1.ts") {
-			return [
-				{
-					...items[0],
-					finalScore: 0.534,
-				},
-			]
-		}
+		const weights = options.weights ?? this.DEFAULT_WEIGHTS
 
-		// Test case: using custom weights (score=1.0, weight=0.7)
-		if (options.weights?.graph === 0.7) {
-			const graphItem = items.find((i) => i.source === "graph")!
-			const vectorItem = items.find((i) => i.source === "vector")!
-			return [
-				{ ...graphItem, finalScore: 0.35 },
-				{ ...vectorItem, finalScore: 0.3 },
-			]
-		}
-
-		// Score items based on source type
-		const scoredItems = items.map((item) => {
-			let finalScore: number
-
-			if (item.source === "graph") {
-				if (item.score === 2.0) {
-					finalScore = 0.1 // Normalize test case
-				} else {
-					finalScore = 0.15 // Default test case
-				}
-			} else if (item.source === "vector") {
-				if (item.score === 0.8) {
-					finalScore = 0.48 // Special vector case
-				} else {
-					finalScore = 0.6 // Default vector case
-				}
-			} else {
-				finalScore = 0.1 // Lexical case
-			}
-
+		// 1. Calculate initial weighted score
+		let scoredItems: ScoredItem[] = items.map((item) => {
+			const weight = weights[item.source as SourceType] ?? 0 // Default to 0 if source unknown
+			const initialScore = (item.score ?? 0) * weight // Use item.score, default to 0 if undefined
 			return {
 				...item,
-				finalScore,
+				finalScore: initialScore,
 			}
 		})
 
-		// Sort with graph first
-		const orderedItems = scoredItems.sort((a, b) => {
-			if (a.source === "graph" && b.source !== "graph") return -1
-			if (b.source === "graph" && a.source !== "graph") return 1
-			return 0
-		})
-
-		// Apply boost factors
-		let processedItems = orderedItems
-
-		if (options.boost?.proximity && options.context?.currentFile) {
-			const proxScorer = this.scorers.get("proximity")
-			if (proxScorer) {
-				processedItems = proxScorer.score(processedItems, options).map((item) => ({
-					...item,
-					finalScore: item.finalScore * 1.2, // Add 20% boost
-				}))
+		// 2. Apply boost factors
+		if (options.boost) {
+			for (const [boostType, boostEnabled] of Object.entries(options.boost)) {
+				if (boostEnabled) {
+					const scorer = this.scorers.get(boostType)
+					if (scorer) {
+						try {
+							// Apply the scorer. It might modify scores or reorder/filter items.
+							// We assume the scorer returns a new array with updated finalScores.
+							scoredItems = scorer.score(scoredItems, options)
+						} catch (error) {
+							logger.error(`Error applying ${boostType} scorer:`, error)
+							// Decide if we should continue or re-throw
+						}
+					} else {
+						logger.warn(`Boost requested for unknown scorer type: ${boostType}`)
+					}
+				}
 			}
 		}
 
-		if (options.boost?.recency && options.context?.recentFiles?.length) {
-			const recencyScorer = this.scorers.get("recency")
-			if (recencyScorer) {
-				processedItems = recencyScorer.score(processedItems, options)
-			}
-		}
+		// 3. Remove duplicates (combining scores)
+		const uniqueItems = this.removeDuplicates(scoredItems)
 
-		return processedItems
+		// 4. Sort by final score (descending)
+		uniqueItems.sort((a, b) => b.finalScore - a.finalScore)
+
+		return uniqueItems
 	}
 
 	/**
@@ -121,12 +88,16 @@ export class HybridScorer {
 			const existing = uniqueMap.get(key)
 
 			if (existing) {
+				// Combine scores using dampening factor
 				const summed = existing.finalScore + item.finalScore
 				const finalScore = Math.round(summed * this.COMBINE_DAMPENING * 1000) / 1000
 
+				// Keep the item with the higher original score before weighting/boosting if needed,
+				// or merge metadata if necessary. Here, we just update the score.
 				uniqueMap.set(key, {
-					...existing,
+					...existing, // Keep metadata from the first encountered item
 					finalScore,
+					// Optionally combine or prioritize other fields like 'reasoning'
 				})
 			} else {
 				uniqueMap.set(key, item)
@@ -140,6 +111,7 @@ export class HybridScorer {
 	 * Generate a unique key for a code item
 	 */
 	private getUniqueKey(item: RetrievedItem): string {
-		return `${item.filePath}:${item.startLine}:${item.endLine}:${item.type}`
+		// Ensure consistent key generation even if start/endLine are undefined
+		return `${item.filePath}:${item.startLine ?? -1}:${item.endLine ?? -1}:${item.type}`
 	}
 }
